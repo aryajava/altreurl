@@ -4,7 +4,7 @@ Altreurl is a Chromium Extension for backend developers who need to route applic
 
 The extension can redirect request URLs, modify request headers, and handle `Authorization` or session cookie forwarding through configurable rules.
 
-Current version: `1.7.0`
+Current version: `1.7.1`
 
 ## Features
 
@@ -80,15 +80,20 @@ Use manual mode when you want to type the `Authorization` value and custom heade
 
 Use sync mode when you want Altreurl to learn credential values from a matching source request.
 
-Recommended flow:
+Request learning flow:
 
 1. Set `Credential mode` to `Sync from source`.
-2. Choose which values to sync: headers, `Authorization`, or session cookies.
-3. Save rules.
-4. Trigger one matching source request from the original app.
-5. Reload or retry the app flow so the redirected request can use the captured values.
+2. Choose `Request learning` as the credential source.
+3. Choose which values to sync: headers, `Authorization`, or session cookies.
+4. Save rules.
+5. Trigger one matching source request from the original app.
+6. Reload or retry the app flow so the redirected request can use the captured values.
 
 When a rule is waiting for captured values, the options page shows a learning status.
+
+If credentials are not available from browser storage or cookies, the first matching request must be used for learning. In that case, the first run captures credentials and the next run applies the redirect with those captured values.
+
+Two-step flow is only possible when the required credential values can be primed before the first redirected request, such as from `localStorage`, `sessionStorage`, or cookies.
 
 Credential source options:
 
