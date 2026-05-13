@@ -135,11 +135,11 @@ function getFilteredRules() {
 
       return matchesQuery && matchesStatus && matchesCredential;
     })
-    .sort((leftRule, rightRule) => getRuleCreatedAt(rightRule) - getRuleCreatedAt(leftRule));
+    .sort((leftRule, rightRule) => getRuleUpdatedAt(rightRule) - getRuleUpdatedAt(leftRule));
 }
 
-function getRuleCreatedAt(rule) {
-  const timestamp = Date.parse(rule.createdAt || "");
+function getRuleUpdatedAt(rule) {
+  const timestamp = Date.parse(rule.modifiedAt || rule.createdAt || "");
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
@@ -337,6 +337,7 @@ async function saveCurrentRule(saveButton) {
     saveButton.disabled = true;
     saveButton.textContent = "Saving...";
     updateSelectedRuleFromEditor();
+    touchSelectedRule();
     await saveRedirectRules(rules);
     await applyRules(rules);
     notify("Rule saved", "success");
@@ -347,6 +348,11 @@ async function saveCurrentRule(saveButton) {
     saveButton.disabled = false;
     saveButton.textContent = "Save Rule";
   }
+}
+
+function touchSelectedRule() {
+  const modifiedAt = new Date().toISOString();
+  rules = rules.map((rule) => rule.id === selectedRuleId ? { ...rule, modifiedAt } : rule);
 }
 
 addRuleButton.addEventListener("click", () => {
