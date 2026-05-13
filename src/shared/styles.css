@@ -1,54 +1,54 @@
 :root {
   color-scheme: light;
   font-family: Arial, sans-serif;
-  --bg: #f8f5f0;
-  --panel: #fffdf8;
-  --panel-soft: #f0f7f4;
-  --text: #243039;
-  --muted: #667783;
-  --line: #d8e4df;
-  --accent: #4b8f8c;
-  --accent-soft: #d9f0ec;
-  --danger: #b65d64;
-  --danger-soft: #fde5e5;
-  --success: #4f8a67;
-  --success-soft: #dff3e7;
-  --shadow: 0 12px 30px rgba(91, 111, 124, 0.14);
+  --bg: #f7fbfc;
+  --panel: #ffffff;
+  --panel-soft: #d6e6f2;
+  --text: #263445;
+  --muted: #506780;
+  --line: #b9d7ea;
+  --accent: #769fcd;
+  --accent-soft: #d6e6f2;
+  --danger: #9f5f75;
+  --danger-soft: #f2d6df;
+  --success: #5f9f8a;
+  --success-soft: #d6f2e6;
+  --shadow: 0 12px 30px rgba(118, 159, 205, 0.2);
 }
 
 :root[data-color-scheme="dark"] {
   color-scheme: dark;
-  --bg: #171b22;
-  --panel: #222a32;
-  --panel-soft: #283740;
-  --text: #edf3f0;
-  --muted: #a7b7bf;
-  --line: #3a4a52;
-  --accent: #91d2c8;
-  --accent-soft: #24443f;
-  --danger: #f0a0a6;
-  --danger-soft: #4d2b32;
-  --success: #9bd6ab;
-  --success-soft: #294433;
-  --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --bg: #404258;
+  --panel: #474e68;
+  --panel-soft: #50577a;
+  --text: #f7fbfc;
+  --muted: #d6e6f2;
+  --line: #6b728e;
+  --accent: #b9d7ea;
+  --accent-soft: #50577a;
+  --danger: #f2b9c8;
+  --danger-soft: #6b4051;
+  --success: #b9ead8;
+  --success-soft: #406b5b;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-color-scheme]) {
     color-scheme: dark;
-    --bg: #171b22;
-    --panel: #222a32;
-    --panel-soft: #283740;
-    --text: #edf3f0;
-    --muted: #a7b7bf;
-    --line: #3a4a52;
-    --accent: #91d2c8;
-    --accent-soft: #24443f;
-    --danger: #f0a0a6;
-    --danger-soft: #4d2b32;
-    --success: #9bd6ab;
-    --success-soft: #294433;
-    --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    --bg: #404258;
+    --panel: #474e68;
+    --panel-soft: #50577a;
+    --text: #f7fbfc;
+    --muted: #d6e6f2;
+    --line: #6b728e;
+    --accent: #b9d7ea;
+    --accent-soft: #50577a;
+    --danger: #f2b9c8;
+    --danger-soft: #6b4051;
+    --success: #b9ead8;
+    --success-soft: #406b5b;
+    --shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
   }
 }
 
