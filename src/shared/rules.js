@@ -46,6 +46,41 @@ function buildRegexSubstitutionFromWildcard(targetUrl) {
     .join("");
 }
 
+function stripRegexAnchors(regexPattern) {
+  return regexPattern.replace(/^\^/, "").replace(/\$$/, "");
+}
+
+function unescapeRegexLiterals(regexPattern) {
+  return regexPattern.replace(/\\([\\^$*+?.()|[\]{}])/g, "$1");
+}
+
+function buildWildcardFromRegexFilter(regexPattern) {
+  return unescapeRegexLiterals(stripRegexAnchors(regexPattern).replace(/\(\.\*\??\)/g, WILDCARD));
+}
+
+function buildWildcardFromRegexSubstitution(targetUrl) {
+  return targetUrl.replace(/\\[1-9]\d*/g, WILDCARD).replace(/\$[1-9]\d*/g, WILDCARD);
+}
+
+export function convertPatternFormat(value, fromPatternType, toPatternType, fieldType) {
+  const fromType = normalizePatternType(fromPatternType);
+  const toType = normalizePatternType(toPatternType);
+
+  if (!value || fromType === toType) {
+    return value;
+  }
+
+  if (fromType === PATTERN_TYPES.wildcard && toType === PATTERN_TYPES.regex) {
+    return fieldType === "target" ? buildRegexSubstitutionFromWildcard(value) : buildRegexFilterFromWildcard(value);
+  }
+
+  if (fromType === PATTERN_TYPES.regex && toType === PATTERN_TYPES.wildcard) {
+    return fieldType === "target" ? buildWildcardFromRegexSubstitution(value) : buildWildcardFromRegexFilter(value);
+  }
+
+  return value;
+}
+
 export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
     return {

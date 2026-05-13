@@ -1,4 +1,4 @@
-import { PATTERN_TYPES, createBlankRule } from "../shared/rules.js";
+import { PATTERN_TYPES, convertPatternFormat, createBlankRule } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 
 const rulesList = document.querySelector("#rulesList");
@@ -56,14 +56,28 @@ function renderRule(rule) {
   const fragment = ruleTemplate.content.cloneNode(true);
   const card = fragment.querySelector(".rule-card");
   const headersContainer = card.querySelector('[data-role="headers"]');
+  const patternTypeInput = card.querySelector('[data-field="patternType"]');
+  const sourcePatternInput = card.querySelector('[data-field="sourcePattern"]');
+  const targetUrlInput = card.querySelector('[data-field="targetUrl"]');
 
   card.dataset.ruleId = rule.id || crypto.randomUUID();
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   card.querySelector('[data-field="name"]').value = rule.name || "";
-  card.querySelector('[data-field="patternType"]').value = rule.patternType || PATTERN_TYPES.wildcard;
-  card.querySelector('[data-field="sourcePattern"]').value = rule.sourcePattern || "";
-  card.querySelector('[data-field="targetUrl"]').value = rule.targetUrl || "";
+  card.dataset.patternType = rule.patternType || PATTERN_TYPES.wildcard;
+  patternTypeInput.value = card.dataset.patternType;
+  sourcePatternInput.value = rule.sourcePattern || "";
+  targetUrlInput.value = rule.targetUrl || "";
   card.querySelector('[data-field="authorization"]').value = rule.authorization || "";
+
+  patternTypeInput.addEventListener("change", () => {
+    const fromType = card.dataset.patternType || PATTERN_TYPES.wildcard;
+    const toType = patternTypeInput.value;
+
+    sourcePatternInput.value = convertPatternFormat(sourcePatternInput.value.trim(), fromType, toType, "source");
+    targetUrlInput.value = convertPatternFormat(targetUrlInput.value.trim(), fromType, toType, "target");
+    card.dataset.patternType = toType;
+    setStatus(`Pattern converted to ${toType}`);
+  });
 
   (rule.headers || []).forEach((header) => {
     headersContainer.append(renderHeader(header));
