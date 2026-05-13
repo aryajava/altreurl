@@ -1,8 +1,8 @@
-# Request URL Redirector
+# Altreurl
 
 Chromium extension for backend developers who need to debug an application against local or alternate backend endpoints.
 
-Version `1.6.2` provides a Manifest V3 foundation for redirecting request URLs and modifying request headers, including `Authorization`, through Chrome's `declarativeNetRequest` dynamic rules.
+Version `1.6.3` provides a Manifest V3 foundation for redirecting request URLs and modifying request headers, including `Authorization`, through Chrome's `declarativeNetRequest` dynamic rules.
 
 Each rule can use either `Wildcard` or `Regex` pattern format. Switching the format converts existing source and target values between wildcard and regex syntax where possible.
 Rules can use manual credentials or sync source request headers, `Authorization`, and session cookies after the extension observes a matching source request.

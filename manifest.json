@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Request URL Redirector",
-  "description": "Redirect request URLs and override headers for local backend debugging.",
-  "version": "1.6.2",
+  "name": "Altreurl",
+  "description": "Altreurl - Smart URL Router",
+  "version": "1.6.3",
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Request URL Redirector"
+    "default_title": "Altreurl"
   },
   "background": {
     "service_worker": "src/background/service-worker.js",

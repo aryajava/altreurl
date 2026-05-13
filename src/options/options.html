@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request URL Redirector Options</title>
+    <title>Altreurl Options</title>
     <link rel="stylesheet" href="../shared/styles.css">
   </head>
   <body>
     <main class="options-shell">
       <header class="page-header">
         <div>
-          <h1>Request URL Redirector</h1>
+          <h1>Altreurl</h1>
           <p>Manage local debugging redirects and request header overrides.</p>
         </div>
         <button id="addRule" type="button">Add rule</button>
@@ -22,10 +22,10 @@
             <strong>Rules</strong>
             <span id="ruleCount"></span>
           </div>
-          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="true">
-            Hide search and filters
+          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false">
+            Show search and filters
           </button>
-          <div id="ruleListControls" class="rule-list-controls">
+          <div id="ruleListControls" class="rule-list-controls" hidden>
             <input id="ruleSearch" type="search" placeholder="Search rules">
             <select id="statusFilter" aria-label="Status filter">
               <option value="all">All statuses</option>
