@@ -4,6 +4,10 @@ export const PATTERN_TYPES = {
   wildcard: "wildcard",
   regex: "regex"
 };
+export const CREDENTIAL_MODES = {
+  manual: "manual",
+  sync: "sync"
+};
 const UNSYNCED_HEADER_NAMES = new Set([
   "connection",
   "content-length",
@@ -31,6 +35,16 @@ export function normalizePatternType(patternType) {
   return Object.values(PATTERN_TYPES).includes(patternType) ? patternType : PATTERN_TYPES.wildcard;
 }
 
+export function normalizeCredentialMode(rule) {
+  if (Object.values(CREDENTIAL_MODES).includes(rule?.credentialMode)) {
+    return rule.credentialMode;
+  }
+
+  return Boolean(rule?.syncHeaders || rule?.syncAuthorization || rule?.syncCookies)
+    ? CREDENTIAL_MODES.sync
+    : CREDENTIAL_MODES.manual;
+}
+
 export function isSyncableHeaderName(headerName) {
   const normalizedName = String(headerName || "").trim().toLowerCase();
   return normalizedName && !UNSYNCED_HEADER_NAMES.has(normalizedName) && normalizedName !== "authorization";
@@ -41,7 +55,8 @@ export function normalizeSyncedHeaders(headers = []) {
 }
 
 export function hasSyncEnabled(rule) {
-  return Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+  return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
+    Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
 }
 
 export function isWaitingForSyncCapture(rule) {
@@ -267,8 +282,8 @@ export function buildDynamicRules(configRules = []) {
         syncedHeaders,
         syncedAuthorization,
         syncedCookieHeader,
-        manualAuthorization,
-        normalizeHeaderRows(rule.headers)
+        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? manualAuthorization : [],
+        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? normalizeHeaderRows(rule.headers) : []
       );
 
       const patternType = normalizePatternType(rule.patternType);
@@ -319,6 +334,7 @@ export function createBlankRule() {
     name: "Local backend",
     enabled: true,
     patternType: PATTERN_TYPES.wildcard,
+    credentialMode: CREDENTIAL_MODES.manual,
     syncHeaders: false,
     syncAuthorization: false,
     syncCookies: false,

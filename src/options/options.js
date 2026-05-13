@@ -1,5 +1,6 @@
 import {
   PATTERN_TYPES,
+  CREDENTIAL_MODES,
   convertPatternFormat,
   createBlankRule,
   hasSyncEnabled,
@@ -35,9 +36,13 @@ function readRulesFromDom() {
     name: card.querySelector('[data-field="name"]').value.trim(),
     enabled: card.querySelector('[data-field="enabled"]').checked,
     patternType: card.querySelector('[data-field="patternType"]').value,
-    syncHeaders: card.querySelector('[data-field="syncHeaders"]').checked,
-    syncAuthorization: card.querySelector('[data-field="syncAuthorization"]').checked,
-    syncCookies: card.querySelector('[data-field="syncCookies"]').checked,
+    credentialMode: card.querySelector('[data-field="credentialMode"]').value,
+    syncHeaders: card.querySelector('[data-field="credentialMode"]').value === CREDENTIAL_MODES.sync &&
+      card.querySelector('[data-field="syncHeaders"]').checked,
+    syncAuthorization: card.querySelector('[data-field="credentialMode"]').value === CREDENTIAL_MODES.sync &&
+      card.querySelector('[data-field="syncAuthorization"]').checked,
+    syncCookies: card.querySelector('[data-field="credentialMode"]').value === CREDENTIAL_MODES.sync &&
+      card.querySelector('[data-field="syncCookies"]').checked,
     sourcePattern: card.querySelector('[data-field="sourcePattern"]').value.trim(),
     targetUrl: card.querySelector('[data-field="targetUrl"]').value.trim(),
     authorization: card.querySelector('[data-field="authorization"]').value.trim(),
@@ -70,8 +75,12 @@ function renderRule(rule) {
   const card = fragment.querySelector(".rule-card");
   const headersContainer = card.querySelector('[data-role="headers"]');
   const patternTypeInput = card.querySelector('[data-field="patternType"]');
+  const credentialModeInput = card.querySelector('[data-field="credentialMode"]');
   const sourcePatternInput = card.querySelector('[data-field="sourcePattern"]');
   const targetUrlInput = card.querySelector('[data-field="targetUrl"]');
+  const manualAuthorization = card.querySelector('[data-role="manualAuthorization"]');
+  const manualHeaders = card.querySelector('[data-role="manualHeaders"]');
+  const syncOptions = card.querySelector('[data-role="syncOptions"]');
 
   card.dataset.ruleId = rule.id || crypto.randomUUID();
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
@@ -82,6 +91,7 @@ function renderRule(rule) {
   card.dataset.syncedCookieHeader = rule.syncedCookieHeader || "";
   card.dataset.lastSyncedAt = rule.lastSyncedAt || "";
   patternTypeInput.value = card.dataset.patternType;
+  credentialModeInput.value = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
   sourcePatternInput.value = rule.sourcePattern || "";
   targetUrlInput.value = rule.targetUrl || "";
   card.querySelector('[data-field="authorization"]').value = rule.authorization || "";
@@ -89,6 +99,7 @@ function renderRule(rule) {
   card.querySelector('[data-field="syncAuthorization"]').checked = Boolean(rule.syncAuthorization);
   card.querySelector('[data-field="syncCookies"]').checked = Boolean(rule.syncCookies);
   card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
+  updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
 
   patternTypeInput.addEventListener("change", () => {
     const fromType = card.dataset.patternType || PATTERN_TYPES.wildcard;
@@ -98,6 +109,10 @@ function renderRule(rule) {
     targetUrlInput.value = convertPatternFormat(targetUrlInput.value.trim(), fromType, toType, "target");
     card.dataset.patternType = toType;
     setStatus(`Pattern converted to ${toType}`);
+  });
+
+  credentialModeInput.addEventListener("change", () => {
+    updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
   });
 
   (rule.headers || []).forEach((header) => {
@@ -131,6 +146,14 @@ function getSyncStatus(rule) {
   return rule.lastSyncedAt
     ? `Last synced ${new Date(rule.lastSyncedAt).toLocaleString()}`
     : "Ready";
+}
+
+function updateCredentialModeVisibility(credentialMode, manualAuthorization, manualHeaders, syncOptions) {
+  const isSyncMode = credentialMode === CREDENTIAL_MODES.sync;
+
+  manualAuthorization.hidden = isSyncMode;
+  manualHeaders.hidden = isSyncMode;
+  syncOptions.hidden = !isSyncMode;
 }
 
 async function applyRules(savedRules) {

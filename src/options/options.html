@@ -58,11 +58,19 @@
         </label>
 
         <label>
+          Credential mode
+          <select data-field="credentialMode">
+            <option value="manual">Manual</option>
+            <option value="sync">Sync from source</option>
+          </select>
+        </label>
+
+        <label data-role="manualAuthorization">
           Authorization
           <input data-field="authorization" type="text" placeholder="Bearer local-token">
         </label>
 
-        <fieldset class="sync-block">
+        <fieldset class="sync-block" data-role="syncOptions">
           <legend>Sync from source request</legend>
           <label>
             <input data-field="syncHeaders" type="checkbox">
@@ -79,7 +87,7 @@
           <span data-role="syncStatus" class="sync-status"></span>
         </fieldset>
 
-        <div class="headers-block">
+        <div class="headers-block" data-role="manualHeaders">
           <div class="headers-block__title">
             <strong>Headers</strong>
             <button data-action="addHeader" type="button">Add header</button>
