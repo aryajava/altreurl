@@ -2,24 +2,25 @@ import { getRedirectRules } from "../shared/storage.js";
 import {
   applyDynamicRules,
   buildSourceMatcher,
+  hasSyncEnabled,
   isSyncableHeaderName,
+  isWaitingForSyncCapture,
   normalizeHeaderRows
 } from "../shared/rules.js";
 
 const CAPTURE_FILTER = { urls: ["<all_urls>"] };
 const CAPTURE_OPTIONS = ["requestHeaders", "extraHeaders"];
-let captureListenerRegistered = false;
+
+chrome.webRequest.onBeforeSendHeaders.addListener(captureSourceRequest, CAPTURE_FILTER, CAPTURE_OPTIONS);
 
 chrome.runtime.onInstalled.addListener(async () => {
   const rules = await getRedirectRules();
   await applyDynamicRules(rules);
-  refreshCaptureListener(rules);
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   const rules = await getRedirectRules();
   await applyDynamicRules(rules);
-  refreshCaptureListener(rules);
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -28,7 +29,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   applyDynamicRules(message.rules || [])
-    .then(() => refreshCaptureListener(message.rules || []))
     .then(() => sendResponse({ ok: true }))
     .catch((error) => sendResponse({ ok: false, error: error.message }));
 
@@ -40,26 +40,8 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  refreshCaptureListener(changes.redirectRules.newValue || []);
+  applyDynamicRules(changes.redirectRules.newValue || []);
 });
-
-function refreshCaptureListener(rules) {
-  const hasSyncRules = rules.some((rule) => rule.enabled && hasSyncEnabled(rule));
-
-  if (hasSyncRules && !captureListenerRegistered) {
-    chrome.webRequest.onBeforeSendHeaders.addListener(captureSourceRequest, CAPTURE_FILTER, CAPTURE_OPTIONS);
-    captureListenerRegistered = true;
-  }
-
-  if (!hasSyncRules && captureListenerRegistered) {
-    chrome.webRequest.onBeforeSendHeaders.removeListener(captureSourceRequest);
-    captureListenerRegistered = false;
-  }
-}
-
-function hasSyncEnabled(rule) {
-  return Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
-}
 
 async function captureSourceRequest(details) {
   const rules = await getRedirectRules();
@@ -80,6 +62,10 @@ async function captureSourceRequest(details) {
   }
 
   const capturedRule = await buildCapturedRule(matchingRule, details);
+  if (isWaitingForSyncCapture(capturedRule)) {
+    return;
+  }
+
   const nextRules = rules.map((rule) => (rule.id === capturedRule.id ? capturedRule : rule));
 
   await chrome.storage.local.set({ redirectRules: nextRules });

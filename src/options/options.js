@@ -1,4 +1,10 @@
-import { PATTERN_TYPES, convertPatternFormat, createBlankRule } from "../shared/rules.js";
+import {
+  PATTERN_TYPES,
+  convertPatternFormat,
+  createBlankRule,
+  hasSyncEnabled,
+  isWaitingForSyncCapture
+} from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 
 const rulesList = document.querySelector("#rulesList");
@@ -82,9 +88,7 @@ function renderRule(rule) {
   card.querySelector('[data-field="syncHeaders"]').checked = Boolean(rule.syncHeaders);
   card.querySelector('[data-field="syncAuthorization"]').checked = Boolean(rule.syncAuthorization);
   card.querySelector('[data-field="syncCookies"]').checked = Boolean(rule.syncCookies);
-  card.querySelector('[data-role="syncStatus"]').textContent = rule.lastSyncedAt
-    ? `Last synced ${new Date(rule.lastSyncedAt).toLocaleString()}`
-    : "Waiting for matching source request";
+  card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
 
   patternTypeInput.addEventListener("change", () => {
     const fromType = card.dataset.patternType || PATTERN_TYPES.wildcard;
@@ -115,6 +119,20 @@ function renderRules() {
   rulesList.replaceChildren(...rules.map(renderRule));
 }
 
+function getSyncStatus(rule) {
+  if (!hasSyncEnabled(rule)) {
+    return "Sync disabled";
+  }
+
+  if (isWaitingForSyncCapture(rule)) {
+    return "Learning mode: trigger one source request";
+  }
+
+  return rule.lastSyncedAt
+    ? `Last synced ${new Date(rule.lastSyncedAt).toLocaleString()}`
+    : "Ready";
+}
+
 async function applyRules(savedRules) {
   const response = await chrome.runtime.sendMessage({
     type: "APPLY_RULES",
@@ -128,6 +146,15 @@ async function applyRules(savedRules) {
 
 addRuleButton.addEventListener("click", () => {
   rulesList.append(renderRule(createBlankRule()));
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local" || !changes.redirectRules) {
+    return;
+  }
+
+  rules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
+  renderRules();
 });
 
 saveRulesButton.addEventListener("click", async () => {

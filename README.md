@@ -2,7 +2,7 @@
 
 Chromium extension for backend developers who need to debug an application against local or alternate backend endpoints.
 
-Version `1.3.1` provides a Manifest V3 foundation for redirecting request URLs and modifying request headers, including `Authorization`, through Chrome's `declarativeNetRequest` dynamic rules.
+Version `1.3.2` provides a Manifest V3 foundation for redirecting request URLs and modifying request headers, including `Authorization`, through Chrome's `declarativeNetRequest` dynamic rules.
 
 Each rule can use either `Wildcard` or `Regex` pattern format. Switching the format converts existing source and target values between wildcard and regex syntax where possible.
 Rules can also sync source request headers, `Authorization`, and session cookies after the extension observes a matching source request.
@@ -24,7 +24,7 @@ Sync flow:
 
 1. Enable the sync options in a rule.
 2. Save rules.
-3. Trigger one matching request in the app.
+3. Trigger one matching source request while the rule is in learning mode.
 4. Reload the app flow so the redirected request uses the captured values.
 
 ## Development

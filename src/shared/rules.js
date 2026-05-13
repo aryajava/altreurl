@@ -40,6 +40,22 @@ export function normalizeSyncedHeaders(headers = []) {
   return normalizeHeaderRows(headers).filter((header) => isSyncableHeaderName(header.name));
 }
 
+export function hasSyncEnabled(rule) {
+  return Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+}
+
+export function isWaitingForSyncCapture(rule) {
+  if (!hasSyncEnabled(rule)) {
+    return false;
+  }
+
+  return Boolean(
+    (rule.syncHeaders && normalizeSyncedHeaders(rule.syncedHeaders).length === 0) ||
+    (rule.syncAuthorization && !rule.syncedAuthorization) ||
+    (rule.syncCookies && !rule.syncedCookieHeader)
+  );
+}
+
 export function buildSourceMatcher(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
   const normalizedPatternType = normalizePatternType(patternType);
   const regexSource = normalizedPatternType === PATTERN_TYPES.regex
@@ -235,6 +251,7 @@ function mergeRequestHeaders(...headerGroups) {
 export function buildDynamicRules(configRules = []) {
   return configRules
     .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl)
+    .filter((rule) => !isWaitingForSyncCapture(rule))
     .flatMap((rule, index) => {
       const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
       const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
