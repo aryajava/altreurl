@@ -4,7 +4,7 @@ Altreurl is a Chromium Extension for backend developers who need to route applic
 
 The extension can redirect request URLs, modify request headers, and handle `Authorization` or session cookie forwarding through configurable rules.
 
-Current version: `1.6.9`
+Current version: `1.7.0`
 
 ## Features
 
@@ -17,6 +17,7 @@ Current version: `1.6.9`
   - request headers
   - `Authorization`
   - session cookies
+- Prime synced credentials from browser storage or cookies before redirect rules run.
 - Enable or disable rules individually.
 - Search active rules from the popup.
 - Search and filter rules from the options page.
@@ -89,6 +90,23 @@ Recommended flow:
 
 When a rule is waiting for captured values, the options page shows a learning status.
 
+Credential source options:
+
+- `Request learning`: capture headers, `Authorization`, and cookies from the first matching source request.
+- `Browser storage`: read values from `localStorage` or `sessionStorage` in an already-open source-origin tab.
+- `Cookies`: read selected cookies directly through the Chrome cookies API.
+
+For browser storage, set:
+
+- `Authorization key/name`: storage key that contains the token.
+- `Authorization prefix`: optional prefix such as `Bearer`.
+- `Headers storage key`: optional storage key containing headers as JSON, either an object or an array of `{ "name": "...", "value": "..." }`.
+
+For cookies, set:
+
+- `Authorization key/name`: optional cookie name to use as the authorization value.
+- `Cookie names`: optional comma-separated cookie names. Leave empty to sync all cookies available for the source URL.
+
 ## Popup
 
 The popup shows active rules, supports search, and lets you disable an active rule quickly without opening the full options page.
@@ -101,10 +119,12 @@ Altreurl uses these permissions:
 - `declarativeNetRequestWithHostAccess`
 - `webRequest`
 - `cookies`
+- `scripting`
+- `tabs`
 - `storage`
 - `<all_urls>` host access
 
-These permissions are required so the extension can match requests, redirect them, modify request headers, and sync cookies or credential headers for local debugging.
+These permissions are required so the extension can match requests, redirect them, modify request headers, read configured browser storage from matching source tabs, and sync cookies or credential headers for local debugging.
 
 ## Development
 

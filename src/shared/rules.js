@@ -8,6 +8,15 @@ export const CREDENTIAL_MODES = {
   manual: "manual",
   sync: "sync"
 };
+export const CREDENTIAL_SOURCES = {
+  request: "request",
+  storage: "storage",
+  cookie: "cookie"
+};
+export const STORAGE_AREAS = {
+  localStorage: "localStorage",
+  sessionStorage: "sessionStorage"
+};
 const UNSYNCED_HEADER_NAMES = new Set([
   "connection",
   "content-length",
@@ -43,6 +52,18 @@ export function normalizeCredentialMode(rule) {
   return Boolean(rule?.syncHeaders || rule?.syncAuthorization || rule?.syncCookies)
     ? CREDENTIAL_MODES.sync
     : CREDENTIAL_MODES.manual;
+}
+
+export function normalizeCredentialSource(rule) {
+  if (Object.values(CREDENTIAL_SOURCES).includes(rule?.credentialSource)) {
+    return rule.credentialSource;
+  }
+
+  return CREDENTIAL_SOURCES.request;
+}
+
+export function normalizeStorageArea(storageArea) {
+  return Object.values(STORAGE_AREAS).includes(storageArea) ? storageArea : STORAGE_AREAS.localStorage;
 }
 
 export function isSyncableHeaderName(headerName) {
@@ -350,6 +371,12 @@ export function createBlankRule() {
     syncHeaders: false,
     syncAuthorization: false,
     syncCookies: false,
+    credentialSource: CREDENTIAL_SOURCES.request,
+    storageArea: STORAGE_AREAS.localStorage,
+    authorizationKey: "",
+    authorizationPrefix: "",
+    headersKey: "",
+    cookieNames: "",
     sourcePattern: "",
     targetUrl: "",
     authorization: "",

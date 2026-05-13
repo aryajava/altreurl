@@ -128,6 +128,44 @@
               Session cookies
             </label>
           </div>
+          <div class="source-grid">
+            <label>
+              Credential source
+              <select data-field="credentialSource">
+                <option value="request">Request learning</option>
+                <option value="storage">Browser storage</option>
+                <option value="cookie">Cookies</option>
+              </select>
+            </label>
+
+            <label data-role="storageAreaField">
+              Storage area
+              <select data-field="storageArea">
+                <option value="localStorage">localStorage</option>
+                <option value="sessionStorage">sessionStorage</option>
+              </select>
+            </label>
+
+            <label data-role="authorizationKeyField">
+              Authorization key/name
+              <input data-field="authorizationKey" type="text" placeholder="access_token">
+            </label>
+
+            <label data-role="authorizationPrefixField">
+              Authorization prefix
+              <input data-field="authorizationPrefix" type="text" placeholder="Bearer ">
+            </label>
+
+            <label data-role="headersKeyField">
+              Headers storage key
+              <input data-field="headersKey" type="text" placeholder="debug_headers">
+            </label>
+
+            <label class="span-2" data-role="cookieNamesField">
+              Cookie names
+              <input data-field="cookieNames" type="text" placeholder="session_state, i18next">
+            </label>
+          </div>
           <span data-role="syncStatus" class="sync-status"></span>
         </fieldset>
 

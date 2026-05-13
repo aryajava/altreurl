@@ -1,6 +1,8 @@
 import {
   PATTERN_TYPES,
   CREDENTIAL_MODES,
+  CREDENTIAL_SOURCES,
+  STORAGE_AREAS,
   convertPatternFormat,
   createBlankRule,
   hasSyncEnabled,
@@ -71,6 +73,12 @@ function updateSelectedRuleFromEditor() {
         card.querySelector('[data-field="syncAuthorization"]').checked,
       syncCookies: credentialMode === CREDENTIAL_MODES.sync &&
         card.querySelector('[data-field="syncCookies"]').checked,
+      credentialSource: card.querySelector('[data-field="credentialSource"]').value,
+      storageArea: card.querySelector('[data-field="storageArea"]').value,
+      authorizationKey: card.querySelector('[data-field="authorizationKey"]').value.trim(),
+      authorizationPrefix: card.querySelector('[data-field="authorizationPrefix"]').value,
+      headersKey: card.querySelector('[data-field="headersKey"]').value.trim(),
+      cookieNames: card.querySelector('[data-field="cookieNames"]').value.trim(),
       sourcePattern: card.querySelector('[data-field="sourcePattern"]').value.trim(),
       targetUrl: card.querySelector('[data-field="targetUrl"]').value.trim(),
       authorization: card.querySelector('[data-field="authorization"]').value.trim(),
@@ -161,9 +169,17 @@ function renderEditor() {
   const credentialModeInput = card.querySelector('[data-field="credentialMode"]');
   const sourcePatternInput = card.querySelector('[data-field="sourcePattern"]');
   const targetUrlInput = card.querySelector('[data-field="targetUrl"]');
+  const credentialSourceInput = card.querySelector('[data-field="credentialSource"]');
   const manualAuthorization = card.querySelector('[data-role="manualAuthorization"]');
   const manualHeaders = card.querySelector('[data-role="manualHeaders"]');
   const syncOptions = card.querySelector('[data-role="syncOptions"]');
+  const sourceFields = {
+    storageArea: card.querySelector('[data-role="storageAreaField"]'),
+    authorizationKey: card.querySelector('[data-role="authorizationKeyField"]'),
+    authorizationPrefix: card.querySelector('[data-role="authorizationPrefixField"]'),
+    headersKey: card.querySelector('[data-role="headersKeyField"]'),
+    cookieNames: card.querySelector('[data-role="cookieNamesField"]')
+  };
 
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   card.querySelector('[data-field="name"]').value = rule.name || "";
@@ -175,8 +191,15 @@ function renderEditor() {
   card.querySelector('[data-field="syncHeaders"]').checked = Boolean(rule.syncHeaders);
   card.querySelector('[data-field="syncAuthorization"]').checked = Boolean(rule.syncAuthorization);
   card.querySelector('[data-field="syncCookies"]').checked = Boolean(rule.syncCookies);
+  credentialSourceInput.value = rule.credentialSource || CREDENTIAL_SOURCES.request;
+  card.querySelector('[data-field="storageArea"]').value = rule.storageArea || STORAGE_AREAS.localStorage;
+  card.querySelector('[data-field="authorizationKey"]').value = rule.authorizationKey || "";
+  card.querySelector('[data-field="authorizationPrefix"]').value = rule.authorizationPrefix || "";
+  card.querySelector('[data-field="headersKey"]').value = rule.headersKey || "";
+  card.querySelector('[data-field="cookieNames"]').value = rule.cookieNames || "";
   card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
   updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
+  updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields);
 
   card.querySelectorAll("input, select").forEach((input) => {
     input.addEventListener("input", () => {
@@ -219,6 +242,12 @@ function renderEditor() {
     renderRuleList();
   });
 
+  credentialSourceInput.addEventListener("change", () => {
+    updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields);
+    updateSelectedRuleFromEditor();
+    renderRuleList();
+  });
+
   (rule.headers || []).forEach((header) => {
     headersContainer.append(renderHeader(header));
   });
@@ -248,7 +277,9 @@ function getSyncStatus(rule) {
   }
 
   if (isWaitingForSyncCapture(rule)) {
-    return "Learning mode: trigger one source request";
+    return rule.credentialSource && rule.credentialSource !== CREDENTIAL_SOURCES.request
+      ? "Waiting for credential source values"
+      : "Learning mode: trigger one source request";
   }
 
   return rule.lastSyncedAt
@@ -262,6 +293,18 @@ function updateCredentialModeVisibility(credentialMode, manualAuthorization, man
   manualAuthorization.hidden = isSyncMode;
   manualHeaders.hidden = isSyncMode;
   syncOptions.hidden = !isSyncMode;
+}
+
+function updateCredentialSourceVisibility(credentialSource, sourceFields) {
+  const isRequestSource = credentialSource === CREDENTIAL_SOURCES.request;
+  const isStorageSource = credentialSource === CREDENTIAL_SOURCES.storage;
+  const isCookieSource = credentialSource === CREDENTIAL_SOURCES.cookie;
+
+  sourceFields.storageArea.hidden = !isStorageSource;
+  sourceFields.authorizationKey.hidden = isRequestSource;
+  sourceFields.authorizationPrefix.hidden = isRequestSource;
+  sourceFields.headersKey.hidden = !isStorageSource;
+  sourceFields.cookieNames.hidden = !isCookieSource;
 }
 
 async function applyRules(savedRules) {
