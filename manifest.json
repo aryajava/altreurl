@@ -2,14 +2,22 @@
   "manifest_version": 3,
   "name": "Altreurl",
   "description": "Altreurl - Smart URL Router",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "icons": {
+    "16": "Altreurl-16.svg",
+    "32": "Altreurl-32.svg",
+    "48": "Altreurl-48.svg",
+    "64": "Altreurl-64.svg",
     "128": "Altreurl.svg"
   },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Altreurl",
     "default_icon": {
+      "16": "Altreurl-16.svg",
+      "32": "Altreurl-32.svg",
+      "48": "Altreurl-48.svg",
+      "64": "Altreurl-64.svg",
       "128": "Altreurl.svg"
     }
   },
