@@ -138,10 +138,28 @@ label select {
 }
 
 .rule-list-controls {
-  border-bottom: 1px solid var(--line);
   display: grid;
   gap: 8px;
-  padding: 12px;
+  padding: 0 12px 14px;
+}
+
+.filter-toggle {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--muted);
+  min-height: 40px;
+  text-align: left;
+  width: 100%;
+}
+
+.filter-toggle + .rule-list-controls {
+  border-bottom: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.filter-toggle[aria-expanded="false"] {
+  border-bottom: 1px solid var(--line);
 }
 
 .panel-title span,

@@ -14,6 +14,8 @@ const ruleCount = document.querySelector("#ruleCount");
 const ruleSearch = document.querySelector("#ruleSearch");
 const statusFilter = document.querySelector("#statusFilter");
 const credentialFilter = document.querySelector("#credentialFilter");
+const toggleRuleControls = document.querySelector("#toggleRuleControls");
+const ruleListControls = document.querySelector("#ruleListControls");
 const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
 const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
 const ruleTemplate = document.querySelector("#ruleTemplate");
@@ -270,6 +272,14 @@ addRuleButton.addEventListener("click", () => {
 [ruleSearch, statusFilter, credentialFilter].forEach((control) => {
   control.addEventListener("input", renderRuleList);
   control.addEventListener("change", renderRuleList);
+});
+
+toggleRuleControls.addEventListener("click", () => {
+  const isHidden = ruleListControls.hidden;
+
+  ruleListControls.hidden = !isHidden;
+  toggleRuleControls.setAttribute("aria-expanded", String(isHidden));
+  toggleRuleControls.textContent = isHidden ? "Hide search and filters" : "Show search and filters";
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {

@@ -22,7 +22,10 @@
             <strong>Rules</strong>
             <span id="ruleCount"></span>
           </div>
-          <div class="rule-list-controls">
+          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="true">
+            Hide search and filters
+          </button>
+          <div id="ruleListControls" class="rule-list-controls">
             <input id="ruleSearch" type="search" placeholder="Search rules">
             <select id="statusFilter" aria-label="Status filter">
               <option value="all">All statuses</option>
