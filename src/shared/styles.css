@@ -21,7 +21,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -39,7 +40,8 @@ button:hover {
   border-color: var(--accent);
 }
 
-input {
+input,
+select {
   border: 1px solid var(--line);
   border-radius: 6px;
   min-height: 36px;
@@ -55,6 +57,10 @@ label {
 }
 
 label input {
+  color: var(--text);
+}
+
+label select {
   color: var(--text);
 }
 
@@ -155,4 +161,3 @@ label input {
     flex-direction: column;
   }
 }
-

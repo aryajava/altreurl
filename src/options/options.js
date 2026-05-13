@@ -1,4 +1,4 @@
-import { createBlankRule } from "../shared/rules.js";
+import { PATTERN_TYPES, createBlankRule } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 
 const rulesList = document.querySelector("#rulesList");
@@ -28,6 +28,7 @@ function readRulesFromDom() {
     id: card.dataset.ruleId,
     name: card.querySelector('[data-field="name"]').value.trim(),
     enabled: card.querySelector('[data-field="enabled"]').checked,
+    patternType: card.querySelector('[data-field="patternType"]').value,
     sourcePattern: card.querySelector('[data-field="sourcePattern"]').value.trim(),
     targetUrl: card.querySelector('[data-field="targetUrl"]').value.trim(),
     authorization: card.querySelector('[data-field="authorization"]').value.trim(),
@@ -59,6 +60,7 @@ function renderRule(rule) {
   card.dataset.ruleId = rule.id || crypto.randomUUID();
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   card.querySelector('[data-field="name"]').value = rule.name || "";
+  card.querySelector('[data-field="patternType"]').value = rule.patternType || PATTERN_TYPES.wildcard;
   card.querySelector('[data-field="sourcePattern"]').value = rule.sourcePattern || "";
   card.querySelector('[data-field="targetUrl"]').value = rule.targetUrl || "";
   card.querySelector('[data-field="authorization"]').value = rule.authorization || "";
@@ -110,4 +112,3 @@ saveRulesButton.addEventListener("click", async () => {
 });
 
 renderRules();
-

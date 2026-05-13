@@ -1,5 +1,9 @@
 const RULE_ID_BASE = 1000;
 const WILDCARD = "*";
+export const PATTERN_TYPES = {
+  wildcard: "wildcard",
+  regex: "regex"
+};
 
 export function normalizeHeaderRows(headers = []) {
   return headers
@@ -8,6 +12,10 @@ export function normalizeHeaderRows(headers = []) {
       value: String(header.value || "").trim()
     }))
     .filter((header) => header.name && header.value);
+}
+
+function normalizePatternType(patternType) {
+  return Object.values(PATTERN_TYPES).includes(patternType) ? patternType : PATTERN_TYPES.wildcard;
 }
 
 function escapeRegex(value) {
@@ -38,7 +46,14 @@ function buildRegexSubstitutionFromWildcard(targetUrl) {
     .join("");
 }
 
-export function buildRedirectCondition(sourcePattern) {
+export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
+  if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    return {
+      regexFilter: sourcePattern,
+      resourceTypes: getResourceTypes()
+    };
+  }
+
   if (!sourcePattern.includes(WILDCARD)) {
     return {
       urlFilter: sourcePattern,
@@ -52,7 +67,16 @@ export function buildRedirectCondition(sourcePattern) {
   };
 }
 
-export function buildRedirectAction(sourcePattern, targetUrl) {
+export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    return {
+      type: "redirect",
+      redirect: {
+        regexSubstitution: targetUrl
+      }
+    };
+  }
+
   const sourceWildcardCount = countWildcards(sourcePattern);
   const targetWildcardCount = countWildcards(targetUrl);
 
@@ -114,12 +138,13 @@ export function buildDynamicRules(configRules = []) {
         });
       }
 
-      const condition = buildRedirectCondition(rule.sourcePattern);
+      const patternType = normalizePatternType(rule.patternType);
+      const condition = buildRedirectCondition(rule.sourcePattern, patternType);
 
       const redirectRule = {
         id: RULE_ID_BASE + index * 2,
         priority: 1,
-        action: buildRedirectAction(rule.sourcePattern, rule.targetUrl),
+        action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
         condition
       };
 
@@ -159,6 +184,7 @@ export function createBlankRule() {
     id: crypto.randomUUID(),
     name: "Local backend",
     enabled: true,
+    patternType: PATTERN_TYPES.wildcard,
     sourcePattern: "",
     targetUrl: "",
     authorization: "",

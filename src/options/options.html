@@ -40,13 +40,21 @@
         </label>
 
         <label>
+          Pattern format
+          <select data-field="patternType">
+            <option value="wildcard">Wildcard</option>
+            <option value="regex">Regex</option>
+          </select>
+        </label>
+
+        <label>
           Source URL pattern
           <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*">
         </label>
 
         <label>
           Redirect target URL
-          <input data-field="targetUrl" type="url" placeholder="http://localhost:3000/debug">
+          <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*">
         </label>
 
         <label>
@@ -75,4 +83,3 @@
     <script type="module" src="./options.js"></script>
   </body>
 </html>
-

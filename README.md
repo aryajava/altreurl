@@ -2,7 +2,9 @@
 
 Chromium extension for backend developers who need to debug an application against local or alternate backend endpoints.
 
-Version `1.0.1` provides a Manifest V3 foundation for redirecting request URLs and modifying request headers, including `Authorization`, through Chrome's `declarativeNetRequest` dynamic rules.
+Version `1.1.0` provides a Manifest V3 foundation for redirecting request URLs and modifying request headers, including `Authorization`, through Chrome's `declarativeNetRequest` dynamic rules.
+
+Each rule can use either `Wildcard` or `Regex` pattern format.
 
 Wildcard redirect example:
 
@@ -10,6 +12,12 @@ Wildcard redirect example:
 - Redirect target URL: `http://localhost:3000/users/*`
 
 The wildcard segment from the source request is carried into the target URL.
+
+Regex redirect example:
+
+- Pattern format: `Regex`
+- Source URL pattern: `^https://api\.example\.com/users/(.*)$`
+- Redirect target URL: `http://localhost:3000/users/\1`
 
 ## Development
 
