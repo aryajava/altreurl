@@ -9,6 +9,8 @@ import {
   isWaitingForSyncCapture
 } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
+import { initThemeControl } from "../shared/theme.js";
+import { createNotifier } from "../shared/notifications.js";
 
 const rulesList = document.querySelector("#rulesList");
 const editorPanel = document.querySelector("#editorPanel");
@@ -23,25 +25,20 @@ const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
 const ruleTemplate = document.querySelector("#ruleTemplate");
 const headerTemplate = document.querySelector("#headerTemplate");
 const addRuleButton = document.querySelector("#addRule");
-const saveRulesButton = document.querySelector("#saveRules");
-const status = document.querySelector("#status");
+const themePreference = document.querySelector("#themePreference");
+const notifications = document.querySelector("#notifications");
+const notify = createNotifier(notifications);
 
 let rules = await getRedirectRules();
 let selectedRuleId = rules[0]?.id || "";
+let isSavingRule = false;
+
+await initThemeControl(themePreference);
 
 if (rules.length === 0) {
   const blankRule = createBlankRule();
   rules = [blankRule];
   selectedRuleId = blankRule.id;
-}
-
-function setStatus(message) {
-  status.textContent = message;
-  window.setTimeout(() => {
-    if (status.textContent === message) {
-      status.textContent = "";
-    }
-  }, 2500);
 }
 
 function getSelectedRule() {
@@ -233,7 +230,7 @@ function renderEditor() {
     targetUrlInput.value = convertPatternFormat(targetUrlInput.value.trim(), fromType, toType, "target");
     updateSelectedRuleFromEditor();
     renderRuleList();
-    setStatus(`Pattern converted to ${toType}`);
+    notify(`Pattern converted to ${toType}`);
   });
 
   credentialModeInput.addEventListener("change", () => {
@@ -257,10 +254,15 @@ function renderEditor() {
     updateSelectedRuleFromEditor();
   });
 
+  card.querySelector('[data-action="saveRule"]').addEventListener("click", async (event) => {
+    await saveCurrentRule(event.currentTarget);
+  });
+
   card.querySelector('[data-action="removeRule"]').addEventListener("click", () => {
     rules = rules.filter((currentRule) => currentRule.id !== selectedRuleId);
     selectedRuleId = rules[0]?.id || "";
     render();
+    notify("Rule removed");
   });
 
   editorPanel.replaceChildren(fragment);
@@ -318,12 +320,35 @@ async function applyRules(savedRules) {
   }
 }
 
+async function saveCurrentRule(saveButton) {
+  if (isSavingRule) {
+    return;
+  }
+
+  try {
+    isSavingRule = true;
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    updateSelectedRuleFromEditor();
+    await saveRedirectRules(rules);
+    await applyRules(rules);
+    notify("Rule saved", "success");
+  } catch (error) {
+    notify(error.message, "error");
+  } finally {
+    isSavingRule = false;
+    saveButton.disabled = false;
+    saveButton.textContent = "Save Rule";
+  }
+}
+
 addRuleButton.addEventListener("click", () => {
   updateSelectedRuleFromEditor();
   const blankRule = createBlankRule();
   rules = [...rules, blankRule];
   selectedRuleId = blankRule.id;
   render();
+  notify("Rule added");
 });
 
 [ruleSearch, statusFilter, credentialFilter].forEach((control) => {
@@ -347,17 +372,6 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   rules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
   selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : rules[0]?.id || "";
   render();
-});
-
-saveRulesButton.addEventListener("click", async () => {
-  try {
-    updateSelectedRuleFromEditor();
-    await saveRedirectRules(rules);
-    await applyRules(rules);
-    setStatus("Rules saved");
-  } catch (error) {
-    setStatus(error.message);
-  }
 });
 
 render();

@@ -7,9 +7,23 @@
     <link rel="stylesheet" href="../shared/styles.css">
   </head>
   <body class="popup-shell">
-    <header>
-      <h1>Altreurl</h1>
-      <p id="summary">Loading rules...</p>
+    <div id="notifications" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+    <header class="app-header app-header--compact">
+      <div class="brand">
+        <img src="../shared/imgs/icons/Altreurl-48.png" alt="" width="40" height="40">
+        <div>
+          <h1>Altreurl</h1>
+          <p id="summary">Loading rules...</p>
+        </div>
+      </div>
+      <label class="theme-field">
+        Theme
+        <select id="themePreference">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
     </header>
     <main>
       <input id="ruleSearch" type="search" placeholder="Search active rules">

@@ -1,12 +1,19 @@
 import { applyDynamicRules } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
+import { initThemeControl } from "../shared/theme.js";
+import { createNotifier } from "../shared/notifications.js";
 
 const summary = document.querySelector("#summary");
 const activeRules = document.querySelector("#activeRules");
 const ruleSearch = document.querySelector("#ruleSearch");
 const openOptions = document.querySelector("#openOptions");
+const themePreference = document.querySelector("#themePreference");
+const notifications = document.querySelector("#notifications");
+const notify = createNotifier(notifications);
 
 let rules = await getRedirectRules();
+
+await initThemeControl(themePreference);
 
 function renderPopup() {
   const enabledRules = rules.filter((rule) => rule.enabled);
@@ -42,12 +49,19 @@ function renderPopup() {
     disableButton.type = "button";
     disableButton.textContent = "Disable";
     disableButton.addEventListener("click", async () => {
-      rules = rules.map((currentRule) => currentRule.id === rule.id
-        ? { ...currentRule, enabled: false }
-        : currentRule);
-      await saveRedirectRules(rules);
-      await applyDynamicRules(rules);
-      renderPopup();
+      try {
+        disableButton.disabled = true;
+        rules = rules.map((currentRule) => currentRule.id === rule.id
+          ? { ...currentRule, enabled: false }
+          : currentRule);
+        await saveRedirectRules(rules);
+        await applyDynamicRules(rules);
+        notify("Rule disabled", "success");
+        renderPopup();
+      } catch (error) {
+        notify(error.message, "error");
+        disableButton.disabled = false;
+      }
     });
 
     detail.append(name, target);
