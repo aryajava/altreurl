@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Request URL Redirector Options</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+  </head>
+  <body>
+    <main class="options-shell">
+      <header class="page-header">
+        <div>
+          <h1>Request URL Redirector</h1>
+          <p>Manage local debugging redirects and request header overrides.</p>
+        </div>
+        <button id="addRule" type="button">Add rule</button>
+      </header>
+
+      <section id="rulesList" class="rules-list" aria-live="polite"></section>
+
+      <footer class="actions">
+        <span id="status" role="status"></span>
+        <button id="saveRules" type="button">Save rules</button>
+      </footer>
+    </main>
+
+    <template id="ruleTemplate">
+      <article class="rule-card">
+        <div class="rule-card__header">
+          <label>
+            <input data-field="enabled" type="checkbox">
+            Enabled
+          </label>
+          <button data-action="removeRule" type="button">Remove</button>
+        </div>
+
+        <label>
+          Name
+          <input data-field="name" type="text" placeholder="Local backend">
+        </label>
+
+        <label>
+          Source URL pattern
+          <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*">
+        </label>
+
+        <label>
+          Redirect target URL
+          <input data-field="targetUrl" type="url" placeholder="http://localhost:3000/debug">
+        </label>
+
+        <label>
+          Authorization
+          <input data-field="authorization" type="text" placeholder="Bearer local-token">
+        </label>
+
+        <div class="headers-block">
+          <div class="headers-block__title">
+            <strong>Headers</strong>
+            <button data-action="addHeader" type="button">Add header</button>
+          </div>
+          <div data-role="headers"></div>
+        </div>
+      </article>
+    </template>
+
+    <template id="headerTemplate">
+      <div class="header-row">
+        <input data-field="headerName" type="text" placeholder="X-Debug-User">
+        <input data-field="headerValue" type="text" placeholder="local">
+        <button data-action="removeHeader" type="button">Remove</button>
+      </div>
+    </template>
+
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,158 @@
+:root {
+  color-scheme: light;
+  font-family: Arial, sans-serif;
+  --bg: #f7f8fb;
+  --panel: #ffffff;
+  --text: #1c2430;
+  --muted: #687386;
+  --line: #d9deea;
+  --accent: #1769e0;
+  --danger: #a63333;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+label input {
+  color: var(--text);
+}
+
+.popup-shell {
+  min-width: 280px;
+  padding: 16px;
+}
+
+.popup-shell h1,
+.page-header h1 {
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.popup-shell p,
+.page-header p {
+  color: var(--muted);
+  margin: 6px 0 16px;
+}
+
+.options-shell {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 24px;
+}
+
+.page-header,
+.actions,
+.rule-card__header,
+.headers-block__title,
+.header-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.page-header,
+.actions,
+.rule-card__header,
+.headers-block__title {
+  justify-content: space-between;
+}
+
+.rules-list {
+  display: grid;
+  gap: 16px;
+}
+
+.rule-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.rule-card__header label {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.rule-card__header input {
+  width: auto;
+}
+
+.headers-block {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.header-row {
+  margin-top: 8px;
+}
+
+.header-row button,
+[data-action="removeRule"] {
+  color: var(--danger);
+  flex: 0 0 auto;
+}
+
+#status {
+  color: var(--muted);
+  min-height: 20px;
+}
+
+@media (max-width: 720px) {
+  .page-header,
+  .actions,
+  .header-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+

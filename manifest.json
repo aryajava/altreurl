@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Request URL Redirector",
+  "description": "Redirect request URLs and override headers for local backend debugging.",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Request URL Redirector"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "options_page": "src/options/options.html",
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
+
