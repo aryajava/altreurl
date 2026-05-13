@@ -127,7 +127,8 @@ label select {
   gap: 8px;
 }
 
-.rule-card__header input {
+.rule-card__header input,
+.sync-block input {
   width: auto;
 }
 
@@ -136,6 +137,33 @@ label select {
   display: grid;
   gap: 10px;
   padding-top: 14px;
+}
+
+.sync-block {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+}
+
+.sync-block legend {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 0 4px;
+}
+
+.sync-block label {
+  align-items: center;
+  color: var(--text);
+  display: flex;
+  gap: 8px;
+}
+
+.sync-status {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .header-row {

@@ -62,6 +62,23 @@
           <input data-field="authorization" type="text" placeholder="Bearer local-token">
         </label>
 
+        <fieldset class="sync-block">
+          <legend>Sync from source request</legend>
+          <label>
+            <input data-field="syncHeaders" type="checkbox">
+            Headers
+          </label>
+          <label>
+            <input data-field="syncAuthorization" type="checkbox">
+            Authorization
+          </label>
+          <label>
+            <input data-field="syncCookies" type="checkbox">
+            Session cookies
+          </label>
+          <span data-role="syncStatus" class="sync-status"></span>
+        </fieldset>
+
         <div class="headers-block">
           <div class="headers-block__title">
             <strong>Headers</strong>

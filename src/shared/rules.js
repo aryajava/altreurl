@@ -4,6 +4,19 @@ export const PATTERN_TYPES = {
   wildcard: "wildcard",
   regex: "regex"
 };
+const UNSYNCED_HEADER_NAMES = new Set([
+  "connection",
+  "content-length",
+  "cookie",
+  "host",
+  "origin",
+  "referer",
+  "sec-fetch-dest",
+  "sec-fetch-mode",
+  "sec-fetch-site",
+  "sec-fetch-user",
+  "upgrade-insecure-requests"
+]);
 
 export function normalizeHeaderRows(headers = []) {
   return headers
@@ -14,8 +27,27 @@ export function normalizeHeaderRows(headers = []) {
     .filter((header) => header.name && header.value);
 }
 
-function normalizePatternType(patternType) {
+export function normalizePatternType(patternType) {
   return Object.values(PATTERN_TYPES).includes(patternType) ? patternType : PATTERN_TYPES.wildcard;
+}
+
+export function isSyncableHeaderName(headerName) {
+  const normalizedName = String(headerName || "").trim().toLowerCase();
+  return normalizedName && !UNSYNCED_HEADER_NAMES.has(normalizedName) && normalizedName !== "authorization";
+}
+
+export function normalizeSyncedHeaders(headers = []) {
+  return normalizeHeaderRows(headers).filter((header) => isSyncableHeaderName(header.name));
+}
+
+export function buildSourceMatcher(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
+  const normalizedPatternType = normalizePatternType(patternType);
+  const regexSource = normalizedPatternType === PATTERN_TYPES.regex
+    ? sourcePattern
+    : buildRegexFilterFromWildcard(sourcePattern);
+  const regex = new RegExp(regexSource);
+
+  return (url) => regex.test(url);
 }
 
 function escapeRegex(value) {
@@ -155,23 +187,45 @@ function getResourceTypes() {
   ];
 }
 
+function mergeRequestHeaders(...headerGroups) {
+  const headersByName = new Map();
+
+  headerGroups.flat().forEach((header) => {
+    if (!header.name || !header.value) {
+      return;
+    }
+
+    headersByName.set(header.name.toLowerCase(), {
+      header: header.name,
+      operation: "set",
+      value: header.value
+    });
+  });
+
+  return [...headersByName.values()];
+}
+
 export function buildDynamicRules(configRules = []) {
   return configRules
     .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl)
     .flatMap((rule, index) => {
-      const requestHeaders = normalizeHeaderRows(rule.headers).map((header) => ({
-        header: header.name,
-        operation: "set",
-        value: header.value
-      }));
-
-      if (rule.authorization) {
-        requestHeaders.push({
-          header: "Authorization",
-          operation: "set",
-          value: rule.authorization
-        });
-      }
+      const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
+      const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
+        ? [{ name: "Authorization", value: rule.syncedAuthorization }]
+        : [];
+      const syncedCookieHeader = rule.syncCookies && rule.syncedCookieHeader
+        ? [{ name: "Cookie", value: rule.syncedCookieHeader }]
+        : [];
+      const manualAuthorization = rule.authorization
+        ? [{ name: "Authorization", value: rule.authorization }]
+        : [];
+      const requestHeaders = mergeRequestHeaders(
+        syncedHeaders,
+        syncedAuthorization,
+        syncedCookieHeader,
+        manualAuthorization,
+        normalizeHeaderRows(rule.headers)
+      );
 
       const patternType = normalizePatternType(rule.patternType);
       const condition = buildRedirectCondition(rule.sourcePattern, patternType);
@@ -220,9 +274,16 @@ export function createBlankRule() {
     name: "Local backend",
     enabled: true,
     patternType: PATTERN_TYPES.wildcard,
+    syncHeaders: false,
+    syncAuthorization: false,
+    syncCookies: false,
     sourcePattern: "",
     targetUrl: "",
     authorization: "",
-    headers: []
+    headers: [],
+    syncedHeaders: [],
+    syncedAuthorization: "",
+    syncedCookieHeader: "",
+    lastSyncedAt: ""
   };
 }

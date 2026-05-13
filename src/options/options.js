@@ -29,13 +29,20 @@ function readRulesFromDom() {
     name: card.querySelector('[data-field="name"]').value.trim(),
     enabled: card.querySelector('[data-field="enabled"]').checked,
     patternType: card.querySelector('[data-field="patternType"]').value,
+    syncHeaders: card.querySelector('[data-field="syncHeaders"]').checked,
+    syncAuthorization: card.querySelector('[data-field="syncAuthorization"]').checked,
+    syncCookies: card.querySelector('[data-field="syncCookies"]').checked,
     sourcePattern: card.querySelector('[data-field="sourcePattern"]').value.trim(),
     targetUrl: card.querySelector('[data-field="targetUrl"]').value.trim(),
     authorization: card.querySelector('[data-field="authorization"]').value.trim(),
     headers: [...card.querySelectorAll(".header-row")].map((row) => ({
       name: row.querySelector('[data-field="headerName"]').value.trim(),
       value: row.querySelector('[data-field="headerValue"]').value.trim()
-    }))
+    })),
+    syncedHeaders: JSON.parse(card.dataset.syncedHeaders || "[]"),
+    syncedAuthorization: card.dataset.syncedAuthorization || "",
+    syncedCookieHeader: card.dataset.syncedCookieHeader || "",
+    lastSyncedAt: card.dataset.lastSyncedAt || ""
   }));
 }
 
@@ -64,10 +71,20 @@ function renderRule(rule) {
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   card.querySelector('[data-field="name"]').value = rule.name || "";
   card.dataset.patternType = rule.patternType || PATTERN_TYPES.wildcard;
+  card.dataset.syncedHeaders = JSON.stringify(rule.syncedHeaders || []);
+  card.dataset.syncedAuthorization = rule.syncedAuthorization || "";
+  card.dataset.syncedCookieHeader = rule.syncedCookieHeader || "";
+  card.dataset.lastSyncedAt = rule.lastSyncedAt || "";
   patternTypeInput.value = card.dataset.patternType;
   sourcePatternInput.value = rule.sourcePattern || "";
   targetUrlInput.value = rule.targetUrl || "";
   card.querySelector('[data-field="authorization"]').value = rule.authorization || "";
+  card.querySelector('[data-field="syncHeaders"]').checked = Boolean(rule.syncHeaders);
+  card.querySelector('[data-field="syncAuthorization"]').checked = Boolean(rule.syncAuthorization);
+  card.querySelector('[data-field="syncCookies"]').checked = Boolean(rule.syncCookies);
+  card.querySelector('[data-role="syncStatus"]').textContent = rule.lastSyncedAt
+    ? `Last synced ${new Date(rule.lastSyncedAt).toLocaleString()}`
+    : "Waiting for matching source request";
 
   patternTypeInput.addEventListener("change", () => {
     const fromType = card.dataset.patternType || PATTERN_TYPES.wildcard;
