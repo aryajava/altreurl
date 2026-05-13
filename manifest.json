@@ -1,24 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Altreurl",
-  "description": "Altreurl - Smart URL Router",
-  "version": "1.6.7",
+  "description": "Manage local debugging redirects and request header overrides.",
+  "version": "1.6.8",
   "icons": {
-    "16": "Altreurl-16.png",
-    "32": "Altreurl-32.png",
-    "48": "Altreurl-48.png",
-    "64": "Altreurl-64.png",
-    "128": "Altreurl-128.png"
+    "16": "src/shared/imgs/icons/Altreurl-16.png",
+    "32": "src/shared/imgs/icons/Altreurl-32.png",
+    "48": "src/shared/imgs/icons/Altreurl-48.png",
+    "64": "src/shared/imgs/icons/Altreurl-64.png",
+    "128": "src/shared/imgs/icons/Altreurl-128.png"
   },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Altreurl",
     "default_icon": {
-      "16": "Altreurl-16.png",
-      "32": "Altreurl-32.png",
-      "48": "Altreurl-48.png",
-      "64": "Altreurl-64.png",
-      "128": "Altreurl-128.png"
+      "16": "src/shared/imgs/icons/Altreurl-16.png",
+      "32": "src/shared/imgs/icons/Altreurl-32.png",
+      "48": "src/shared/imgs/icons/Altreurl-48.png",
+      "64": "src/shared/imgs/icons/Altreurl-64.png",
+      "128": "src/shared/imgs/icons/Altreurl-128.png"
     }
   },
   "background": {
