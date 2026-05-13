@@ -94,6 +94,12 @@ function buildWildcardFromRegexSubstitution(targetUrl) {
   return targetUrl.replace(/\\[1-9]\d*/g, WILDCARD).replace(/\$[1-9]\d*/g, WILDCARD);
 }
 
+function buildRegexFilterFromRegexSubstitution(targetUrl) {
+  return `^${targetUrl
+    .replace(/\\[1-9]\d*/g, "(.*)")
+    .replace(/\$[1-9]\d*/g, "(.*)")}$`;
+}
+
 export function convertPatternFormat(value, fromPatternType, toPatternType, fieldType) {
   const fromType = normalizePatternType(fromPatternType);
   const toType = normalizePatternType(toPatternType);
@@ -130,6 +136,27 @@ export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPE
 
   return {
     regexFilter: buildRegexFilterFromWildcard(sourcePattern),
+    resourceTypes: getResourceTypes()
+  };
+}
+
+export function buildHeaderCondition(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    return {
+      regexFilter: buildRegexFilterFromRegexSubstitution(targetUrl),
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  if (targetUrl.includes(WILDCARD)) {
+    return {
+      regexFilter: buildRegexFilterFromWildcard(targetUrl),
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  return {
+    urlFilter: targetUrl,
     resourceTypes: getResourceTypes()
   };
 }
@@ -228,13 +255,14 @@ export function buildDynamicRules(configRules = []) {
       );
 
       const patternType = normalizePatternType(rule.patternType);
-      const condition = buildRedirectCondition(rule.sourcePattern, patternType);
+      const redirectCondition = buildRedirectCondition(rule.sourcePattern, patternType);
+      const headerCondition = buildHeaderCondition(rule.sourcePattern, rule.targetUrl, patternType);
 
       const redirectRule = {
         id: RULE_ID_BASE + index * 2,
         priority: 1,
         action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
-        condition
+        condition: redirectCondition
       };
 
       if (requestHeaders.length === 0) {
@@ -250,7 +278,7 @@ export function buildDynamicRules(configRules = []) {
             type: "modifyHeaders",
             requestHeaders
           },
-          condition
+          condition: headerCondition
         }
       ];
     });
