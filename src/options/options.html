@@ -16,7 +16,17 @@
         <button id="addRule" type="button">Add rule</button>
       </header>
 
-      <section id="rulesList" class="rules-list" aria-live="polite"></section>
+      <section class="options-layout">
+        <aside class="rule-list-panel">
+          <div class="panel-title">
+            <strong>Rules</strong>
+            <span id="ruleCount"></span>
+          </div>
+          <div id="rulesList" class="rule-list" aria-live="polite"></div>
+        </aside>
+
+        <section id="editorPanel" class="editor-panel" aria-live="polite"></section>
+      </section>
 
       <footer class="actions">
         <span id="status" role="status"></span>
@@ -24,9 +34,23 @@
       </footer>
     </main>
 
+    <template id="ruleListItemTemplate">
+      <button class="rule-list-item" type="button">
+        <span data-role="ruleName"></span>
+        <small data-role="ruleMeta"></small>
+      </button>
+    </template>
+
+    <template id="emptyEditorTemplate">
+      <div class="empty-editor">
+        <h2>No rule selected</h2>
+        <p>Add or select a rule.</p>
+      </div>
+    </template>
+
     <template id="ruleTemplate">
-      <article class="rule-card">
-        <div class="rule-card__header">
+      <article class="rule-editor">
+        <div class="rule-editor__header">
           <label>
             <input data-field="enabled" type="checkbox">
             Enabled
@@ -34,56 +58,60 @@
           <button data-action="removeRule" type="button">Remove</button>
         </div>
 
-        <label>
-          Name
-          <input data-field="name" type="text" placeholder="Local backend">
-        </label>
+        <div class="editor-grid">
+          <label>
+            Name
+            <input data-field="name" type="text" placeholder="Local backend">
+          </label>
 
-        <label>
-          Pattern format
-          <select data-field="patternType">
-            <option value="wildcard">Wildcard</option>
-            <option value="regex">Regex</option>
-          </select>
-        </label>
+          <label>
+            Pattern format
+            <select data-field="patternType">
+              <option value="wildcard">Wildcard</option>
+              <option value="regex">Regex</option>
+            </select>
+          </label>
 
-        <label>
-          Source URL pattern
-          <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*">
-        </label>
+          <label class="span-2">
+            Source URL pattern
+            <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*">
+          </label>
 
-        <label>
-          Redirect target URL
-          <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*">
-        </label>
+          <label class="span-2">
+            Redirect target URL
+            <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*">
+          </label>
 
-        <label>
-          Credential mode
-          <select data-field="credentialMode">
-            <option value="manual">Manual</option>
-            <option value="sync">Sync from source</option>
-          </select>
-        </label>
+          <label>
+            Credential mode
+            <select data-field="credentialMode">
+              <option value="manual">Manual</option>
+              <option value="sync">Sync from source</option>
+            </select>
+          </label>
 
-        <label data-role="manualAuthorization">
-          Authorization
-          <input data-field="authorization" type="text" placeholder="Bearer local-token">
-        </label>
+          <label data-role="manualAuthorization">
+            Authorization
+            <input data-field="authorization" type="text" placeholder="Bearer local-token">
+          </label>
+        </div>
 
         <fieldset class="sync-block" data-role="syncOptions">
           <legend>Sync from source request</legend>
-          <label>
-            <input data-field="syncHeaders" type="checkbox">
-            Headers
-          </label>
-          <label>
-            <input data-field="syncAuthorization" type="checkbox">
-            Authorization
-          </label>
-          <label>
-            <input data-field="syncCookies" type="checkbox">
-            Session cookies
-          </label>
+          <div class="sync-options">
+            <label>
+              <input data-field="syncHeaders" type="checkbox">
+              Headers
+            </label>
+            <label>
+              <input data-field="syncAuthorization" type="checkbox">
+              Authorization
+            </label>
+            <label>
+              <input data-field="syncCookies" type="checkbox">
+              Session cookies
+            </label>
+          </div>
           <span data-role="syncStatus" class="sync-status"></span>
         </fieldset>
 

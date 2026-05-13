@@ -9,6 +9,10 @@ import {
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 
 const rulesList = document.querySelector("#rulesList");
+const editorPanel = document.querySelector("#editorPanel");
+const ruleCount = document.querySelector("#ruleCount");
+const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
+const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
 const ruleTemplate = document.querySelector("#ruleTemplate");
 const headerTemplate = document.querySelector("#headerTemplate");
 const addRuleButton = document.querySelector("#addRule");
@@ -16,9 +20,12 @@ const saveRulesButton = document.querySelector("#saveRules");
 const status = document.querySelector("#status");
 
 let rules = await getRedirectRules();
+let selectedRuleId = rules[0]?.id || "";
 
 if (rules.length === 0) {
-  rules = [createBlankRule()];
+  const blankRule = createBlankRule();
+  rules = [blankRule];
+  selectedRuleId = blankRule.id;
 }
 
 function setStatus(message) {
@@ -30,30 +37,61 @@ function setStatus(message) {
   }, 2500);
 }
 
-function readRulesFromDom() {
-  return [...rulesList.querySelectorAll(".rule-card")].map((card) => ({
-    id: card.dataset.ruleId,
-    name: card.querySelector('[data-field="name"]').value.trim(),
-    enabled: card.querySelector('[data-field="enabled"]').checked,
-    patternType: card.querySelector('[data-field="patternType"]').value,
-    credentialMode: card.querySelector('[data-field="credentialMode"]').value,
-    syncHeaders: card.querySelector('[data-field="credentialMode"]').value === CREDENTIAL_MODES.sync &&
-      card.querySelector('[data-field="syncHeaders"]').checked,
-    syncAuthorization: card.querySelector('[data-field="credentialMode"]').value === CREDENTIAL_MODES.sync &&
-      card.querySelector('[data-field="syncAuthorization"]').checked,
-    syncCookies: card.querySelector('[data-field="credentialMode"]').value === CREDENTIAL_MODES.sync &&
-      card.querySelector('[data-field="syncCookies"]').checked,
-    sourcePattern: card.querySelector('[data-field="sourcePattern"]').value.trim(),
-    targetUrl: card.querySelector('[data-field="targetUrl"]').value.trim(),
-    authorization: card.querySelector('[data-field="authorization"]').value.trim(),
-    headers: [...card.querySelectorAll(".header-row")].map((row) => ({
-      name: row.querySelector('[data-field="headerName"]').value.trim(),
-      value: row.querySelector('[data-field="headerValue"]').value.trim()
-    })),
-    syncedHeaders: JSON.parse(card.dataset.syncedHeaders || "[]"),
-    syncedAuthorization: card.dataset.syncedAuthorization || "",
-    syncedCookieHeader: card.dataset.syncedCookieHeader || "",
-    lastSyncedAt: card.dataset.lastSyncedAt || ""
+function getSelectedRule() {
+  return rules.find((rule) => rule.id === selectedRuleId) || rules[0];
+}
+
+function updateSelectedRuleFromEditor() {
+  const card = editorPanel.querySelector(".rule-editor");
+
+  if (!card) {
+    return;
+  }
+
+  const credentialMode = card.querySelector('[data-field="credentialMode"]').value;
+  rules = rules.map((rule) => {
+    if (rule.id !== selectedRuleId) {
+      return rule;
+    }
+
+    return {
+      ...rule,
+      name: card.querySelector('[data-field="name"]').value.trim(),
+      enabled: card.querySelector('[data-field="enabled"]').checked,
+      patternType: card.querySelector('[data-field="patternType"]').value,
+      credentialMode,
+      syncHeaders: credentialMode === CREDENTIAL_MODES.sync &&
+        card.querySelector('[data-field="syncHeaders"]').checked,
+      syncAuthorization: credentialMode === CREDENTIAL_MODES.sync &&
+        card.querySelector('[data-field="syncAuthorization"]').checked,
+      syncCookies: credentialMode === CREDENTIAL_MODES.sync &&
+        card.querySelector('[data-field="syncCookies"]').checked,
+      sourcePattern: card.querySelector('[data-field="sourcePattern"]').value.trim(),
+      targetUrl: card.querySelector('[data-field="targetUrl"]').value.trim(),
+      authorization: card.querySelector('[data-field="authorization"]').value.trim(),
+      headers: [...card.querySelectorAll(".header-row")].map((row) => ({
+        name: row.querySelector('[data-field="headerName"]').value.trim(),
+        value: row.querySelector('[data-field="headerValue"]').value.trim()
+      }))
+    };
+  });
+}
+
+function renderRuleList() {
+  ruleCount.textContent = `${rules.filter((rule) => rule.enabled).length}/${rules.length} enabled`;
+  rulesList.replaceChildren(...rules.map((rule) => {
+    const fragment = ruleListItemTemplate.content.cloneNode(true);
+    const item = fragment.querySelector(".rule-list-item");
+    item.dataset.ruleId = rule.id;
+    item.classList.toggle("is-selected", rule.id === selectedRuleId);
+    item.querySelector('[data-role="ruleName"]').textContent = rule.name || "Unnamed rule";
+    item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.enabled ? "Enabled" : "Disabled"} · ${rule.credentialMode || CREDENTIAL_MODES.manual}`;
+    item.addEventListener("click", () => {
+      updateSelectedRuleFromEditor();
+      selectedRuleId = rule.id;
+      render();
+    });
+    return fragment;
   }));
 }
 
@@ -65,14 +103,23 @@ function renderHeader(header = { name: "", value: "" }) {
   row.querySelector('[data-field="headerValue"]').value = header.value || "";
   row.querySelector('[data-action="removeHeader"]').addEventListener("click", () => {
     row.remove();
+    updateSelectedRuleFromEditor();
+    renderRuleList();
   });
 
   return fragment;
 }
 
-function renderRule(rule) {
+function renderEditor() {
+  const rule = getSelectedRule();
+
+  if (!rule) {
+    editorPanel.replaceChildren(emptyEditorTemplate.content.cloneNode(true));
+    return;
+  }
+
   const fragment = ruleTemplate.content.cloneNode(true);
-  const card = fragment.querySelector(".rule-card");
+  const card = fragment.querySelector(".rule-editor");
   const headersContainer = card.querySelector('[data-role="headers"]');
   const patternTypeInput = card.querySelector('[data-field="patternType"]');
   const credentialModeInput = card.querySelector('[data-field="credentialMode"]');
@@ -82,15 +129,9 @@ function renderRule(rule) {
   const manualHeaders = card.querySelector('[data-role="manualHeaders"]');
   const syncOptions = card.querySelector('[data-role="syncOptions"]');
 
-  card.dataset.ruleId = rule.id || crypto.randomUUID();
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   card.querySelector('[data-field="name"]').value = rule.name || "";
-  card.dataset.patternType = rule.patternType || PATTERN_TYPES.wildcard;
-  card.dataset.syncedHeaders = JSON.stringify(rule.syncedHeaders || []);
-  card.dataset.syncedAuthorization = rule.syncedAuthorization || "";
-  card.dataset.syncedCookieHeader = rule.syncedCookieHeader || "";
-  card.dataset.lastSyncedAt = rule.lastSyncedAt || "";
-  patternTypeInput.value = card.dataset.patternType;
+  patternTypeInput.value = rule.patternType || PATTERN_TYPES.wildcard;
   credentialModeInput.value = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
   sourcePatternInput.value = rule.sourcePattern || "";
   targetUrlInput.value = rule.targetUrl || "";
@@ -101,18 +142,31 @@ function renderRule(rule) {
   card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
   updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
 
+  card.querySelectorAll("input, select").forEach((input) => {
+    input.addEventListener("input", () => {
+      updateSelectedRuleFromEditor();
+      renderRuleList();
+    });
+    input.addEventListener("change", () => {
+      updateSelectedRuleFromEditor();
+      renderRuleList();
+    });
+  });
+
   patternTypeInput.addEventListener("change", () => {
-    const fromType = card.dataset.patternType || PATTERN_TYPES.wildcard;
+    const fromType = rule.patternType || PATTERN_TYPES.wildcard;
     const toType = patternTypeInput.value;
 
     sourcePatternInput.value = convertPatternFormat(sourcePatternInput.value.trim(), fromType, toType, "source");
     targetUrlInput.value = convertPatternFormat(targetUrlInput.value.trim(), fromType, toType, "target");
-    card.dataset.patternType = toType;
+    updateSelectedRuleFromEditor();
     setStatus(`Pattern converted to ${toType}`);
   });
 
   credentialModeInput.addEventListener("change", () => {
     updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
+    updateSelectedRuleFromEditor();
+    renderRuleList();
   });
 
   (rule.headers || []).forEach((header) => {
@@ -121,17 +175,21 @@ function renderRule(rule) {
 
   card.querySelector('[data-action="addHeader"]').addEventListener("click", () => {
     headersContainer.append(renderHeader());
+    updateSelectedRuleFromEditor();
   });
 
   card.querySelector('[data-action="removeRule"]').addEventListener("click", () => {
-    card.remove();
+    rules = rules.filter((currentRule) => currentRule.id !== selectedRuleId);
+    selectedRuleId = rules[0]?.id || "";
+    render();
   });
 
-  return fragment;
+  editorPanel.replaceChildren(fragment);
 }
 
-function renderRules() {
-  rulesList.replaceChildren(...rules.map(renderRule));
+function render() {
+  renderRuleList();
+  renderEditor();
 }
 
 function getSyncStatus(rule) {
@@ -168,7 +226,11 @@ async function applyRules(savedRules) {
 }
 
 addRuleButton.addEventListener("click", () => {
-  rulesList.append(renderRule(createBlankRule()));
+  updateSelectedRuleFromEditor();
+  const blankRule = createBlankRule();
+  rules = [...rules, blankRule];
+  selectedRuleId = blankRule.id;
+  render();
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -177,19 +239,19 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 
   rules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
-  renderRules();
+  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : rules[0]?.id || "";
+  render();
 });
 
 saveRulesButton.addEventListener("click", async () => {
   try {
-    const nextRules = readRulesFromDom();
-    await saveRedirectRules(nextRules);
-    await applyRules(nextRules);
-    rules = nextRules;
+    updateSelectedRuleFromEditor();
+    await saveRedirectRules(rules);
+    await applyRules(rules);
     setStatus("Rules saved");
   } catch (error) {
     setStatus(error.message);
   }
 });
 
-renderRules();
+render();
