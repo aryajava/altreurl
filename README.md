@@ -1,4 +1,4 @@
-# Altreurl
+# Altreurl V1
 
 Altreurl is a Chromium Extension for backend developers who need to route application requests to local or alternate backend endpoints while debugging.
 
