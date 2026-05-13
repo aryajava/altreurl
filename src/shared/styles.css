@@ -283,7 +283,7 @@ label select {
   display: grid;
   gap: 8px;
   max-height: 320px;
-  margin-bottom: 12px;
+  margin: 12px 0;
   overflow-y: auto;
   padding-right: 2px;
 }
