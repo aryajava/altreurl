@@ -7,13 +7,12 @@ const summary = document.querySelector("#summary");
 const activeRules = document.querySelector("#activeRules");
 const ruleSearch = document.querySelector("#ruleSearch");
 const openOptions = document.querySelector("#openOptions");
-const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications);
 
 let rules = await getRedirectRules();
 
-await initThemeControl(themePreference);
+await initThemeControl();
 
 function renderPopup() {
   const enabledRules = rules.filter((rule) => rule.enabled);

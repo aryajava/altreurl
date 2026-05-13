@@ -171,9 +171,8 @@ label select {
 
 .app-header--compact {
   align-items: start;
-  display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(0, 1fr) 118px;
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 14px;
 }
 
@@ -199,13 +198,14 @@ label select {
   gap: 10px;
 }
 
-.theme-field {
-  min-width: 118px;
+.theme-toggle {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  min-width: 78px;
 }
 
-.theme-field select {
-  min-height: 34px;
-  padding: 6px 8px;
+.theme-toggle[aria-pressed="true"] {
+  background: var(--panel-soft);
 }
 
 .page-header,
@@ -504,11 +504,9 @@ label select {
     flex-direction: column;
   }
 
-  .app-header--compact,
   .header-actions,
   .rule-actions {
     align-items: stretch;
-    grid-template-columns: 1fr;
   }
 
   .header-actions,

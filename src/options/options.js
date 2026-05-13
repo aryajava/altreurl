@@ -33,7 +33,7 @@ let rules = await getRedirectRules();
 let selectedRuleId = rules[0]?.id || "";
 let isSavingRule = false;
 
-await initThemeControl(themePreference);
+await initThemeControl(themePreference, { controlType: "toggle" });
 
 if (rules.length === 0) {
   const blankRule = createBlankRule();

@@ -16,17 +16,39 @@ function applyTheme(themePreference) {
   document.documentElement.dataset.colorScheme = resolveTheme(normalizedTheme);
 }
 
-export async function initThemeControl(themeControl) {
+function updateToggleControl(themeControl, themePreference) {
+  if (!themeControl) {
+    return;
+  }
+
+  const resolvedTheme = resolveTheme(themePreference);
+  themeControl.setAttribute("aria-pressed", String(resolvedTheme === "dark"));
+  themeControl.textContent = resolvedTheme === "dark" ? "Dark" : "Light";
+  themeControl.title = `Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`;
+}
+
+export async function initThemeControl(themeControl, options = {}) {
+  const controlType = options.controlType || "select";
   const themePreference = await getThemePreference();
 
   applyTheme(themePreference);
 
   if (themeControl) {
-    themeControl.value = themePreference;
-    themeControl.addEventListener("change", async () => {
-      applyTheme(themeControl.value);
-      await saveThemePreference(themeControl.value);
-    });
+    if (controlType === "toggle") {
+      updateToggleControl(themeControl, themePreference);
+      themeControl.addEventListener("click", async () => {
+        const nextThemePreference = document.documentElement.dataset.colorScheme === "dark" ? "light" : "dark";
+        applyTheme(nextThemePreference);
+        updateToggleControl(themeControl, nextThemePreference);
+        await saveThemePreference(nextThemePreference);
+      });
+    } else {
+      themeControl.value = themePreference;
+      themeControl.addEventListener("change", async () => {
+        applyTheme(themeControl.value);
+        await saveThemePreference(themeControl.value);
+      });
+    }
   }
 
   mediaQuery.addEventListener("change", async () => {
@@ -34,6 +56,7 @@ export async function initThemeControl(themeControl) {
 
     if (nextThemePreference === "system") {
       applyTheme(nextThemePreference);
+      updateToggleControl(themeControl, nextThemePreference);
     }
   });
 
@@ -45,7 +68,9 @@ export async function initThemeControl(themeControl) {
     const nextThemePreference = changes[STORAGE_KEYS.theme].newValue || "system";
     applyTheme(nextThemePreference);
 
-    if (themeControl) {
+    if (themeControl && controlType === "toggle") {
+      updateToggleControl(themeControl, nextThemePreference);
+    } else if (themeControl) {
       themeControl.value = nextThemePreference;
     }
   });
