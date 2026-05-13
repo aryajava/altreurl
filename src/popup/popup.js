@@ -3,17 +3,33 @@ import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 
 const summary = document.querySelector("#summary");
 const activeRules = document.querySelector("#activeRules");
+const ruleSearch = document.querySelector("#ruleSearch");
 const openOptions = document.querySelector("#openOptions");
 
 let rules = await getRedirectRules();
 
 function renderPopup() {
   const enabledRules = rules.filter((rule) => rule.enabled);
+  const query = ruleSearch.value.trim().toLowerCase();
+  const visibleRules = enabledRules.filter((rule) => !query || [
+    rule.name,
+    rule.sourcePattern,
+    rule.targetUrl
+  ].some((value) => String(value || "").toLowerCase().includes(query)));
+
   summary.textContent = enabledRules.length === 0
     ? "No active rules"
     : `${enabledRules.length} active ${enabledRules.length === 1 ? "rule" : "rules"}`;
 
-  activeRules.replaceChildren(...enabledRules.map((rule) => {
+  if (visibleRules.length === 0) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "popup-empty";
+    emptyState.textContent = enabledRules.length === 0 ? "No active rules" : "No matching active rules";
+    activeRules.replaceChildren(emptyState);
+    return;
+  }
+
+  activeRules.replaceChildren(...visibleRules.map((rule) => {
     const item = document.createElement("div");
     const detail = document.createElement("div");
     const name = document.createElement("strong");
@@ -43,5 +59,7 @@ function renderPopup() {
 openOptions.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
+
+ruleSearch.addEventListener("input", renderPopup);
 
 renderPopup();

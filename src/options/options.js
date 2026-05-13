@@ -11,6 +11,9 @@ import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 const rulesList = document.querySelector("#rulesList");
 const editorPanel = document.querySelector("#editorPanel");
 const ruleCount = document.querySelector("#ruleCount");
+const ruleSearch = document.querySelector("#ruleSearch");
+const statusFilter = document.querySelector("#statusFilter");
+const credentialFilter = document.querySelector("#credentialFilter");
 const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
 const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
 const ruleTemplate = document.querySelector("#ruleTemplate");
@@ -78,8 +81,18 @@ function updateSelectedRuleFromEditor() {
 }
 
 function renderRuleList() {
-  ruleCount.textContent = `${rules.filter((rule) => rule.enabled).length}/${rules.length} enabled`;
-  rulesList.replaceChildren(...rules.map((rule) => {
+  const filteredRules = getFilteredRules();
+  ruleCount.textContent = `${filteredRules.length}/${rules.length} shown`;
+
+  if (filteredRules.length === 0) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "rule-list-empty";
+    emptyState.textContent = "No matching rules";
+    rulesList.replaceChildren(emptyState);
+    return;
+  }
+
+  rulesList.replaceChildren(...filteredRules.map((rule) => {
     const fragment = ruleListItemTemplate.content.cloneNode(true);
     const item = fragment.querySelector(".rule-list-item");
     item.dataset.ruleId = rule.id;
@@ -93,6 +106,27 @@ function renderRuleList() {
     });
     return fragment;
   }));
+}
+
+function getFilteredRules() {
+  const query = ruleSearch.value.trim().toLowerCase();
+  const status = statusFilter.value;
+  const credentialMode = credentialFilter.value;
+
+  return rules.filter((rule) => {
+    const normalizedCredentialMode = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
+    const matchesQuery = !query || [
+      rule.name,
+      rule.sourcePattern,
+      rule.targetUrl
+    ].some((value) => String(value || "").toLowerCase().includes(query));
+    const matchesStatus = status === "all" ||
+      (status === "enabled" && rule.enabled) ||
+      (status === "disabled" && !rule.enabled);
+    const matchesCredential = credentialMode === "all" || normalizedCredentialMode === credentialMode;
+
+    return matchesQuery && matchesStatus && matchesCredential;
+  });
 }
 
 function renderHeader(header = { name: "", value: "" }) {
@@ -231,6 +265,11 @@ addRuleButton.addEventListener("click", () => {
   rules = [...rules, blankRule];
   selectedRuleId = blankRule.id;
   render();
+});
+
+[ruleSearch, statusFilter, credentialFilter].forEach((control) => {
+  control.addEventListener("input", renderRuleList);
+  control.addEventListener("change", renderRuleList);
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {

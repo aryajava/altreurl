@@ -137,6 +137,13 @@ label select {
   padding: 12px;
 }
 
+.rule-list-controls {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
 .panel-title span,
 .rule-list-item small,
 .popup-rule small {
@@ -165,6 +172,12 @@ label select {
   background: #eef4ff;
   border-left: 3px solid var(--accent);
   padding-left: 9px;
+}
+
+.rule-list-empty,
+.popup-empty {
+  color: var(--muted);
+  padding: 12px;
 }
 
 .rule-editor {
@@ -251,7 +264,10 @@ label select {
 .popup-rules {
   display: grid;
   gap: 8px;
+  max-height: 320px;
   margin-bottom: 12px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .popup-rule {

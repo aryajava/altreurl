@@ -22,6 +22,19 @@
             <strong>Rules</strong>
             <span id="ruleCount"></span>
           </div>
+          <div class="rule-list-controls">
+            <input id="ruleSearch" type="search" placeholder="Search rules">
+            <select id="statusFilter" aria-label="Status filter">
+              <option value="all">All statuses</option>
+              <option value="enabled">Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
+            <select id="credentialFilter" aria-label="Credential filter">
+              <option value="all">All credentials</option>
+              <option value="manual">Manual</option>
+              <option value="sync">Sync from source</option>
+            </select>
+          </div>
           <div id="rulesList" class="rule-list" aria-live="polite"></div>
         </aside>
 
