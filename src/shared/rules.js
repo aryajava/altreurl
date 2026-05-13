@@ -90,10 +90,18 @@ function countWildcards(value) {
 }
 
 function buildRegexFilterFromWildcard(sourcePattern) {
+  if (sourcePattern.startsWith("^") && sourcePattern.endsWith("$")) {
+    return sourcePattern;
+  }
+
   return `^${sourcePattern.split(WILDCARD).map(escapeRegex).join("(.*)")}$`;
 }
 
 function buildRegexSubstitutionFromWildcard(targetUrl) {
+  if (/\\[1-9]\d*|\$[1-9]\d*/.test(targetUrl)) {
+    return targetUrl;
+  }
+
   let groupIndex = 0;
 
   return targetUrl
@@ -118,7 +126,11 @@ function unescapeRegexLiterals(regexPattern) {
 }
 
 function buildWildcardFromRegexFilter(regexPattern) {
-  return unescapeRegexLiterals(stripRegexAnchors(regexPattern).replace(/\(\.\*\??\)/g, WILDCARD));
+  return unescapeRegexLiterals(
+    stripRegexAnchors(regexPattern)
+      .replace(/\(\.\*\??\)/g, WILDCARD)
+      .replace(/\(\[\^[^\]]+\]\*\??\)/g, WILDCARD)
+  );
 }
 
 function buildWildcardFromRegexSubstitution(targetUrl) {

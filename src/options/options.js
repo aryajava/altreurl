@@ -180,22 +180,36 @@ function renderEditor() {
 
   card.querySelectorAll("input, select").forEach((input) => {
     input.addEventListener("input", () => {
+      if (input === patternTypeInput) {
+        return;
+      }
+
       updateSelectedRuleFromEditor();
       renderRuleList();
     });
     input.addEventListener("change", () => {
+      if (input === patternTypeInput) {
+        return;
+      }
+
       updateSelectedRuleFromEditor();
       renderRuleList();
     });
   });
 
   patternTypeInput.addEventListener("change", () => {
-    const fromType = rule.patternType || PATTERN_TYPES.wildcard;
+    const previousRule = getSelectedRule();
+    const fromType = previousRule?.patternType || PATTERN_TYPES.wildcard;
     const toType = patternTypeInput.value;
+
+    if (fromType === toType) {
+      return;
+    }
 
     sourcePatternInput.value = convertPatternFormat(sourcePatternInput.value.trim(), fromType, toType, "source");
     targetUrlInput.value = convertPatternFormat(targetUrlInput.value.trim(), fromType, toType, "target");
     updateSelectedRuleFromEditor();
+    renderRuleList();
     setStatus(`Pattern converted to ${toType}`);
   });
 
