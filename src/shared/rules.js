@@ -1,4 +1,26 @@
 const RULE_ID_BASE = 1000;
+const WILDCARD = "*";
+export const PATTERN_TYPES = {
+  wildcard: "wildcard",
+  regex: "regex"
+};
+export const CREDENTIAL_MODES = {
+  manual: "manual",
+  sync: "sync"
+};
+const UNSYNCED_HEADER_NAMES = new Set([
+  "connection",
+  "content-length",
+  "cookie",
+  "host",
+  "origin",
+  "referer",
+  "sec-fetch-dest",
+  "sec-fetch-mode",
+  "sec-fetch-site",
+  "sec-fetch-user",
+  "upgrade-insecure-requests"
+]);
 
 export function normalizeHeaderRows(headers = []) {
   return headers
@@ -9,50 +31,282 @@ export function normalizeHeaderRows(headers = []) {
     .filter((header) => header.name && header.value);
 }
 
+export function normalizePatternType(patternType) {
+  return Object.values(PATTERN_TYPES).includes(patternType) ? patternType : PATTERN_TYPES.wildcard;
+}
+
+export function normalizeCredentialMode(rule) {
+  if (Object.values(CREDENTIAL_MODES).includes(rule?.credentialMode)) {
+    return rule.credentialMode;
+  }
+
+  return Boolean(rule?.syncHeaders || rule?.syncAuthorization || rule?.syncCookies)
+    ? CREDENTIAL_MODES.sync
+    : CREDENTIAL_MODES.manual;
+}
+
+export function isSyncableHeaderName(headerName) {
+  const normalizedName = String(headerName || "").trim().toLowerCase();
+  return normalizedName && !UNSYNCED_HEADER_NAMES.has(normalizedName) && normalizedName !== "authorization";
+}
+
+export function normalizeSyncedHeaders(headers = []) {
+  return normalizeHeaderRows(headers).filter((header) => isSyncableHeaderName(header.name));
+}
+
+export function hasSyncEnabled(rule) {
+  return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
+    Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+}
+
+export function isWaitingForSyncCapture(rule) {
+  if (!hasSyncEnabled(rule)) {
+    return false;
+  }
+
+  return Boolean(
+    (rule.syncHeaders && normalizeSyncedHeaders(rule.syncedHeaders).length === 0) ||
+    (rule.syncAuthorization && !rule.syncedAuthorization) ||
+    (rule.syncCookies && !rule.syncedCookieHeader)
+  );
+}
+
+export function buildSourceMatcher(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
+  const normalizedPatternType = normalizePatternType(patternType);
+  const regexSource = normalizedPatternType === PATTERN_TYPES.regex
+    ? sourcePattern
+    : buildRegexFilterFromWildcard(sourcePattern);
+  const regex = new RegExp(regexSource);
+
+  return (url) => regex.test(url);
+}
+
+function escapeRegex(value) {
+  return value.replace(/[\\^$+?.()|[\]{}]/g, "\\$&");
+}
+
+function countWildcards(value) {
+  return [...String(value || "")].filter((character) => character === WILDCARD).length;
+}
+
+function buildRegexFilterFromWildcard(sourcePattern) {
+  if (sourcePattern.startsWith("^") && sourcePattern.endsWith("$")) {
+    return sourcePattern;
+  }
+
+  return `^${sourcePattern.split(WILDCARD).map(escapeRegex).join("(.*)")}$`;
+}
+
+function buildRegexSubstitutionFromWildcard(targetUrl) {
+  if (/\\[1-9]\d*|\$[1-9]\d*/.test(targetUrl)) {
+    return targetUrl;
+  }
+
+  let groupIndex = 0;
+
+  return targetUrl
+    .split(WILDCARD)
+    .map((part, index) => {
+      if (index === 0) {
+        return part;
+      }
+
+      groupIndex += 1;
+      return `\\${groupIndex}${part}`;
+    })
+    .join("");
+}
+
+function stripRegexAnchors(regexPattern) {
+  return regexPattern.replace(/^\^/, "").replace(/\$$/, "");
+}
+
+function unescapeRegexLiterals(regexPattern) {
+  return regexPattern.replace(/\\([\\^$*+?.()|[\]{}])/g, "$1");
+}
+
+function buildWildcardFromRegexFilter(regexPattern) {
+  return unescapeRegexLiterals(
+    stripRegexAnchors(regexPattern)
+      .replace(/\(\.\*\??\)/g, WILDCARD)
+      .replace(/\(\[\^[^\]]+\]\*\??\)/g, WILDCARD)
+  );
+}
+
+function buildWildcardFromRegexSubstitution(targetUrl) {
+  return targetUrl.replace(/\\[1-9]\d*/g, WILDCARD).replace(/\$[1-9]\d*/g, WILDCARD);
+}
+
+function buildRegexFilterFromRegexSubstitution(targetUrl) {
+  return `^${targetUrl
+    .replace(/\\[1-9]\d*/g, "(.*)")
+    .replace(/\$[1-9]\d*/g, "(.*)")}$`;
+}
+
+export function convertPatternFormat(value, fromPatternType, toPatternType, fieldType) {
+  const fromType = normalizePatternType(fromPatternType);
+  const toType = normalizePatternType(toPatternType);
+
+  if (!value || fromType === toType) {
+    return value;
+  }
+
+  if (fromType === PATTERN_TYPES.wildcard && toType === PATTERN_TYPES.regex) {
+    return fieldType === "target" ? buildRegexSubstitutionFromWildcard(value) : buildRegexFilterFromWildcard(value);
+  }
+
+  if (fromType === PATTERN_TYPES.regex && toType === PATTERN_TYPES.wildcard) {
+    return fieldType === "target" ? buildWildcardFromRegexSubstitution(value) : buildWildcardFromRegexFilter(value);
+  }
+
+  return value;
+}
+
+export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
+  if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    return {
+      regexFilter: sourcePattern,
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  if (!sourcePattern.includes(WILDCARD)) {
+    return {
+      urlFilter: sourcePattern,
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  return {
+    regexFilter: buildRegexFilterFromWildcard(sourcePattern),
+    resourceTypes: getResourceTypes()
+  };
+}
+
+export function buildHeaderCondition(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    return {
+      regexFilter: buildRegexFilterFromRegexSubstitution(targetUrl),
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  if (targetUrl.includes(WILDCARD)) {
+    return {
+      regexFilter: buildRegexFilterFromWildcard(targetUrl),
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  return {
+    urlFilter: targetUrl,
+    resourceTypes: getResourceTypes()
+  };
+}
+
+export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    return {
+      type: "redirect",
+      redirect: {
+        regexSubstitution: targetUrl
+      }
+    };
+  }
+
+  const sourceWildcardCount = countWildcards(sourcePattern);
+  const targetWildcardCount = countWildcards(targetUrl);
+
+  if (sourceWildcardCount > 0 && targetWildcardCount > 0) {
+    if (sourceWildcardCount !== targetWildcardCount) {
+      throw new Error("Source URL pattern and redirect target URL must use the same number of wildcards.");
+    }
+
+    return {
+      type: "redirect",
+      redirect: {
+        regexSubstitution: buildRegexSubstitutionFromWildcard(targetUrl)
+      }
+    };
+  }
+
+  if (targetWildcardCount > 0) {
+    throw new Error("Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.");
+  }
+
+  return {
+    type: "redirect",
+    redirect: {
+      url: targetUrl
+    }
+  };
+}
+
+function getResourceTypes() {
+  return [
+    "main_frame",
+    "sub_frame",
+    "xmlhttprequest",
+    "script",
+    "stylesheet",
+    "image",
+    "font",
+    "media",
+    "websocket",
+    "other"
+  ];
+}
+
+function mergeRequestHeaders(...headerGroups) {
+  const headersByName = new Map();
+
+  headerGroups.flat().forEach((header) => {
+    if (!header.name || !header.value) {
+      return;
+    }
+
+    headersByName.set(header.name.toLowerCase(), {
+      header: header.name,
+      operation: "set",
+      value: header.value
+    });
+  });
+
+  return [...headersByName.values()];
+}
+
 export function buildDynamicRules(configRules = []) {
   return configRules
     .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl)
+    .filter((rule) => !isWaitingForSyncCapture(rule))
     .flatMap((rule, index) => {
-      const requestHeaders = normalizeHeaderRows(rule.headers).map((header) => ({
-        header: header.name,
-        operation: "set",
-        value: header.value
-      }));
+      const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
+      const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
+        ? [{ name: "Authorization", value: rule.syncedAuthorization }]
+        : [];
+      const syncedCookieHeader = rule.syncCookies && rule.syncedCookieHeader
+        ? [{ name: "Cookie", value: rule.syncedCookieHeader }]
+        : [];
+      const manualAuthorization = rule.authorization
+        ? [{ name: "Authorization", value: rule.authorization }]
+        : [];
+      const requestHeaders = mergeRequestHeaders(
+        syncedHeaders,
+        syncedAuthorization,
+        syncedCookieHeader,
+        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? manualAuthorization : [],
+        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? normalizeHeaderRows(rule.headers) : []
+      );
 
-      if (rule.authorization) {
-        requestHeaders.push({
-          header: "Authorization",
-          operation: "set",
-          value: rule.authorization
-        });
-      }
-
-      const condition = {
-        urlFilter: rule.sourcePattern,
-        resourceTypes: [
-          "main_frame",
-          "sub_frame",
-          "xmlhttprequest",
-          "script",
-          "stylesheet",
-          "image",
-          "font",
-          "media",
-          "websocket",
-          "other"
-        ]
-      };
+      const patternType = normalizePatternType(rule.patternType);
+      const redirectCondition = buildRedirectCondition(rule.sourcePattern, patternType);
+      const headerCondition = buildHeaderCondition(rule.sourcePattern, rule.targetUrl, patternType);
 
       const redirectRule = {
         id: RULE_ID_BASE + index * 2,
         priority: 1,
-        action: {
-          type: "redirect",
-          redirect: {
-            url: rule.targetUrl
-          }
-        },
-        condition
+        action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
+        condition: redirectCondition
       };
 
       if (requestHeaders.length === 0) {
@@ -68,7 +322,7 @@ export function buildDynamicRules(configRules = []) {
             type: "modifyHeaders",
             requestHeaders
           },
-          condition
+          condition: headerCondition
         }
       ];
     });
@@ -91,9 +345,18 @@ export function createBlankRule() {
     id: crypto.randomUUID(),
     name: "Local backend",
     enabled: true,
+    patternType: PATTERN_TYPES.wildcard,
+    credentialMode: CREDENTIAL_MODES.manual,
+    syncHeaders: false,
+    syncAuthorization: false,
+    syncCookies: false,
     sourcePattern: "",
     targetUrl: "",
     authorization: "",
-    headers: []
+    headers: [],
+    syncedHeaders: [],
+    syncedAuthorization: "",
+    syncedCookieHeader: "",
+    lastSyncedAt: ""
   };
 }

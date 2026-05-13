@@ -3,18 +3,19 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request URL Redirector</title>
+    <title>Altreurl</title>
     <link rel="stylesheet" href="../shared/styles.css">
   </head>
   <body class="popup-shell">
     <header>
-      <h1>Request URL Redirector</h1>
+      <h1>Altreurl</h1>
       <p id="summary">Loading rules...</p>
     </header>
     <main>
+      <input id="ruleSearch" type="search" placeholder="Search active rules">
+      <div id="activeRules" class="popup-rules"></div>
       <button id="openOptions" type="button">Open rules</button>
     </main>
     <script type="module" src="./popup.js"></script>
   </body>
 </html>
-

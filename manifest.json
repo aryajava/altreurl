@@ -1,11 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "Request URL Redirector",
-  "description": "Redirect request URLs and override headers for local backend debugging.",
-  "version": "1.0.0",
+  "name": "Altreurl",
+  "description": "Manage local debugging redirects and request header overrides.",
+  "version": "1.6.9",
+  "icons": {
+    "16": "src/shared/imgs/icons/Altreurl-16.png",
+    "32": "src/shared/imgs/icons/Altreurl-32.png",
+    "48": "src/shared/imgs/icons/Altreurl-48.png",
+    "64": "src/shared/imgs/icons/Altreurl-64.png",
+    "128": "src/shared/imgs/icons/Altreurl-128.png"
+  },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Request URL Redirector"
+    "default_title": "Altreurl",
+    "default_icon": {
+      "16": "src/shared/imgs/icons/Altreurl-16.png",
+      "32": "src/shared/imgs/icons/Altreurl-32.png",
+      "48": "src/shared/imgs/icons/Altreurl-48.png",
+      "64": "src/shared/imgs/icons/Altreurl-64.png",
+      "128": "src/shared/imgs/icons/Altreurl-128.png"
+    }
   },
   "background": {
     "service_worker": "src/background/service-worker.js",
@@ -15,10 +29,11 @@
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
+    "cookies",
+    "webRequest",
     "storage"
   ],
   "host_permissions": [
     "<all_urls>"
   ]
 }
-
