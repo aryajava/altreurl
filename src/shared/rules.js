@@ -364,6 +364,7 @@ export async function applyDynamicRules(configRules = []) {
 export function createBlankRule() {
   return {
     id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
     name: "Local backend",
     enabled: true,
     patternType: PATTERN_TYPES.wildcard,

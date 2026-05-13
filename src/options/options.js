@@ -120,20 +120,27 @@ function getFilteredRules() {
   const status = statusFilter.value;
   const credentialMode = credentialFilter.value;
 
-  return rules.filter((rule) => {
-    const normalizedCredentialMode = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
-    const matchesQuery = !query || [
-      rule.name,
-      rule.sourcePattern,
-      rule.targetUrl
-    ].some((value) => String(value || "").toLowerCase().includes(query));
-    const matchesStatus = status === "all" ||
-      (status === "enabled" && rule.enabled) ||
-      (status === "disabled" && !rule.enabled);
-    const matchesCredential = credentialMode === "all" || normalizedCredentialMode === credentialMode;
+  return [...rules]
+    .filter((rule) => {
+      const normalizedCredentialMode = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
+      const matchesQuery = !query || [
+        rule.name,
+        rule.sourcePattern,
+        rule.targetUrl
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+      const matchesStatus = status === "all" ||
+        (status === "enabled" && rule.enabled) ||
+        (status === "disabled" && !rule.enabled);
+      const matchesCredential = credentialMode === "all" || normalizedCredentialMode === credentialMode;
 
-    return matchesQuery && matchesStatus && matchesCredential;
-  });
+      return matchesQuery && matchesStatus && matchesCredential;
+    })
+    .sort((leftRule, rightRule) => getRuleCreatedAt(rightRule) - getRuleCreatedAt(leftRule));
+}
+
+function getRuleCreatedAt(rule) {
+  const timestamp = Date.parse(rule.createdAt || "");
+  return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
 function renderHeader(header = { name: "", value: "" }) {
@@ -345,7 +352,7 @@ async function saveCurrentRule(saveButton) {
 addRuleButton.addEventListener("click", () => {
   updateSelectedRuleFromEditor();
   const blankRule = createBlankRule();
-  rules = [...rules, blankRule];
+  rules = [blankRule, ...rules];
   selectedRuleId = blankRule.id;
   render();
   notify("Rule added");
