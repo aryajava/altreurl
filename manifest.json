@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Request URL Redirector",
   "description": "Redirect request URLs and override headers for local backend debugging.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Request URL Redirector"
@@ -21,4 +21,3 @@
     "<all_urls>"
   ]
 }
-

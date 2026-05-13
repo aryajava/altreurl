@@ -1,4 +1,5 @@
 const RULE_ID_BASE = 1000;
+const WILDCARD = "*";
 
 export function normalizeHeaderRows(headers = []) {
   return headers
@@ -7,6 +8,92 @@ export function normalizeHeaderRows(headers = []) {
       value: String(header.value || "").trim()
     }))
     .filter((header) => header.name && header.value);
+}
+
+function escapeRegex(value) {
+  return value.replace(/[\\^$+?.()|[\]{}]/g, "\\$&");
+}
+
+function countWildcards(value) {
+  return [...String(value || "")].filter((character) => character === WILDCARD).length;
+}
+
+function buildRegexFilterFromWildcard(sourcePattern) {
+  return `^${sourcePattern.split(WILDCARD).map(escapeRegex).join("(.*)")}$`;
+}
+
+function buildRegexSubstitutionFromWildcard(targetUrl) {
+  let groupIndex = 0;
+
+  return targetUrl
+    .split(WILDCARD)
+    .map((part, index) => {
+      if (index === 0) {
+        return part;
+      }
+
+      groupIndex += 1;
+      return `\\${groupIndex}${part}`;
+    })
+    .join("");
+}
+
+export function buildRedirectCondition(sourcePattern) {
+  if (!sourcePattern.includes(WILDCARD)) {
+    return {
+      urlFilter: sourcePattern,
+      resourceTypes: getResourceTypes()
+    };
+  }
+
+  return {
+    regexFilter: buildRegexFilterFromWildcard(sourcePattern),
+    resourceTypes: getResourceTypes()
+  };
+}
+
+export function buildRedirectAction(sourcePattern, targetUrl) {
+  const sourceWildcardCount = countWildcards(sourcePattern);
+  const targetWildcardCount = countWildcards(targetUrl);
+
+  if (sourceWildcardCount > 0 && targetWildcardCount > 0) {
+    if (sourceWildcardCount !== targetWildcardCount) {
+      throw new Error("Source URL pattern and redirect target URL must use the same number of wildcards.");
+    }
+
+    return {
+      type: "redirect",
+      redirect: {
+        regexSubstitution: buildRegexSubstitutionFromWildcard(targetUrl)
+      }
+    };
+  }
+
+  if (targetWildcardCount > 0) {
+    throw new Error("Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.");
+  }
+
+  return {
+    type: "redirect",
+    redirect: {
+      url: targetUrl
+    }
+  };
+}
+
+function getResourceTypes() {
+  return [
+    "main_frame",
+    "sub_frame",
+    "xmlhttprequest",
+    "script",
+    "stylesheet",
+    "image",
+    "font",
+    "media",
+    "websocket",
+    "other"
+  ];
 }
 
 export function buildDynamicRules(configRules = []) {
@@ -27,31 +114,12 @@ export function buildDynamicRules(configRules = []) {
         });
       }
 
-      const condition = {
-        urlFilter: rule.sourcePattern,
-        resourceTypes: [
-          "main_frame",
-          "sub_frame",
-          "xmlhttprequest",
-          "script",
-          "stylesheet",
-          "image",
-          "font",
-          "media",
-          "websocket",
-          "other"
-        ]
-      };
+      const condition = buildRedirectCondition(rule.sourcePattern);
 
       const redirectRule = {
         id: RULE_ID_BASE + index * 2,
         priority: 1,
-        action: {
-          type: "redirect",
-          redirect: {
-            url: rule.targetUrl
-          }
-        },
+        action: buildRedirectAction(rule.sourcePattern, rule.targetUrl),
         condition
       };
 
