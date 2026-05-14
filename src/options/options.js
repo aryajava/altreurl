@@ -29,6 +29,7 @@ const bulkMoveGroup = document.querySelector("#bulkMoveGroup");
 const bulkDuplicate = document.querySelector("#bulkDuplicate");
 const bulkExport = document.querySelector("#bulkExport");
 const bulkRemove = document.querySelector("#bulkRemove");
+const bulkActions = document.querySelector('[data-role="bulkActions"]');
 const toggleRuleControls = document.querySelector("#toggleRuleControls");
 const ruleListControls = document.querySelector("#ruleListControls");
 const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
@@ -288,9 +289,12 @@ function renderBulkToolbar(visibleRules = getFilteredRules()) {
   const selectedCount = selectedRuleIds.size;
 
   bulkToolbar.hidden = rules.length === 0;
-  selectedRuleCount.textContent = `${selectedCount} selected`;
+  selectedRuleCount.textContent = selectedCount > 0
+    ? `${selectedCount} selected`
+    : `${visibleRules.length} visible`;
   selectVisibleRules.checked = visibleRules.length > 0 && selectedVisibleCount === visibleRules.length;
   selectVisibleRules.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visibleRules.length;
+  bulkActions.hidden = selectedCount === 0;
 
   [bulkEnable, bulkDisable, bulkMoveGroup, bulkDuplicate, bulkRemove].forEach((button) => {
     button.disabled = selectedCount === 0;
@@ -400,6 +404,11 @@ function renderEditor() {
 
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   const editorDraftBadge = card.querySelector('[data-role="editorDraftBadge"]');
+  const editorStatusBadge = card.querySelector('[data-role="editorStatusBadge"]');
+  const ruleStatus = getRuleStatus(rule);
+  editorStatusBadge.textContent = ruleStatus.label;
+  editorStatusBadge.dataset.status = ruleStatus.key;
+  editorStatusBadge.title = getRuleStatusDescription(ruleStatus);
   editorDraftBadge.hidden = !isDraftRule(rule);
   editorDraftBadge.title = getRuleStatusDescription({ key: "draft" });
   card.querySelector('[data-field="name"]').value = rule.name || "";

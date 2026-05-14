@@ -55,17 +55,21 @@
             </select>
           </div>
           <div id="bulkToolbar" class="bulk-toolbar" hidden>
-            <label title="Select or clear all currently visible rules">
-              <input id="selectVisibleRules" type="checkbox">
-              <span id="selectedRuleCount">0 selected</span>
-            </label>
-            <button id="bulkEnable" type="button" title="Enable selected saved or draft rules">Enable</button>
-            <button id="bulkDisable" type="button" title="Disable selected saved or draft rules">Disable</button>
-            <input id="bulkGroupName" type="text" placeholder="Group" title="Group name for selected rules">
-            <button id="bulkMoveGroup" type="button" title="Move selected rules to this group">Move</button>
-            <button id="bulkDuplicate" type="button" title="Duplicate selected rules as drafts">Duplicate</button>
-            <button id="bulkExport" type="button" title="Export selected rules, or all rules when none are selected">Export</button>
-            <button id="bulkRemove" type="button" title="Remove selected rules">Remove</button>
+            <div class="bulk-toolbar__summary">
+              <label title="Select or clear all currently visible rules">
+                <input id="selectVisibleRules" type="checkbox">
+                <span id="selectedRuleCount">0 selected</span>
+              </label>
+              <button id="bulkExport" type="button" title="Export selected rules, or all rules when none are selected">Export all</button>
+            </div>
+            <div class="bulk-actions" data-role="bulkActions" hidden>
+              <button id="bulkEnable" type="button" title="Enable selected saved or draft rules">Enable</button>
+              <button id="bulkDisable" type="button" title="Disable selected saved or draft rules">Disable</button>
+              <button id="bulkDuplicate" type="button" title="Duplicate selected rules as drafts">Duplicate</button>
+              <button id="bulkRemove" type="button" title="Remove selected rules">Remove</button>
+              <input id="bulkGroupName" type="text" placeholder="Move to group" title="Group name for selected rules">
+              <button id="bulkMoveGroup" type="button" title="Move selected rules to this group">Move</button>
+            </div>
           </div>
           <div id="rulesList" class="rule-list" aria-live="polite"></div>
         </aside>
@@ -104,6 +108,7 @@
               <input data-field="enabled" type="checkbox">
               Enabled
             </label>
+            <span class="rule-badge" data-role="editorStatusBadge"></span>
             <span class="rule-badge" data-role="editorDraftBadge" hidden>Draft</span>
           </div>
           <div class="rule-actions">
@@ -112,48 +117,67 @@
           </div>
         </div>
 
-        <div class="editor-grid">
-          <label>
-            Name
-            <input data-field="name" type="text" placeholder="Local backend" title="Human-readable rule name shown in the rules list">
-          </label>
+        <section class="editor-section">
+          <div class="editor-section__title">
+            <strong>Rule details</strong>
+          </div>
+          <div class="editor-grid editor-grid--meta">
+            <label>
+              Name
+              <input data-field="name" type="text" placeholder="Local backend" title="Human-readable rule name shown in the rules list">
+            </label>
 
-          <label>
-            Group
-            <input data-field="group" type="text" placeholder="Ungrouped" title="Optional group label for organizing related rules">
-          </label>
+            <label>
+              Group
+              <input data-field="group" type="text" placeholder="Ungrouped" title="Optional group label for organizing related rules">
+            </label>
 
-          <label>
-            Pattern format
-            <select data-field="patternType" title="Wildcard is simpler; regex allows capture groups and precise matching">
-              <option value="wildcard">Wildcard</option>
-              <option value="regex">Regex</option>
-            </select>
-          </label>
+            <label>
+              Pattern format
+              <select data-field="patternType" title="Wildcard is simpler; regex allows capture groups and precise matching">
+                <option value="wildcard">Wildcard</option>
+                <option value="regex">Regex</option>
+              </select>
+            </label>
+          </div>
+        </section>
 
-          <label class="span-2">
-            Source URL pattern
-            <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*" title="Request URL pattern to match before redirect">
-          </label>
+        <section class="editor-section">
+          <div class="editor-section__title">
+            <strong>Routing</strong>
+          </div>
+          <div class="editor-grid">
+            <label class="span-2">
+              Source URL pattern
+              <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*" title="Request URL pattern to match before redirect">
+            </label>
 
-          <label class="span-2">
-            Redirect target URL
-            <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*" title="Target URL that receives the redirected request">
-          </label>
+            <label class="span-2">
+              Redirect target URL
+              <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*" title="Target URL that receives the redirected request">
+            </label>
+          </div>
+        </section>
 
-          <label>
-            Credential mode
-            <select data-field="credentialMode" title="Manual uses typed headers; sync tries to reuse credentials from the source app">
-              <option value="manual">Manual</option>
-              <option value="sync">Sync from source</option>
-            </select>
-          </label>
+        <section class="editor-section">
+          <div class="editor-section__title">
+            <strong>Credentials</strong>
+          </div>
+          <div class="editor-grid editor-grid--credentials">
+            <label>
+              Credential mode
+              <select data-field="credentialMode" title="Manual uses typed headers; sync tries to reuse credentials from the source app">
+                <option value="manual">Manual</option>
+                <option value="sync">Sync from source</option>
+              </select>
+            </label>
 
-          <label data-role="manualAuthorization">
-            Authorization
-            <input data-field="authorization" type="text" placeholder="Bearer local-token" title="Manual Authorization header value">
-          </label>
-        </div>
+            <label data-role="manualAuthorization">
+              Authorization
+              <input data-field="authorization" type="text" placeholder="Bearer local-token" title="Manual Authorization header value">
+            </label>
+          </div>
+        </section>
 
         <fieldset class="sync-block" data-role="syncOptions">
           <legend>Sync from source request</legend>
