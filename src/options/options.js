@@ -32,6 +32,7 @@ const notify = createNotifier(notifications);
 let rules = await getRedirectRules();
 let selectedRuleId = rules[0]?.id || "";
 let isSavingRule = false;
+let savedRuleIds = new Set(rules.map((rule) => rule.id));
 
 await initThemeControl(themePreference, { controlType: "toggle" });
 
@@ -43,6 +44,15 @@ if (rules.length === 0) {
 
 function getSelectedRule() {
   return rules.find((rule) => rule.id === selectedRuleId) || rules[0];
+}
+
+function getDraftRules(persistedRules = []) {
+  const persistedRuleIds = new Set(persistedRules.map((rule) => rule.id));
+  return rules.filter((rule) => !savedRuleIds.has(rule.id) && !persistedRuleIds.has(rule.id));
+}
+
+function mergePersistedRulesWithDrafts(persistedRules = []) {
+  return [...persistedRules, ...getDraftRules(persistedRules)];
 }
 
 function updateSelectedRuleFromEditor() {
@@ -338,8 +348,15 @@ async function saveCurrentRule(saveButton) {
     saveButton.textContent = "Saving...";
     updateSelectedRuleFromEditor();
     touchSelectedRule();
-    await saveRedirectRules(rules);
-    await applyRules(rules);
+    const selectedRule = getSelectedRule();
+    const persistedRules = await getRedirectRules();
+    const savedRules = upsertRule(persistedRules, selectedRule);
+
+    savedRuleIds = new Set(savedRules.map((rule) => rule.id));
+    rules = mergePersistedRulesWithDrafts(savedRules);
+    await saveRedirectRules(savedRules);
+    await applyRules(savedRules);
+    render();
     notify("Rule saved", "success");
   } catch (error) {
     notify(error.message, "error");
@@ -348,6 +365,16 @@ async function saveCurrentRule(saveButton) {
     saveButton.disabled = false;
     saveButton.textContent = "Save Rule";
   }
+}
+
+function upsertRule(savedRules, ruleToSave) {
+  const existingRuleIndex = savedRules.findIndex((rule) => rule.id === ruleToSave.id);
+
+  if (existingRuleIndex === -1) {
+    return [ruleToSave, ...savedRules];
+  }
+
+  return savedRules.map((rule) => rule.id === ruleToSave.id ? ruleToSave : rule);
 }
 
 function touchSelectedRule() {
@@ -382,7 +409,9 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  rules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
+  const persistedRules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
+  savedRuleIds = new Set(persistedRules.map((rule) => rule.id));
+  rules = mergePersistedRulesWithDrafts(persistedRules);
   selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : rules[0]?.id || "";
   render();
 });
