@@ -44,7 +44,7 @@ const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
 
 let rules = await getRedirectRules();
-let selectedRuleId = rules[0]?.id || "";
+let selectedRuleId = "";
 let isSavingRule = false;
 let isRemovingRule = false;
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
@@ -52,14 +52,8 @@ let selectedRuleIds = new Set();
 
 await initThemeControl(themePreference, { controlType: "toggle" });
 
-if (rules.length === 0) {
-  const blankRule = createBlankRule();
-  rules = [blankRule];
-  selectedRuleId = blankRule.id;
-}
-
 function getSelectedRule() {
-  return rules.find((rule) => rule.id === selectedRuleId) || rules[0];
+  return rules.find((rule) => rule.id === selectedRuleId);
 }
 
 function getDraftRules(persistedRules = []) {
@@ -376,7 +370,9 @@ function renderEditor() {
   const rule = getSelectedRule();
 
   if (!rule) {
-    editorPanel.replaceChildren(emptyEditorTemplate.content.cloneNode(true));
+    const fragment = emptyEditorTemplate.content.cloneNode(true);
+    fragment.querySelector('[data-action="addEmptyRule"]').addEventListener("click", addDraftRule);
+    editorPanel.replaceChildren(fragment);
     return;
   }
 
@@ -512,9 +508,8 @@ function getSyncPreviewTabs(rule) {
       key: "headers",
       label: "Headers",
       title: "Readonly headers captured from the source request or credential source",
-      value: headers.length > 0
-        ? headers.map((header) => `${header.name}: ${header.value}`).join("\n")
-        : "No synced headers captured yet."
+      emptyText: "No synced headers captured yet.",
+      rows: headers
     });
   }
 
@@ -523,7 +518,10 @@ function getSyncPreviewTabs(rule) {
       key: "authorization",
       label: "Authorization",
       title: "Readonly Authorization value captured from the source request or credential source",
-      value: rule.syncedAuthorization || "No synced authorization captured yet."
+      emptyText: "No synced authorization captured yet.",
+      rows: rule.syncedAuthorization
+        ? [{ name: "Authorization", value: rule.syncedAuthorization }]
+        : []
     });
   }
 
@@ -532,7 +530,8 @@ function getSyncPreviewTabs(rule) {
       key: "cookies",
       label: "Session cookies",
       title: "Readonly Cookie header generated from synced session cookies",
-      value: rule.syncedCookieHeader || "No synced session cookies captured yet."
+      emptyText: "No synced session cookies captured yet.",
+      rows: parseCookieHeaderForPreview(rule.syncedCookieHeader)
     });
   }
 
@@ -548,6 +547,23 @@ function normalizeSyncedHeadersForPreview(headers = []) {
     .filter((header) => header.name && header.value);
 }
 
+function parseCookieHeaderForPreview(cookieHeader = "") {
+  return String(cookieHeader || "")
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter(Boolean)
+    .map((cookie) => {
+      const separatorIndex = cookie.indexOf("=");
+      return separatorIndex === -1
+        ? { name: cookie, value: "" }
+        : {
+            name: cookie.slice(0, separatorIndex).trim(),
+            value: cookie.slice(separatorIndex + 1).trim()
+          };
+    })
+    .filter((cookie) => cookie.name);
+}
+
 function renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent) {
   const tabs = getSyncPreviewTabs(rule);
   const credentialMode = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
@@ -555,7 +571,7 @@ function renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent) {
   if (credentialMode !== CREDENTIAL_MODES.sync || tabs.length === 0) {
     syncPreview.hidden = true;
     syncTabs.replaceChildren();
-    syncPreviewContent.value = "";
+    syncPreviewContent.replaceChildren();
     return;
   }
 
@@ -583,8 +599,41 @@ function renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent) {
     return button;
   }));
 
-  syncPreviewContent.value = activeTab.value;
+  renderSyncPreviewContent(activeTab, syncPreviewContent);
   syncPreviewContent.title = activeTab.title;
+}
+
+function renderSyncPreviewContent(tab, syncPreviewContent) {
+  const rows = tab.rows || [];
+
+  if (rows.length === 0) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "sync-preview-empty";
+    emptyState.textContent = tab.emptyText;
+    syncPreviewContent.replaceChildren(emptyState);
+    return;
+  }
+
+  const list = document.createElement("div");
+  list.className = "sync-preview-list";
+
+  rows.forEach((row) => {
+    const rowElement = document.createElement("div");
+    rowElement.className = "sync-preview-row";
+
+    const nameElement = document.createElement("span");
+    nameElement.className = "sync-preview-row__name";
+    nameElement.textContent = row.name;
+
+    const valueElement = document.createElement("code");
+    valueElement.className = "sync-preview-row__value";
+    valueElement.textContent = row.value;
+
+    rowElement.append(nameElement, valueElement);
+    list.append(rowElement);
+  });
+
+  syncPreviewContent.replaceChildren(list);
 }
 
 function render() {
@@ -695,7 +744,7 @@ async function removeCurrentRule(removeButton) {
 
     if (isDraftRule(ruleToRemove)) {
       rules = rules.filter((rule) => rule.id !== ruleToRemove.id);
-      selectedRuleId = rules[0]?.id || "";
+      selectedRuleId = "";
       render();
       notify("Draft rule removed");
       return;
@@ -706,7 +755,7 @@ async function removeCurrentRule(removeButton) {
 
     savedRuleIds = new Set(savedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(savedRules).filter((rule) => rule.id !== ruleToRemove.id);
-    selectedRuleId = rules[0]?.id || "";
+    selectedRuleId = "";
     await saveRedirectRules(savedRules);
     await applyRules(savedRules);
     render();
@@ -753,7 +802,7 @@ async function removeSelectedRules() {
   rules = rules.filter((rule) => !selectedRuleIds.has(rule.id));
   savedRuleIds = new Set(rules.filter((rule) => savedRuleIds.has(rule.id)).map((rule) => rule.id));
   selectedRuleIds = new Set();
-  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : rules[0]?.id || "";
+  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
   await saveRedirectRules(getPersistedRulesFromMemory());
   await applyRules(getPersistedRulesFromMemory());
   render();
@@ -829,7 +878,7 @@ function touchSelectedRule() {
   rules = rules.map((rule) => rule.id === selectedRuleId ? { ...rule, modifiedAt } : rule);
 }
 
-addRuleButton.addEventListener("click", () => {
+function addDraftRule() {
   updateSelectedRuleFromEditor();
   const blankRule = createBlankRule();
   rules = [blankRule, ...rules];
@@ -837,7 +886,9 @@ addRuleButton.addEventListener("click", () => {
   selectedRuleIds = new Set([blankRule.id]);
   render();
   notify("Rule added");
-});
+}
+
+addRuleButton.addEventListener("click", addDraftRule);
 
 selectVisibleRules.addEventListener("change", () => {
   const visibleRules = getFilteredRules();

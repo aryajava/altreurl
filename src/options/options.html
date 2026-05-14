@@ -97,6 +97,7 @@
       <div class="empty-editor">
         <h2>No rule selected</h2>
         <p>Add or select a rule.</p>
+        <button data-action="addEmptyRule" type="button" title="Create a new draft rule">Add rule</button>
       </div>
     </template>
 
@@ -239,7 +240,7 @@
           <span data-role="syncStatus" class="sync-status"></span>
           <div class="sync-preview" data-role="syncPreview" hidden>
             <div class="sync-tabs" data-role="syncTabs" role="tablist" aria-label="Synced credential preview"></div>
-            <textarea data-role="syncPreviewContent" readonly spellcheck="false"></textarea>
+            <div class="sync-preview-content" data-role="syncPreviewContent"></div>
           </div>
         </fieldset>
 

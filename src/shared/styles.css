@@ -454,11 +454,15 @@ label select {
 }
 
 .rule-editor__header {
-  align-items: center;
-  border-bottom: 1px solid var(--line);
-  display: flex;
+  align-items: start;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
   justify-content: space-between;
-  padding-bottom: 16px;
+  padding: 14px;
 }
 
 .rule-editor__header input,
@@ -501,7 +505,11 @@ label select {
 }
 
 .empty-editor {
-  padding: 24px;
+  align-content: center;
+  display: grid;
+  justify-items: start;
+  min-height: 320px;
+  padding: clamp(20px, 4vw, 40px);
 }
 
 .empty-editor h2 {
@@ -511,7 +519,13 @@ label select {
 
 .empty-editor p {
   color: var(--muted);
-  margin: 0;
+  margin: 0 0 16px;
+}
+
+.empty-editor button {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  font-weight: 700;
 }
 
 .headers-block {
@@ -594,13 +608,51 @@ label select {
   font-weight: 700;
 }
 
-.sync-preview textarea {
+.sync-preview-content {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sync-preview-empty {
+  color: var(--muted);
+  margin: 0;
+  padding: 12px;
+}
+
+.sync-preview-list {
+  display: grid;
+}
+
+.sync-preview-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
+  padding: 10px 12px;
+}
+
+.sync-preview-row + .sync-preview-row {
+  border-top: 1px solid var(--line);
+}
+
+.sync-preview-row__name {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sync-preview-row__value {
+  background: var(--panel-soft);
+  border-radius: 6px;
+  color: var(--text);
   font-family: Consolas, "Courier New", monospace;
   font-size: 12px;
   line-height: 1.45;
-  min-height: 120px;
-  resize: vertical;
-  white-space: pre;
+  overflow-wrap: anywhere;
+  padding: 6px 8px;
+  white-space: pre-wrap;
 }
 
 .popup-rules {
@@ -764,8 +816,10 @@ label select {
   }
 
   .rule-editor__header {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
+    grid-template-columns: 1fr;
+  }
+
+  .sync-preview-row {
+    grid-template-columns: 1fr;
   }
 }
