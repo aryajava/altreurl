@@ -133,6 +133,7 @@ label select {
 
 .icon-button {
   align-items: center;
+  color: var(--text);
   display: inline-flex;
   gap: 7px;
   justify-content: center;
@@ -266,10 +267,12 @@ label select {
   overflow: hidden;
   padding: 3px;
   position: relative;
+  color: var(--text);
 }
 
 .theme-toggle__option {
   align-items: center;
+  color: var(--muted);
   display: inline-flex;
   gap: 5px;
   justify-content: center;
@@ -381,6 +384,7 @@ label select {
 }
 
 .bulk-toolbar button {
+  color: var(--text);
   min-height: 32px;
   padding: 6px 9px;
   width: 100%;
@@ -407,22 +411,23 @@ label select {
 
 .filter-toggle {
   align-items: center;
-  background: var(--panel);
+  background: var(--panel-soft);
   border: 1px solid var(--line);
   border-radius: 6px;
-  color: var(--muted);
+  color: var(--text);
   display: flex;
   font-weight: 700;
   justify-content: space-between;
   margin: 0 16px 12px;
   min-height: 40px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   text-align: left;
   width: calc(100% - 32px);
 }
 
 .filter-toggle:hover {
   background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .filter-toggle + .rule-list-controls {
@@ -444,6 +449,13 @@ label select {
 
 .filter-toggle[aria-expanded="true"] .filter-toggle__icon::before {
   transform: rotate(180deg);
+}
+
+.filter-toggle__label {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 0;
 }
 
 .panel-title span,
@@ -481,6 +493,7 @@ label select {
 .rule-list-item {
   border: 0;
   border-radius: 0;
+  color: var(--text);
   display: grid;
   gap: 8px;
   justify-items: start;
@@ -750,6 +763,7 @@ label select {
 
 .sync-tab {
   background: var(--panel);
+  color: var(--text);
   min-height: 30px;
   padding: 5px 10px;
 }

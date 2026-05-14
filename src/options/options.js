@@ -695,10 +695,12 @@ async function saveCurrentRule(saveButton) {
     return;
   }
 
+  const saveButtonLabel = saveButton.querySelector('[data-role="saveRuleLabel"]');
+
   try {
     isSavingRule = true;
     saveButton.disabled = true;
-    saveButton.textContent = "Saving...";
+    saveButtonLabel.textContent = "Saving...";
     updateSelectedRuleFromEditor();
     touchSelectedRule();
     const selectedRule = getSelectedRule();
@@ -716,7 +718,7 @@ async function saveCurrentRule(saveButton) {
   } finally {
     isSavingRule = false;
     saveButton.disabled = false;
-    saveButton.textContent = "Save Rule";
+    saveButtonLabel.textContent = "Save Rule";
   }
 }
 

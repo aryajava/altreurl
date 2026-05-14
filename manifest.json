@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Altreurl",
   "description": "Manage local debugging redirects and request header overrides.",
-  "version": "1.10.5",
+  "version": "1.10.6",
   "icons": {
     "16": "src/shared/imgs/icons/Altreurl-16.png",
     "32": "src/shared/imgs/icons/Altreurl-32.png",
