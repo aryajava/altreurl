@@ -200,6 +200,7 @@ label select {
 }
 
 .options-shell {
+  --workspace-sticky-top: calc(clamp(14px, 2.4vw, 32px) + 92px);
   display: grid;
   gap: 20px;
   margin: 0 auto;
@@ -223,6 +224,12 @@ label select {
   border-radius: 8px;
   box-shadow: var(--shadow);
   padding: clamp(12px, 1.8vw, 18px);
+}
+
+.options-shell > .app-header {
+  position: sticky;
+  top: clamp(10px, 1.6vw, 18px);
+  z-index: 8;
 }
 
 .app-header--compact {
@@ -314,10 +321,11 @@ label select {
 }
 
 .options-layout {
-  align-items: start;
+  align-items: stretch;
   display: grid;
   gap: clamp(16px, 2vw, 24px);
   grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+  min-height: 0;
 }
 
 .rule-list-panel,
@@ -329,9 +337,21 @@ label select {
 }
 
 .rule-list-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--workspace-sticky-top));
+  min-height: min(560px, calc(100dvh - var(--workspace-sticky-top)));
   overflow: hidden;
   position: sticky;
-  top: 16px;
+  top: var(--workspace-sticky-top);
+}
+
+.editor-panel {
+  max-height: calc(100dvh - var(--workspace-sticky-top));
+  min-height: min(560px, calc(100dvh - var(--workspace-sticky-top)));
+  overflow: auto;
+  position: sticky;
+  top: var(--workspace-sticky-top);
 }
 
 .panel-title {
@@ -468,7 +488,8 @@ label select {
 .rule-list {
   display: grid;
   gap: 8px;
-  max-height: calc(100vh - 220px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   padding: 12px;
 }
@@ -602,6 +623,9 @@ label select {
   grid-template-columns: minmax(0, 1fr) auto;
   justify-content: space-between;
   padding: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .rule-editor__header input,
@@ -924,16 +948,23 @@ label select {
 }
 
 @media (max-width: 960px) {
+  .options-shell > .app-header {
+    top: 10px;
+  }
+
   .options-layout {
     grid-template-columns: 1fr;
   }
 
-  .rule-list-panel {
+  .rule-list-panel,
+  .editor-panel {
+    max-height: none;
+    min-height: 0;
     position: static;
   }
 
   .rule-list {
-    max-height: 42vh;
+    max-height: min(420px, 48dvh);
   }
 
   .editor-grid--meta,

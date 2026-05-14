@@ -4,7 +4,7 @@ Altreurl is a Chromium Extension for backend developers who need to route applic
 
 The extension can redirect request URLs, modify request headers, and handle `Authorization` or session cookie forwarding through configurable rules.
 
-Current version: `1.10.7`
+Current version: `1.10.8`
 
 ## Features
 
@@ -30,6 +30,7 @@ Current version: `1.10.7`
 - Use bundled UI icons, compact rule list rows with source/target tooltips, and a Dark/Light theme slider.
 - Add the save icon, refine the search/filter toggle layout, and improve button text contrast.
 - Turn the empty-state add mark into a clickable icon button and apply the new UI icons.
+- Keep the options header, rule list panel, and editor panel sticky with internal scrolling.
 - Select multiple rules and run bulk enable, disable, move, duplicate, export, or remove actions.
 - Import rules from JSON as drafts and export saved or selected rules to JSON.
 - Show hover tooltips on rule controls to explain how each helper behaves.
