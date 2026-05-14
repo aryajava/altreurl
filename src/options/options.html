@@ -18,9 +18,25 @@
           </div>
         </div>
         <div class="header-actions">
-          <button id="themePreference" class="theme-toggle" type="button" aria-pressed="false" title="Switch between light and dark mode">Light</button>
-          <button id="importRules" type="button" title="Import rules from a JSON file as drafts">Import</button>
-          <button id="addRule" type="button" title="Create a new draft rule">Add rule</button>
+          <button id="themePreference" class="theme-toggle" type="button" aria-pressed="false" title="Switch between dark and light mode">
+            <span class="theme-toggle__option theme-toggle__option--dark">
+              <img src="../shared/imgs/icons/icons8-moon-and-stars-32.png" alt="" width="16" height="16">
+              Dark
+            </span>
+            <span class="theme-toggle__thumb" aria-hidden="true"></span>
+            <span class="theme-toggle__option theme-toggle__option--light">
+              <img src="../shared/imgs/icons/icons8-sun-32.png" alt="" width="16" height="16">
+              Light
+            </span>
+          </button>
+          <button id="importRules" class="icon-button" type="button" title="Import rules from a JSON file as drafts">
+            <img src="../shared/imgs/icons/icons8-import-32.png" alt="" width="16" height="16">
+            Import
+          </button>
+          <button id="addRule" class="icon-button" type="button" title="Create a new draft rule">
+            <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="16" height="16">
+            Add rule
+          </button>
           <input id="importRulesFile" type="file" accept="application/json,.json" hidden>
         </div>
       </header>
@@ -28,15 +44,24 @@
       <section class="options-layout">
         <aside class="rule-list-panel">
           <div class="panel-title">
-            <strong>Rules</strong>
+            <strong class="panel-title__label">
+              <img src="../shared/imgs/icons/icons8-list-32.png" alt="" width="16" height="16">
+              Rules
+            </strong>
             <span id="ruleCount"></span>
           </div>
           <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false" title="Show or hide search and filter controls">
-            <span data-role="filterToggleLabel">Show search and filters</span>
+            <span class="filter-toggle__label">
+              <img src="../shared/imgs/icons/icons8-filter-edit-32.png" alt="" width="16" height="16">
+              <span data-role="filterToggleLabel">Show search and filters</span>
+            </span>
             <span class="filter-toggle__icon" aria-hidden="true"></span>
           </button>
           <div id="ruleListControls" class="rule-list-controls" hidden>
-            <input id="ruleSearch" type="search" placeholder="Search rules" title="Search by rule name, group, source URL, or target URL">
+            <label class="search-field">
+              <img src="../shared/imgs/icons/icons8-search-32.png" alt="" width="16" height="16">
+              <input id="ruleSearch" type="search" placeholder="Search rules" title="Search by rule name, group, source URL, or target URL">
+            </label>
             <select id="statusFilter" aria-label="Status filter" title="Filter rules by computed status">
               <option value="all">All statuses</option>
               <option value="draft">Draft</option>
@@ -61,13 +86,19 @@
                 <input id="selectVisibleRules" type="checkbox">
                 <span id="selectedRuleCount">0 selected</span>
               </label>
-              <button id="bulkExport" type="button" title="Export selected rules, or all rules when none are selected">Export all</button>
+              <button id="bulkExport" class="icon-button" type="button" title="Export selected rules, or all rules when none are selected">
+                <img src="../shared/imgs/icons/icons8-export-32.png" alt="" width="16" height="16">
+                Export all
+              </button>
             </div>
             <div class="bulk-actions" data-role="bulkActions" hidden>
               <button id="bulkEnable" type="button" title="Enable selected saved or draft rules">Enable</button>
               <button id="bulkDisable" type="button" title="Disable selected saved or draft rules">Disable</button>
               <button id="bulkDuplicate" type="button" title="Duplicate selected rules as drafts">Duplicate</button>
-              <button id="bulkRemove" type="button" title="Remove selected rules">Remove</button>
+              <button id="bulkRemove" class="icon-button" type="button" title="Remove selected rules">
+                <img src="../shared/imgs/icons/icons8-remove-32.png" alt="" width="16" height="16">
+                Remove
+              </button>
               <input id="bulkGroupName" type="text" placeholder="Move to group" title="Group name for selected rules">
               <button id="bulkMoveGroup" type="button" title="Move selected rules to this group">Move</button>
             </div>
@@ -88,10 +119,6 @@
             <span data-role="ruleName"></span>
             <span class="rule-badge" data-role="statusBadge"></span>
           </span>
-          <span class="rule-route">
-            <small data-role="ruleSource"></small>
-            <small data-role="ruleTarget"></small>
-          </span>
           <span class="rule-list-item__meta">
             <small data-role="ruleGroup"></small>
             <small data-role="ruleMeta"></small>
@@ -106,7 +133,10 @@
           <span class="empty-editor__mark" aria-hidden="true">+</span>
           <h2>No rule selected</h2>
           <p>Select a rule from the list or create a new draft rule.</p>
-          <button data-action="addEmptyRule" type="button" title="Create a new draft rule">Add rule</button>
+          <button data-action="addEmptyRule" class="icon-button" type="button" title="Create a new draft rule">
+            <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="16" height="16">
+            Add rule
+          </button>
         </div>
       </div>
     </template>
@@ -123,8 +153,11 @@
             <span class="rule-badge" data-role="editorDraftBadge" hidden>Draft</span>
           </div>
           <div class="rule-actions">
-            <button data-action="saveRule" type="button" title="Save only this selected rule">Save Rule</button>
-            <button data-action="removeRule" type="button" title="Remove this rule. Draft rules are removed only from this page.">Remove</button>
+            <button data-action="saveRule" class="icon-button" type="button" title="Save only this selected rule">Save Rule</button>
+            <button data-action="removeRule" class="icon-button" type="button" title="Remove this rule. Draft rules are removed only from this page.">
+              <img src="../shared/imgs/icons/icons8-remove-32.png" alt="" width="16" height="16">
+              Remove
+            </button>
           </div>
         </div>
 
@@ -257,7 +290,10 @@
         <div class="headers-block" data-role="manualHeaders">
           <div class="headers-block__title">
             <strong>Headers</strong>
-            <button data-action="addHeader" type="button">Add header</button>
+            <button data-action="addHeader" class="icon-button" type="button">
+              <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="16" height="16">
+              Add header
+            </button>
           </div>
           <div data-role="headers"></div>
         </div>

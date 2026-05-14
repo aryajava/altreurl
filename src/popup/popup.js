@@ -41,12 +41,18 @@ function renderPopup() {
     const name = document.createElement("strong");
     const target = document.createElement("small");
     const disableButton = document.createElement("button");
+    const disableIcon = document.createElement("img");
 
     item.className = "popup-rule";
     name.textContent = rule.name || "Unnamed rule";
     target.textContent = rule.targetUrl || "No target URL";
     disableButton.type = "button";
-    disableButton.textContent = "Disable";
+    disableButton.className = "icon-button";
+    disableIcon.src = "../shared/imgs/icons/icons8-remove-32.png";
+    disableIcon.alt = "";
+    disableIcon.width = 16;
+    disableIcon.height = 16;
+    disableButton.append(disableIcon, "Disable");
     disableButton.addEventListener("click", async () => {
       try {
         disableButton.disabled = true;

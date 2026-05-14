@@ -22,8 +22,9 @@ function updateToggleControl(themeControl, themePreference) {
   }
 
   const resolvedTheme = resolveTheme(themePreference);
-  themeControl.setAttribute("aria-pressed", String(resolvedTheme === "dark"));
-  themeControl.textContent = resolvedTheme === "dark" ? "Dark" : "Light";
+  themeControl.dataset.activeTheme = resolvedTheme;
+  themeControl.setAttribute("aria-pressed", String(resolvedTheme === "light"));
+  themeControl.setAttribute("aria-label", `Theme mode: ${resolvedTheme}`);
   themeControl.title = `Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`;
 }
 

@@ -131,6 +131,55 @@ label select {
   color: var(--text);
 }
 
+.icon-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
+  justify-content: center;
+}
+
+.icon-button img,
+.panel-title__label img,
+.filter-toggle img,
+.search-field img,
+.theme-toggle img {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.search-field {
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.search-field input {
+  background: transparent;
+  border: 0;
+  min-height: 34px;
+  padding-inline: 0;
+}
+
+.search-field input:focus {
+  outline: 0;
+}
+
+.search-field:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 1px;
+}
+
+.search-field--popup {
+  margin-bottom: 12px;
+}
+
 .popup-shell {
   min-width: 380px;
   padding: 16px;
@@ -206,13 +255,52 @@ label select {
 }
 
 .theme-toggle {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  min-width: 78px;
+  align-items: center;
+  background: var(--panel);
+  border-color: var(--line);
+  border-radius: 999px;
+  display: grid;
+  gap: 0;
+  grid-template-columns: 1fr 1fr;
+  min-width: 152px;
+  overflow: hidden;
+  padding: 3px;
+  position: relative;
 }
 
-.theme-toggle[aria-pressed="true"] {
-  background: var(--panel-soft);
+.theme-toggle__option {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+  justify-content: center;
+  min-height: 28px;
+  opacity: 0.68;
+  padding: 4px 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.theme-toggle__thumb {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  bottom: 3px;
+  left: 3px;
+  position: absolute;
+  top: 3px;
+  transition: transform 0.16s ease;
+  width: calc(50% - 3px);
+}
+
+.theme-toggle[data-active-theme="light"] .theme-toggle__thumb {
+  transform: translateX(100%);
+}
+
+.theme-toggle[data-active-theme="dark"] .theme-toggle__option--dark,
+.theme-toggle[data-active-theme="light"] .theme-toggle__option--light {
+  color: var(--text);
+  font-weight: 700;
+  opacity: 1;
 }
 
 .page-header,
@@ -250,6 +338,12 @@ label select {
   padding: 14px 16px 10px;
 }
 
+.panel-title__label {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
+}
+
 .rule-list-controls {
   display: grid;
   gap: 8px;
@@ -257,7 +351,7 @@ label select {
   padding: 0 16px 14px;
 }
 
-.rule-list-controls input[type="search"] {
+.rule-list-controls .search-field {
   grid-column: 1 / -1;
 }
 
@@ -390,7 +484,7 @@ label select {
   display: grid;
   gap: 8px;
   justify-items: start;
-  min-height: 96px;
+  min-height: 58px;
   min-width: 0;
   padding: 12px;
   text-align: left;
@@ -411,31 +505,6 @@ label select {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.rule-route {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  width: 100%;
-}
-
-.rule-route small {
-  background: var(--panel-soft);
-  border-radius: 6px;
-  color: var(--text);
-  display: block;
-  line-height: 1.35;
-  overflow: hidden;
-  padding: 5px 7px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.rule-route small + small::before {
-  color: var(--muted);
-  content: "-> ";
 }
 
 .rule-list-item__meta {

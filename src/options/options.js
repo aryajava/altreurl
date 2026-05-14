@@ -266,8 +266,7 @@ function renderRuleList() {
     statusBadge.textContent = ruleStatus.label;
     statusBadge.dataset.status = ruleStatus.key;
     statusBadge.title = getRuleStatusDescription(ruleStatus);
-    item.querySelector('[data-role="ruleSource"]').textContent = rule.sourcePattern || "No source pattern";
-    item.querySelector('[data-role="ruleTarget"]').textContent = rule.targetUrl || "No redirect target";
+    item.title = `Source: ${rule.sourcePattern || "No source pattern"}\nTarget: ${rule.targetUrl || "No redirect target"}`;
     item.querySelector('[data-role="ruleGroup"]').textContent = getRuleGroup(rule);
     item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard}`;
     item.addEventListener("click", () => {
