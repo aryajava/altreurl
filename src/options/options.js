@@ -404,14 +404,11 @@ function renderEditor() {
   };
 
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
-  const editorDraftBadge = card.querySelector('[data-role="editorDraftBadge"]');
   const editorStatusBadge = card.querySelector('[data-role="editorStatusBadge"]');
   const ruleStatus = getRuleStatus(rule);
   editorStatusBadge.textContent = ruleStatus.label;
   editorStatusBadge.dataset.status = ruleStatus.key;
   editorStatusBadge.title = getRuleStatusDescription(ruleStatus);
-  editorDraftBadge.hidden = !isDraftRule(rule);
-  editorDraftBadge.title = getRuleStatusDescription({ key: "draft" });
   card.querySelector('[data-field="name"]').value = rule.name || "";
   card.querySelector('[data-field="group"]').value = rule.group || "";
   patternTypeInput.value = rule.patternType || PATTERN_TYPES.wildcard;

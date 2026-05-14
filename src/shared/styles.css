@@ -500,6 +500,7 @@ label select {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr);
   overflow: hidden;
+  height: max-content;
 }
 
 .rule-list-row.is-selected {
