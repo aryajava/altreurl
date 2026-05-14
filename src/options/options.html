@@ -52,10 +52,10 @@
           </div>
           <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false" title="Show or hide search and filter controls">
             <span class="filter-toggle__label">
-              <img src="../shared/imgs/icons/icons8-filter-edit-32.png" alt="" width="16" height="16">
+              <img data-role="filterToggleStateIcon" src="../shared/imgs/icons/icons8-eye-32.png" alt="" width="16" height="16">
               <span data-role="filterToggleLabel">Show search and filters</span>
             </span>
-            <span class="filter-toggle__icon" aria-hidden="true"></span>
+            <img class="filter-toggle__icon" src="../shared/imgs/icons/icons8-drop-down-32.png" alt="" width="16" height="16" aria-hidden="true">
           </button>
           <div id="ruleListControls" class="rule-list-controls" hidden>
             <label class="search-field">
@@ -92,15 +92,24 @@
               </button>
             </div>
             <div class="bulk-actions" data-role="bulkActions" hidden>
-              <button id="bulkEnable" type="button" title="Enable selected saved or draft rules">Enable</button>
-              <button id="bulkDisable" type="button" title="Disable selected saved or draft rules">Disable</button>
+              <button id="bulkEnable" class="icon-button" type="button" title="Enable selected saved or draft rules">
+                <img src="../shared/imgs/icons/icons8-checkbox-checked-32.png" alt="" width="16" height="16">
+                Enable
+              </button>
+              <button id="bulkDisable" class="icon-button" type="button" title="Disable selected saved or draft rules">
+                <img src="../shared/imgs/icons/icons8-checkbox-32.png" alt="" width="16" height="16">
+                Disable
+              </button>
               <button id="bulkDuplicate" type="button" title="Duplicate selected rules as drafts">Duplicate</button>
               <button id="bulkRemove" class="icon-button" type="button" title="Remove selected rules">
                 <img src="../shared/imgs/icons/icons8-remove-32.png" alt="" width="16" height="16">
                 Remove
               </button>
               <input id="bulkGroupName" type="text" placeholder="Move to group" title="Group name for selected rules">
-              <button id="bulkMoveGroup" type="button" title="Move selected rules to this group">Move</button>
+              <button id="bulkMoveGroup" class="icon-button" type="button" title="Move selected rules to this group">
+                <img src="../shared/imgs/icons/icons8-up-squared-32.png" alt="" width="16" height="16">
+                Move
+              </button>
             </div>
           </div>
           <div id="rulesList" class="rule-list" aria-live="polite"></div>
@@ -130,7 +139,9 @@
     <template id="emptyEditorTemplate">
       <div class="empty-editor">
         <div class="empty-editor__content">
-          <span class="empty-editor__mark" aria-hidden="true">+</span>
+          <button data-action="addEmptyRule" class="empty-editor__quick-add" type="button" title="Create a new draft rule">
+            <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="24" height="24">
+          </button>
           <h2>No rule selected</h2>
           <p>Select a rule from the list or create a new draft rule.</p>
           <button data-action="addEmptyRule" class="icon-button" type="button" title="Create a new draft rule">
@@ -166,7 +177,10 @@
 
         <section class="editor-section">
           <div class="editor-section__title">
-            <strong>Rule details</strong>
+            <strong class="section-title-with-icon">
+              <img src="../shared/imgs/icons/icons8-pen-squared-32.png" alt="" width="16" height="16">
+              Rule details
+            </strong>
           </div>
           <div class="editor-grid editor-grid--meta">
             <label>

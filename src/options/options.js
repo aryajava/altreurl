@@ -32,6 +32,7 @@ const bulkRemove = document.querySelector("#bulkRemove");
 const bulkActions = document.querySelector('[data-role="bulkActions"]');
 const toggleRuleControls = document.querySelector("#toggleRuleControls");
 const filterToggleLabel = toggleRuleControls.querySelector('[data-role="filterToggleLabel"]');
+const filterToggleStateIcon = toggleRuleControls.querySelector('[data-role="filterToggleStateIcon"]');
 const ruleListControls = document.querySelector("#ruleListControls");
 const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
 const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
@@ -373,7 +374,9 @@ function renderEditor() {
 
   if (!rule) {
     const fragment = emptyEditorTemplate.content.cloneNode(true);
-    fragment.querySelector('[data-action="addEmptyRule"]').addEventListener("click", addDraftRule);
+    fragment.querySelectorAll('[data-action="addEmptyRule"]').forEach((button) => {
+      button.addEventListener("click", addDraftRule);
+    });
     editorPanel.replaceChildren(fragment);
     return;
   }
@@ -943,6 +946,9 @@ toggleRuleControls.addEventListener("click", () => {
   ruleListControls.hidden = !isHidden;
   toggleRuleControls.setAttribute("aria-expanded", String(isHidden));
   filterToggleLabel.textContent = isHidden ? "Hide search and filters" : "Show search and filters";
+  filterToggleStateIcon.src = isHidden
+    ? "../shared/imgs/icons/icons8-eye-close-32.png"
+    : "../shared/imgs/icons/icons8-eye-32.png";
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {

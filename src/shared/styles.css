@@ -440,14 +440,14 @@ label select {
 }
 
 .filter-toggle__icon::before {
-  content: "v";
-  display: inline-block;
-  font-size: 16px;
-  line-height: 1;
+  content: "";
+}
+
+.filter-toggle__icon {
   transition: transform 0.16s ease;
 }
 
-.filter-toggle[aria-expanded="true"] .filter-toggle__icon::before {
+.filter-toggle[aria-expanded="true"] .filter-toggle__icon {
   transform: rotate(180deg);
 }
 
@@ -662,7 +662,7 @@ label select {
   width: 100%;
 }
 
-.empty-editor__mark {
+.empty-editor__quick-add {
   align-items: center;
   background: var(--accent-soft);
   border: 1px solid var(--accent);
@@ -674,7 +674,19 @@ label select {
   height: 48px;
   justify-content: center;
   margin-bottom: 14px;
+  padding: 0;
   width: 48px;
+}
+
+.empty-editor__quick-add:hover {
+  background: var(--panel-soft);
+  border-color: var(--accent);
+}
+
+.section-title-with-icon {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
 }
 
 .empty-editor h2 {
