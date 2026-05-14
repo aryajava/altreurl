@@ -79,12 +79,12 @@
       <div class="rule-list-row">
         <input class="rule-select" data-role="ruleSelect" type="checkbox" title="Select this rule for bulk actions">
         <button class="rule-list-item" type="button">
-        <span class="rule-list-item__title">
-          <span data-role="ruleName"></span>
-          <span class="rule-badge" data-role="statusBadge"></span>
-        </span>
-        <small data-role="ruleGroup"></small>
-        <small data-role="ruleMeta"></small>
+          <span class="rule-list-item__title">
+            <span data-role="ruleName"></span>
+            <span class="rule-badge" data-role="statusBadge"></span>
+          </span>
+          <small data-role="ruleGroup"></small>
+          <small data-role="ruleMeta"></small>
         </button>
       </div>
     </template>
@@ -101,9 +101,9 @@
         <div class="rule-editor__header">
           <div class="rule-state">
             <label>
-            <input data-field="enabled" type="checkbox">
-            Enabled
-          </label>
+              <input data-field="enabled" type="checkbox">
+              Enabled
+            </label>
             <span class="rule-badge" data-role="editorDraftBadge" hidden>Draft</span>
           </div>
           <div class="rule-actions">
@@ -213,6 +213,10 @@
             </label>
           </div>
           <span data-role="syncStatus" class="sync-status"></span>
+          <div class="sync-preview" data-role="syncPreview" hidden>
+            <div class="sync-tabs" data-role="syncTabs" role="tablist" aria-label="Synced credential preview"></div>
+            <textarea data-role="syncPreviewContent" readonly spellcheck="false"></textarea>
+          </div>
         </fieldset>
 
         <div class="headers-block" data-role="manualHeaders">

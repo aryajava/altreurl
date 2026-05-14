@@ -146,6 +146,18 @@ function getRuleStatus(rule) {
   return { key: "ready", label: "Ready" };
 }
 
+function getRuleStatusDescription(ruleStatus) {
+  const descriptions = {
+    draft: "Rule ini belum tersimpan. Klik Save Rule untuk menyimpan rule ini.",
+    disabled: "Rule tersimpan tetapi sedang nonaktif.",
+    invalid: "Rule aktif tetapi Source URL pattern atau Redirect target URL belum valid.",
+    waiting: "Rule menunggu credential sync. Jalankan satu request source atau lengkapi sumber storage/cookie.",
+    ready: "Rule aktif, valid, dan siap menjalankan redirect."
+  };
+
+  return descriptions[ruleStatus.key] || "Status rule";
+}
+
 function isRuleConfigValid(rule) {
   if (!rule.sourcePattern || !rule.targetUrl) {
     return false;
@@ -257,6 +269,7 @@ function renderRuleList() {
     const statusBadge = item.querySelector('[data-role="statusBadge"]');
     statusBadge.textContent = ruleStatus.label;
     statusBadge.dataset.status = ruleStatus.key;
+    statusBadge.title = getRuleStatusDescription(ruleStatus);
     item.querySelector('[data-role="ruleGroup"]').textContent = getRuleGroup(rule);
     item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard}`;
     item.addEventListener("click", () => {
@@ -374,6 +387,9 @@ function renderEditor() {
   const manualAuthorization = card.querySelector('[data-role="manualAuthorization"]');
   const manualHeaders = card.querySelector('[data-role="manualHeaders"]');
   const syncOptions = card.querySelector('[data-role="syncOptions"]');
+  const syncPreview = card.querySelector('[data-role="syncPreview"]');
+  const syncTabs = card.querySelector('[data-role="syncTabs"]');
+  const syncPreviewContent = card.querySelector('[data-role="syncPreviewContent"]');
   const sourceFields = {
     storageArea: card.querySelector('[data-role="storageAreaField"]'),
     authorizationKey: card.querySelector('[data-role="authorizationKeyField"]'),
@@ -383,7 +399,9 @@ function renderEditor() {
   };
 
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
-  card.querySelector('[data-role="editorDraftBadge"]').hidden = !isDraftRule(rule);
+  const editorDraftBadge = card.querySelector('[data-role="editorDraftBadge"]');
+  editorDraftBadge.hidden = !isDraftRule(rule);
+  editorDraftBadge.title = getRuleStatusDescription({ key: "draft" });
   card.querySelector('[data-field="name"]').value = rule.name || "";
   card.querySelector('[data-field="group"]').value = rule.group || "";
   patternTypeInput.value = rule.patternType || PATTERN_TYPES.wildcard;
@@ -403,6 +421,7 @@ function renderEditor() {
   card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
   updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
   updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields);
+  renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent);
 
   card.querySelectorAll("input, select").forEach((input) => {
     input.addEventListener("input", () => {
@@ -412,6 +431,7 @@ function renderEditor() {
 
       updateSelectedRuleFromEditor();
       renderRuleList();
+      renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
     });
     input.addEventListener("change", () => {
       if (input === patternTypeInput) {
@@ -420,6 +440,7 @@ function renderEditor() {
 
       updateSelectedRuleFromEditor();
       renderRuleList();
+      renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
     });
   });
 
@@ -443,12 +464,14 @@ function renderEditor() {
     updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
     updateSelectedRuleFromEditor();
     renderRuleList();
+    renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
   });
 
   credentialSourceInput.addEventListener("change", () => {
     updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields);
     updateSelectedRuleFromEditor();
     renderRuleList();
+    renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
   });
 
   (rule.headers || []).forEach((header) => {
@@ -469,6 +492,90 @@ function renderEditor() {
   });
 
   editorPanel.replaceChildren(fragment);
+}
+
+function getSyncPreviewTabs(rule) {
+  const tabs = [];
+
+  if (rule.syncHeaders) {
+    const headers = normalizeSyncedHeadersForPreview(rule.syncedHeaders);
+    tabs.push({
+      key: "headers",
+      label: "Headers",
+      title: "Readonly headers captured from the source request or credential source",
+      value: headers.length > 0
+        ? headers.map((header) => `${header.name}: ${header.value}`).join("\n")
+        : "No synced headers captured yet."
+    });
+  }
+
+  if (rule.syncAuthorization) {
+    tabs.push({
+      key: "authorization",
+      label: "Authorization",
+      title: "Readonly Authorization value captured from the source request or credential source",
+      value: rule.syncedAuthorization || "No synced authorization captured yet."
+    });
+  }
+
+  if (rule.syncCookies) {
+    tabs.push({
+      key: "cookies",
+      label: "Session cookies",
+      title: "Readonly Cookie header generated from synced session cookies",
+      value: rule.syncedCookieHeader || "No synced session cookies captured yet."
+    });
+  }
+
+  return tabs;
+}
+
+function normalizeSyncedHeadersForPreview(headers = []) {
+  return (Array.isArray(headers) ? headers : [])
+    .map((header) => ({
+      name: String(header.name || "").trim(),
+      value: String(header.value || "").trim()
+    }))
+    .filter((header) => header.name && header.value);
+}
+
+function renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent) {
+  const tabs = getSyncPreviewTabs(rule);
+  const credentialMode = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
+
+  if (credentialMode !== CREDENTIAL_MODES.sync || tabs.length === 0) {
+    syncPreview.hidden = true;
+    syncTabs.replaceChildren();
+    syncPreviewContent.value = "";
+    return;
+  }
+
+  syncPreview.hidden = false;
+  const activeKey = tabs.some((tab) => tab.key === syncPreview.dataset.activeTab)
+    ? syncPreview.dataset.activeTab
+    : tabs[0].key;
+  syncPreview.dataset.activeTab = activeKey;
+  const activeTab = tabs.find((tab) => tab.key === activeKey) || tabs[0];
+
+  syncTabs.replaceChildren(...tabs.map((tab) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "sync-tab";
+    button.dataset.tab = tab.key;
+    button.textContent = tab.label;
+    button.title = tab.title;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", String(tab.key === activeKey));
+    button.classList.toggle("is-active", tab.key === activeKey);
+    button.addEventListener("click", () => {
+      syncPreview.dataset.activeTab = tab.key;
+      renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
+    });
+    return button;
+  }));
+
+  syncPreviewContent.value = activeTab.value;
+  syncPreviewContent.title = activeTab.title;
 }
 
 function render() {
