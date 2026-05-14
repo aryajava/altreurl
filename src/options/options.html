@@ -55,7 +55,10 @@
 
     <template id="ruleListItemTemplate">
       <button class="rule-list-item" type="button">
-        <span data-role="ruleName"></span>
+        <span class="rule-list-item__title">
+          <span data-role="ruleName"></span>
+          <span class="rule-badge" data-role="draftBadge" hidden>Draft</span>
+        </span>
         <small data-role="ruleMeta"></small>
       </button>
     </template>
@@ -70,10 +73,13 @@
     <template id="ruleTemplate">
       <article class="rule-editor">
         <div class="rule-editor__header">
-          <label>
-            <input data-field="enabled" type="checkbox">
-            Enabled
-          </label>
+          <div class="rule-state">
+            <label>
+              <input data-field="enabled" type="checkbox">
+              Enabled
+            </label>
+            <span class="rule-badge" data-role="editorDraftBadge" hidden>Draft</span>
+          </div>
           <div class="rule-actions">
             <button data-action="saveRule" type="button">Save Rule</button>
             <button data-action="removeRule" type="button">Remove</button>

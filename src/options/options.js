@@ -55,6 +55,10 @@ function mergePersistedRulesWithDrafts(persistedRules = []) {
   return [...persistedRules, ...getDraftRules(persistedRules)];
 }
 
+function isDraftRule(rule) {
+  return !savedRuleIds.has(rule.id);
+}
+
 function updateSelectedRuleFromEditor() {
   const card = editorPanel.querySelector(".rule-editor");
 
@@ -115,6 +119,7 @@ function renderRuleList() {
     item.dataset.ruleId = rule.id;
     item.classList.toggle("is-selected", rule.id === selectedRuleId);
     item.querySelector('[data-role="ruleName"]').textContent = rule.name || "Unnamed rule";
+    item.querySelector('[data-role="draftBadge"]').hidden = !isDraftRule(rule);
     item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.enabled ? "Enabled" : "Disabled"} · ${rule.credentialMode || CREDENTIAL_MODES.manual}`;
     item.addEventListener("click", () => {
       updateSelectedRuleFromEditor();
@@ -196,6 +201,7 @@ function renderEditor() {
   };
 
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
+  card.querySelector('[data-role="editorDraftBadge"]').hidden = !isDraftRule(rule);
   card.querySelector('[data-field="name"]').value = rule.name || "";
   patternTypeInput.value = rule.patternType || PATTERN_TYPES.wildcard;
   credentialModeInput.value = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
