@@ -299,6 +299,12 @@ label select {
   min-width: 0;
 }
 
+.rule-list-item__title [data-role="ruleName"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rule-badge {
   background: var(--accent-soft);
   border: 1px solid var(--accent);
@@ -310,6 +316,31 @@ label select {
   font-weight: 700;
   line-height: 1;
   padding: 4px 7px;
+}
+
+.rule-badge[data-status="ready"] {
+  background: var(--success-soft);
+  border-color: var(--success);
+}
+
+.rule-badge[data-status="waiting"] {
+  background: var(--panel-soft);
+  border-color: var(--accent);
+}
+
+.rule-badge[data-status="disabled"] {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.rule-badge[data-status="invalid"] {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+[data-role="ruleGroup"] {
+  font-weight: 700;
 }
 
 .rule-list-item.is-selected {

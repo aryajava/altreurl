@@ -17,6 +17,7 @@ const editorPanel = document.querySelector("#editorPanel");
 const ruleCount = document.querySelector("#ruleCount");
 const ruleSearch = document.querySelector("#ruleSearch");
 const statusFilter = document.querySelector("#statusFilter");
+const groupFilter = document.querySelector("#groupFilter");
 const credentialFilter = document.querySelector("#credentialFilter");
 const toggleRuleControls = document.querySelector("#toggleRuleControls");
 const ruleListControls = document.querySelector("#ruleListControls");
@@ -60,6 +61,61 @@ function isDraftRule(rule) {
   return !savedRuleIds.has(rule.id);
 }
 
+function getRuleGroup(rule) {
+  return String(rule.group || "").trim() || "Ungrouped";
+}
+
+function getRuleStatus(rule) {
+  if (isDraftRule(rule)) {
+    return { key: "draft", label: "Draft" };
+  }
+
+  if (!rule.enabled) {
+    return { key: "disabled", label: "Disabled" };
+  }
+
+  if (!isRuleConfigValid(rule)) {
+    return { key: "invalid", label: "Invalid" };
+  }
+
+  if (isWaitingForSyncCapture(rule)) {
+    return { key: "waiting", label: "Waiting sync" };
+  }
+
+  return { key: "ready", label: "Ready" };
+}
+
+function isRuleConfigValid(rule) {
+  if (!rule.sourcePattern || !rule.targetUrl) {
+    return false;
+  }
+
+  if (rule.patternType === PATTERN_TYPES.regex) {
+    try {
+      new RegExp(rule.sourcePattern);
+    } catch (_error) {
+      return false;
+    }
+
+    return true;
+  }
+
+  const sourceWildcardCount = countWildcardCharacters(rule.sourcePattern);
+  const targetWildcardCount = countWildcardCharacters(rule.targetUrl);
+
+  if (targetWildcardCount > 0 && sourceWildcardCount === 0) {
+    return false;
+  }
+
+  return sourceWildcardCount === 0 ||
+    targetWildcardCount === 0 ||
+    sourceWildcardCount === targetWildcardCount;
+}
+
+function countWildcardCharacters(value) {
+  return [...String(value || "")].filter((character) => character === "*").length;
+}
+
 function updateSelectedRuleFromEditor() {
   const card = editorPanel.querySelector(".rule-editor");
 
@@ -76,6 +132,7 @@ function updateSelectedRuleFromEditor() {
     return {
       ...rule,
       name: card.querySelector('[data-field="name"]').value.trim(),
+      group: card.querySelector('[data-field="group"]').value.trim(),
       enabled: card.querySelector('[data-field="enabled"]').checked,
       patternType: card.querySelector('[data-field="patternType"]').value,
       credentialMode,
@@ -103,6 +160,7 @@ function updateSelectedRuleFromEditor() {
 }
 
 function renderRuleList() {
+  renderGroupFilter();
   const filteredRules = getFilteredRules();
   ruleCount.textContent = `${filteredRules.length}/${rules.length} shown`;
 
@@ -119,9 +177,13 @@ function renderRuleList() {
     const item = fragment.querySelector(".rule-list-item");
     item.dataset.ruleId = rule.id;
     item.classList.toggle("is-selected", rule.id === selectedRuleId);
+    const ruleStatus = getRuleStatus(rule);
     item.querySelector('[data-role="ruleName"]').textContent = rule.name || "Unnamed rule";
-    item.querySelector('[data-role="draftBadge"]').hidden = !isDraftRule(rule);
-    item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.enabled ? "Enabled" : "Disabled"} · ${rule.credentialMode || CREDENTIAL_MODES.manual}`;
+    const statusBadge = item.querySelector('[data-role="statusBadge"]');
+    statusBadge.textContent = ruleStatus.label;
+    statusBadge.dataset.status = ruleStatus.key;
+    item.querySelector('[data-role="ruleGroup"]').textContent = getRuleGroup(rule);
+    item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard}`;
     item.addEventListener("click", () => {
       updateSelectedRuleFromEditor();
       selectedRuleId = rule.id;
@@ -131,9 +193,32 @@ function renderRuleList() {
   }));
 }
 
+function renderGroupFilter() {
+  const selectedGroup = groupFilter.value || "all";
+  const groups = [...new Set(rules.map((rule) => getRuleGroup(rule)))].sort((leftGroup, rightGroup) => {
+    if (leftGroup === "Ungrouped") {
+      return 1;
+    }
+
+    if (rightGroup === "Ungrouped") {
+      return -1;
+    }
+
+    return leftGroup.localeCompare(rightGroup);
+  });
+  const options = [
+    new Option("All groups", "all"),
+    ...groups.map((group) => new Option(group, group))
+  ];
+
+  groupFilter.replaceChildren(...options);
+  groupFilter.value = groups.includes(selectedGroup) ? selectedGroup : "all";
+}
+
 function getFilteredRules() {
   const query = ruleSearch.value.trim().toLowerCase();
   const status = statusFilter.value;
+  const group = groupFilter.value;
   const credentialMode = credentialFilter.value;
 
   return [...rules]
@@ -141,15 +226,18 @@ function getFilteredRules() {
       const normalizedCredentialMode = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
       const matchesQuery = !query || [
         rule.name,
+        rule.group,
         rule.sourcePattern,
         rule.targetUrl
       ].some((value) => String(value || "").toLowerCase().includes(query));
+      const ruleStatus = getRuleStatus(rule);
       const matchesStatus = status === "all" ||
-        (status === "enabled" && rule.enabled) ||
-        (status === "disabled" && !rule.enabled);
+        ruleStatus.key === status ||
+        (status === "enabled" && rule.enabled && ruleStatus.key !== "draft");
+      const matchesGroup = group === "all" || getRuleGroup(rule) === group;
       const matchesCredential = credentialMode === "all" || normalizedCredentialMode === credentialMode;
 
-      return matchesQuery && matchesStatus && matchesCredential;
+      return matchesQuery && matchesStatus && matchesGroup && matchesCredential;
     })
     .sort((leftRule, rightRule) => getRuleUpdatedAt(rightRule) - getRuleUpdatedAt(leftRule));
 }
@@ -204,6 +292,7 @@ function renderEditor() {
   card.querySelector('[data-field="enabled"]').checked = Boolean(rule.enabled);
   card.querySelector('[data-role="editorDraftBadge"]').hidden = !isDraftRule(rule);
   card.querySelector('[data-field="name"]').value = rule.name || "";
+  card.querySelector('[data-field="group"]').value = rule.group || "";
   patternTypeInput.value = rule.patternType || PATTERN_TYPES.wildcard;
   credentialModeInput.value = rule.credentialMode || (hasSyncEnabled(rule) ? CREDENTIAL_MODES.sync : CREDENTIAL_MODES.manual);
   sourcePatternInput.value = rule.sourcePattern || "";
@@ -435,7 +524,7 @@ addRuleButton.addEventListener("click", () => {
   notify("Rule added");
 });
 
-[ruleSearch, statusFilter, credentialFilter].forEach((control) => {
+[ruleSearch, statusFilter, groupFilter, credentialFilter].forEach((control) => {
   control.addEventListener("input", renderRuleList);
   control.addEventListener("change", renderRuleList);
 });

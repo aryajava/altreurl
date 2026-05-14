@@ -36,8 +36,15 @@
             <input id="ruleSearch" type="search" placeholder="Search rules">
             <select id="statusFilter" aria-label="Status filter">
               <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="waiting">Waiting sync</option>
+              <option value="ready">Ready</option>
               <option value="enabled">Enabled</option>
               <option value="disabled">Disabled</option>
+              <option value="invalid">Invalid</option>
+            </select>
+            <select id="groupFilter" aria-label="Group filter">
+              <option value="all">All groups</option>
             </select>
             <select id="credentialFilter" aria-label="Credential filter">
               <option value="all">All credentials</option>
@@ -57,8 +64,9 @@
       <button class="rule-list-item" type="button">
         <span class="rule-list-item__title">
           <span data-role="ruleName"></span>
-          <span class="rule-badge" data-role="draftBadge" hidden>Draft</span>
+          <span class="rule-badge" data-role="statusBadge"></span>
         </span>
+        <small data-role="ruleGroup"></small>
         <small data-role="ruleMeta"></small>
       </button>
     </template>
@@ -90,6 +98,11 @@
           <label>
             Name
             <input data-field="name" type="text" placeholder="Local backend">
+          </label>
+
+          <label>
+            Group
+            <input data-field="group" type="text" placeholder="Ungrouped">
           </label>
 
           <label>

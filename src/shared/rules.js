@@ -369,6 +369,7 @@ export function createBlankRule() {
     createdAt: now,
     modifiedAt: now,
     name: "Local backend",
+    group: "",
     enabled: true,
     patternType: PATTERN_TYPES.wildcard,
     credentialMode: CREDENTIAL_MODES.manual,
