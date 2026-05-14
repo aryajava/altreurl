@@ -200,11 +200,13 @@ label select {
 }
 
 .options-shell {
-  --workspace-sticky-top: calc(clamp(14px, 2.4vw, 32px) + 92px);
   display: grid;
   gap: 20px;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
   margin: 0 auto;
   max-width: min(1540px, 100vw);
+  overflow: hidden;
   padding: clamp(14px, 2.4vw, 32px);
 }
 
@@ -224,12 +226,6 @@ label select {
   border-radius: 8px;
   box-shadow: var(--shadow);
   padding: clamp(12px, 1.8vw, 18px);
-}
-
-.options-shell > .app-header {
-  position: sticky;
-  top: clamp(10px, 1.6vw, 18px);
-  z-index: 8;
 }
 
 .app-header--compact {
@@ -325,6 +321,7 @@ label select {
   display: grid;
   gap: clamp(16px, 2vw, 24px);
   grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+  height: 100%;
   min-height: 0;
 }
 
@@ -339,19 +336,13 @@ label select {
 .rule-list-panel {
   display: flex;
   flex-direction: column;
-  max-height: calc(100dvh - var(--workspace-sticky-top));
-  min-height: min(560px, calc(100dvh - var(--workspace-sticky-top)));
+  min-height: 0;
   overflow: hidden;
-  position: sticky;
-  top: var(--workspace-sticky-top);
 }
 
 .editor-panel {
-  max-height: calc(100dvh - var(--workspace-sticky-top));
-  min-height: min(560px, calc(100dvh - var(--workspace-sticky-top)));
+  min-height: 0;
   overflow: auto;
-  position: sticky;
-  top: var(--workspace-sticky-top);
 }
 
 .panel-title {
@@ -948,19 +939,14 @@ label select {
 }
 
 @media (max-width: 960px) {
-  .options-shell > .app-header {
-    top: 10px;
+  .options-shell {
+    height: auto;
+    overflow: visible;
   }
 
   .options-layout {
     grid-template-columns: 1fr;
-  }
-
-  .rule-list-panel,
-  .editor-panel {
-    max-height: none;
-    min-height: 0;
-    position: static;
+    height: auto;
   }
 
   .rule-list {
