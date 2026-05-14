@@ -31,8 +31,9 @@
             <strong>Rules</strong>
             <span id="ruleCount"></span>
           </div>
-          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false">
-            Show search and filters
+          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false" title="Show or hide search and filter controls">
+            <span data-role="filterToggleLabel">Show search and filters</span>
+            <span class="filter-toggle__icon" aria-hidden="true"></span>
           </button>
           <div id="ruleListControls" class="rule-list-controls" hidden>
             <input id="ruleSearch" type="search" placeholder="Search rules" title="Search by rule name, group, source URL, or target URL">
@@ -87,17 +88,26 @@
             <span data-role="ruleName"></span>
             <span class="rule-badge" data-role="statusBadge"></span>
           </span>
-          <small data-role="ruleGroup"></small>
-          <small data-role="ruleMeta"></small>
+          <span class="rule-route">
+            <small data-role="ruleSource"></small>
+            <small data-role="ruleTarget"></small>
+          </span>
+          <span class="rule-list-item__meta">
+            <small data-role="ruleGroup"></small>
+            <small data-role="ruleMeta"></small>
+          </span>
         </button>
       </div>
     </template>
 
     <template id="emptyEditorTemplate">
       <div class="empty-editor">
-        <h2>No rule selected</h2>
-        <p>Add or select a rule.</p>
-        <button data-action="addEmptyRule" type="button" title="Create a new draft rule">Add rule</button>
+        <div class="empty-editor__content">
+          <span class="empty-editor__mark" aria-hidden="true">+</span>
+          <h2>No rule selected</h2>
+          <p>Select a rule from the list or create a new draft rule.</p>
+          <button data-action="addEmptyRule" type="button" title="Create a new draft rule">Add rule</button>
+        </div>
       </div>
     </template>
 

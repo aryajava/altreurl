@@ -31,6 +31,7 @@ const bulkExport = document.querySelector("#bulkExport");
 const bulkRemove = document.querySelector("#bulkRemove");
 const bulkActions = document.querySelector('[data-role="bulkActions"]');
 const toggleRuleControls = document.querySelector("#toggleRuleControls");
+const filterToggleLabel = toggleRuleControls.querySelector('[data-role="filterToggleLabel"]');
 const ruleListControls = document.querySelector("#ruleListControls");
 const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
 const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
@@ -265,6 +266,8 @@ function renderRuleList() {
     statusBadge.textContent = ruleStatus.label;
     statusBadge.dataset.status = ruleStatus.key;
     statusBadge.title = getRuleStatusDescription(ruleStatus);
+    item.querySelector('[data-role="ruleSource"]').textContent = rule.sourcePattern || "No source pattern";
+    item.querySelector('[data-role="ruleTarget"]').textContent = rule.targetUrl || "No redirect target";
     item.querySelector('[data-role="ruleGroup"]').textContent = getRuleGroup(rule);
     item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard}`;
     item.addEventListener("click", () => {
@@ -938,7 +941,7 @@ toggleRuleControls.addEventListener("click", () => {
 
   ruleListControls.hidden = !isHidden;
   toggleRuleControls.setAttribute("aria-expanded", String(isHidden));
-  toggleRuleControls.textContent = isHidden ? "Hide search and filters" : "Show search and filters";
+  filterToggleLabel.textContent = isHidden ? "Hide search and filters" : "Show search and filters";
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -949,7 +952,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   const persistedRules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
   savedRuleIds = new Set(persistedRules.map((rule) => rule.id));
   rules = mergePersistedRulesWithDrafts(persistedRules);
-  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : rules[0]?.id || "";
+  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
   render();
 });
 
