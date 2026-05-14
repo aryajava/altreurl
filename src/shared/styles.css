@@ -498,14 +498,21 @@ label select {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   overflow: hidden;
 }
 
+.rule-list-row.is-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
 .rule-select {
-  align-self: start;
+  accent-color: var(--accent);
+  align-self: center;
   justify-self: center;
-  margin-top: 18px;
+  margin: 0;
   width: auto;
 }
 
@@ -584,12 +591,6 @@ label select {
 
 [data-role="ruleGroup"] {
   font-weight: 700;
-}
-
-.rule-list-item.is-selected {
-  background: var(--accent-soft);
-  border-left: 3px solid var(--accent);
-  padding-left: 12px;
 }
 
 .rule-list-empty,

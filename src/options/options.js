@@ -250,7 +250,7 @@ function renderRuleList() {
     const item = fragment.querySelector(".rule-list-item");
     row.dataset.ruleId = rule.id;
     item.dataset.ruleId = rule.id;
-    item.classList.toggle("is-selected", rule.id === selectedRuleId);
+    row.classList.toggle("is-selected", rule.id === selectedRuleId);
     selector.checked = selectedRuleIds.has(rule.id);
     selector.addEventListener("change", () => {
       if (selector.checked) {
