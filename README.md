@@ -4,7 +4,7 @@ Altreurl is a Chromium Extension for backend developers who need to route applic
 
 The extension can redirect request URLs, modify request headers, and handle `Authorization` or session cookie forwarding through configurable rules.
 
-Current version: `1.9.0`
+Current version: `1.10.0`
 
 ## Features
 
@@ -23,6 +23,9 @@ Current version: `1.9.0`
 - Search and filter rules from the options page.
 - Organize rules by group and filter the options list by group.
 - Show rule status indicators for draft, waiting sync, ready, disabled, and invalid states.
+- Select multiple rules and run bulk enable, disable, move, duplicate, export, or remove actions.
+- Import rules from JSON as drafts and export saved or selected rules to JSON.
+- Show hover tooltips on rule controls to explain how each helper behaves.
 - Switch between system, light, and dark theme preferences.
 - Show bounded top-right notifications for save and rule actions.
 - Manage rules with Chrome `declarativeNetRequest` dynamic rules.
@@ -90,7 +93,7 @@ Request learning flow:
 1. Set `Credential mode` to `Sync from source`.
 2. Choose `Request learning` as the credential source.
 3. Choose which values to sync: headers, `Authorization`, or session cookies.
-4. Save rules.
+4. Click `Save Rule`.
 5. Trigger one matching source request from the original app.
 6. Reload or retry the app flow so the redirected request can use the captured values.
 

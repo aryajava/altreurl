@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../shared/styles.css">
   </head>
   <body>
-    <div id="notifications" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+    <div id="notifications" class="toast-stack toast-stack--options" aria-live="polite" aria-atomic="true"></div>
     <main class="options-shell">
       <header class="page-header app-header">
         <div class="brand">
@@ -18,8 +18,10 @@
           </div>
         </div>
         <div class="header-actions">
-          <button id="themePreference" class="theme-toggle" type="button" aria-pressed="false">Light</button>
-          <button id="addRule" type="button">Add rule</button>
+          <button id="themePreference" class="theme-toggle" type="button" aria-pressed="false" title="Switch between light and dark mode">Light</button>
+          <button id="importRules" type="button" title="Import rules from a JSON file as drafts">Import</button>
+          <button id="addRule" type="button" title="Create a new draft rule">Add rule</button>
+          <input id="importRulesFile" type="file" accept="application/json,.json" hidden>
         </div>
       </header>
 
@@ -33,8 +35,8 @@
             Show search and filters
           </button>
           <div id="ruleListControls" class="rule-list-controls" hidden>
-            <input id="ruleSearch" type="search" placeholder="Search rules">
-            <select id="statusFilter" aria-label="Status filter">
+            <input id="ruleSearch" type="search" placeholder="Search rules" title="Search by rule name, group, source URL, or target URL">
+            <select id="statusFilter" aria-label="Status filter" title="Filter rules by computed status">
               <option value="all">All statuses</option>
               <option value="draft">Draft</option>
               <option value="waiting">Waiting sync</option>
@@ -43,14 +45,27 @@
               <option value="disabled">Disabled</option>
               <option value="invalid">Invalid</option>
             </select>
-            <select id="groupFilter" aria-label="Group filter">
+            <select id="groupFilter" aria-label="Group filter" title="Filter rules by group">
               <option value="all">All groups</option>
             </select>
-            <select id="credentialFilter" aria-label="Credential filter">
+            <select id="credentialFilter" aria-label="Credential filter" title="Filter rules by credential mode">
               <option value="all">All credentials</option>
               <option value="manual">Manual</option>
               <option value="sync">Sync from source</option>
             </select>
+          </div>
+          <div id="bulkToolbar" class="bulk-toolbar" hidden>
+            <label title="Select or clear all currently visible rules">
+              <input id="selectVisibleRules" type="checkbox">
+              <span id="selectedRuleCount">0 selected</span>
+            </label>
+            <button id="bulkEnable" type="button" title="Enable selected saved or draft rules">Enable</button>
+            <button id="bulkDisable" type="button" title="Disable selected saved or draft rules">Disable</button>
+            <input id="bulkGroupName" type="text" placeholder="Group" title="Group name for selected rules">
+            <button id="bulkMoveGroup" type="button" title="Move selected rules to this group">Move</button>
+            <button id="bulkDuplicate" type="button" title="Duplicate selected rules as drafts">Duplicate</button>
+            <button id="bulkExport" type="button" title="Export selected rules, or all rules when none are selected">Export</button>
+            <button id="bulkRemove" type="button" title="Remove selected rules">Remove</button>
           </div>
           <div id="rulesList" class="rule-list" aria-live="polite"></div>
         </aside>
@@ -61,14 +76,17 @@
     </main>
 
     <template id="ruleListItemTemplate">
-      <button class="rule-list-item" type="button">
+      <div class="rule-list-row">
+        <input class="rule-select" data-role="ruleSelect" type="checkbox" title="Select this rule for bulk actions">
+        <button class="rule-list-item" type="button">
         <span class="rule-list-item__title">
           <span data-role="ruleName"></span>
           <span class="rule-badge" data-role="statusBadge"></span>
         </span>
         <small data-role="ruleGroup"></small>
         <small data-role="ruleMeta"></small>
-      </button>
+        </button>
+      </div>
     </template>
 
     <template id="emptyEditorTemplate">
@@ -83,31 +101,31 @@
         <div class="rule-editor__header">
           <div class="rule-state">
             <label>
-              <input data-field="enabled" type="checkbox">
-              Enabled
-            </label>
+            <input data-field="enabled" type="checkbox">
+            Enabled
+          </label>
             <span class="rule-badge" data-role="editorDraftBadge" hidden>Draft</span>
           </div>
           <div class="rule-actions">
-            <button data-action="saveRule" type="button">Save Rule</button>
-            <button data-action="removeRule" type="button">Remove</button>
+            <button data-action="saveRule" type="button" title="Save only this selected rule">Save Rule</button>
+            <button data-action="removeRule" type="button" title="Remove this rule. Draft rules are removed only from this page.">Remove</button>
           </div>
         </div>
 
         <div class="editor-grid">
           <label>
             Name
-            <input data-field="name" type="text" placeholder="Local backend">
+            <input data-field="name" type="text" placeholder="Local backend" title="Human-readable rule name shown in the rules list">
           </label>
 
           <label>
             Group
-            <input data-field="group" type="text" placeholder="Ungrouped">
+            <input data-field="group" type="text" placeholder="Ungrouped" title="Optional group label for organizing related rules">
           </label>
 
           <label>
             Pattern format
-            <select data-field="patternType">
+            <select data-field="patternType" title="Wildcard is simpler; regex allows capture groups and precise matching">
               <option value="wildcard">Wildcard</option>
               <option value="regex">Regex</option>
             </select>
@@ -115,17 +133,17 @@
 
           <label class="span-2">
             Source URL pattern
-            <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*">
+            <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*" title="Request URL pattern to match before redirect">
           </label>
 
           <label class="span-2">
             Redirect target URL
-            <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*">
+            <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*" title="Target URL that receives the redirected request">
           </label>
 
           <label>
             Credential mode
-            <select data-field="credentialMode">
+            <select data-field="credentialMode" title="Manual uses typed headers; sync tries to reuse credentials from the source app">
               <option value="manual">Manual</option>
               <option value="sync">Sync from source</option>
             </select>
@@ -133,7 +151,7 @@
 
           <label data-role="manualAuthorization">
             Authorization
-            <input data-field="authorization" type="text" placeholder="Bearer local-token">
+            <input data-field="authorization" type="text" placeholder="Bearer local-token" title="Manual Authorization header value">
           </label>
         </div>
 

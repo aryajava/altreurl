@@ -19,6 +19,16 @@ const ruleSearch = document.querySelector("#ruleSearch");
 const statusFilter = document.querySelector("#statusFilter");
 const groupFilter = document.querySelector("#groupFilter");
 const credentialFilter = document.querySelector("#credentialFilter");
+const bulkToolbar = document.querySelector("#bulkToolbar");
+const selectVisibleRules = document.querySelector("#selectVisibleRules");
+const selectedRuleCount = document.querySelector("#selectedRuleCount");
+const bulkEnable = document.querySelector("#bulkEnable");
+const bulkDisable = document.querySelector("#bulkDisable");
+const bulkGroupName = document.querySelector("#bulkGroupName");
+const bulkMoveGroup = document.querySelector("#bulkMoveGroup");
+const bulkDuplicate = document.querySelector("#bulkDuplicate");
+const bulkExport = document.querySelector("#bulkExport");
+const bulkRemove = document.querySelector("#bulkRemove");
 const toggleRuleControls = document.querySelector("#toggleRuleControls");
 const ruleListControls = document.querySelector("#ruleListControls");
 const ruleListItemTemplate = document.querySelector("#ruleListItemTemplate");
@@ -26,15 +36,18 @@ const emptyEditorTemplate = document.querySelector("#emptyEditorTemplate");
 const ruleTemplate = document.querySelector("#ruleTemplate");
 const headerTemplate = document.querySelector("#headerTemplate");
 const addRuleButton = document.querySelector("#addRule");
+const importRulesButton = document.querySelector("#importRules");
+const importRulesFile = document.querySelector("#importRulesFile");
 const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
-const notify = createNotifier(notifications);
+const notify = createNotifier(notifications, { scope: "options" });
 
 let rules = await getRedirectRules();
 let selectedRuleId = rules[0]?.id || "";
 let isSavingRule = false;
 let isRemovingRule = false;
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
+let selectedRuleIds = new Set();
 
 await initThemeControl(themePreference, { controlType: "toggle" });
 
@@ -59,6 +72,54 @@ function mergePersistedRulesWithDrafts(persistedRules = []) {
 
 function isDraftRule(rule) {
   return !savedRuleIds.has(rule.id);
+}
+
+function createRuleId() {
+  return crypto.randomUUID();
+}
+
+function timestampNow() {
+  return new Date().toISOString();
+}
+
+function cloneRuleAsDraft(rule, suffix = "Copy") {
+  const now = timestampNow();
+
+  return {
+    ...rule,
+    id: createRuleId(),
+    name: `${rule.name || "Unnamed rule"} ${suffix}`.trim(),
+    enabled: false,
+    createdAt: now,
+    modifiedAt: now
+  };
+}
+
+function normalizeImportedRule(rule) {
+  if (!rule || typeof rule !== "object") {
+    return null;
+  }
+
+  const blankRule = createBlankRule();
+
+  return {
+    ...blankRule,
+    ...rule,
+    id: createRuleId(),
+    createdAt: timestampNow(),
+    modifiedAt: timestampNow(),
+    enabled: Boolean(rule.enabled),
+    name: String(rule.name || blankRule.name).trim() || blankRule.name,
+    group: String(rule.group || "").trim()
+  };
+}
+
+function getSelectedRules() {
+  return rules.filter((rule) => selectedRuleIds.has(rule.id));
+}
+
+function getPersistedRulesFromMemory() {
+  return rules.filter((rule) => savedRuleIds.has(rule.id));
 }
 
 function getRuleGroup(rule) {
@@ -163,6 +224,7 @@ function renderRuleList() {
   renderGroupFilter();
   const filteredRules = getFilteredRules();
   ruleCount.textContent = `${filteredRules.length}/${rules.length} shown`;
+  renderBulkToolbar(filteredRules);
 
   if (filteredRules.length === 0) {
     const emptyState = document.createElement("div");
@@ -174,9 +236,22 @@ function renderRuleList() {
 
   rulesList.replaceChildren(...filteredRules.map((rule) => {
     const fragment = ruleListItemTemplate.content.cloneNode(true);
+    const row = fragment.querySelector(".rule-list-row");
+    const selector = fragment.querySelector('[data-role="ruleSelect"]');
     const item = fragment.querySelector(".rule-list-item");
+    row.dataset.ruleId = rule.id;
     item.dataset.ruleId = rule.id;
     item.classList.toggle("is-selected", rule.id === selectedRuleId);
+    selector.checked = selectedRuleIds.has(rule.id);
+    selector.addEventListener("change", () => {
+      if (selector.checked) {
+        selectedRuleIds.add(rule.id);
+      } else {
+        selectedRuleIds.delete(rule.id);
+      }
+
+      renderRuleList();
+    });
     const ruleStatus = getRuleStatus(rule);
     item.querySelector('[data-role="ruleName"]').textContent = rule.name || "Unnamed rule";
     const statusBadge = item.querySelector('[data-role="statusBadge"]');
@@ -191,6 +266,24 @@ function renderRuleList() {
     });
     return fragment;
   }));
+}
+
+function renderBulkToolbar(visibleRules = getFilteredRules()) {
+  const visibleRuleIds = new Set(visibleRules.map((rule) => rule.id));
+  selectedRuleIds = new Set([...selectedRuleIds].filter((ruleId) => rules.some((rule) => rule.id === ruleId) || visibleRuleIds.has(ruleId)));
+  const selectedVisibleCount = visibleRules.filter((rule) => selectedRuleIds.has(rule.id)).length;
+  const selectedCount = selectedRuleIds.size;
+
+  bulkToolbar.hidden = rules.length === 0;
+  selectedRuleCount.textContent = `${selectedCount} selected`;
+  selectVisibleRules.checked = visibleRules.length > 0 && selectedVisibleCount === visibleRules.length;
+  selectVisibleRules.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visibleRules.length;
+
+  [bulkEnable, bulkDisable, bulkMoveGroup, bulkDuplicate, bulkRemove].forEach((button) => {
+    button.disabled = selectedCount === 0;
+  });
+  bulkGroupName.disabled = selectedCount === 0;
+  bulkExport.textContent = selectedCount > 0 ? "Export selected" : "Export all";
 }
 
 function renderGroupFilter() {
@@ -510,6 +603,111 @@ async function removeCurrentRule(removeButton) {
   }
 }
 
+async function savePersistedRules(nextRules) {
+  const savedRules = nextRules.filter((rule) => savedRuleIds.has(rule.id));
+  await saveRedirectRules(savedRules);
+  await applyRules(savedRules);
+}
+
+async function updateSelectedRules(mutator, successMessage) {
+  if (selectedRuleIds.size === 0) {
+    return;
+  }
+
+  const modifiedAt = timestampNow();
+  rules = rules.map((rule) => selectedRuleIds.has(rule.id)
+    ? mutator({ ...rule, modifiedAt })
+    : rule);
+  await savePersistedRules(rules);
+  render();
+  notify(successMessage, "success");
+}
+
+async function removeSelectedRules() {
+  const selectedCount = selectedRuleIds.size;
+
+  if (selectedCount === 0) {
+    return;
+  }
+
+  if (!window.confirm(`Remove ${selectedCount} selected ${selectedCount === 1 ? "rule" : "rules"}?`)) {
+    return;
+  }
+
+  rules = rules.filter((rule) => !selectedRuleIds.has(rule.id));
+  savedRuleIds = new Set(rules.filter((rule) => savedRuleIds.has(rule.id)).map((rule) => rule.id));
+  selectedRuleIds = new Set();
+  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : rules[0]?.id || "";
+  await saveRedirectRules(getPersistedRulesFromMemory());
+  await applyRules(getPersistedRulesFromMemory());
+  render();
+  notify("Selected rules removed", "success");
+}
+
+function duplicateSelectedRules() {
+  const selectedRules = getSelectedRules();
+
+  if (selectedRules.length === 0) {
+    return;
+  }
+
+  const duplicatedRules = selectedRules.map((rule) => cloneRuleAsDraft(rule));
+  rules = [...duplicatedRules, ...rules];
+  selectedRuleIds = new Set(duplicatedRules.map((rule) => rule.id));
+  selectedRuleId = duplicatedRules[0].id;
+  render();
+  notify(`${duplicatedRules.length} duplicated ${duplicatedRules.length === 1 ? "rule" : "rules"} added as draft`);
+}
+
+function exportRules() {
+  const rulesToExport = selectedRuleIds.size > 0 ? getSelectedRules() : getPersistedRulesFromMemory();
+
+  if (rulesToExport.length === 0) {
+    notify("No rules to export", "error");
+    return;
+  }
+
+  const exportBlob = new Blob([JSON.stringify({ version: 1, rules: rulesToExport }, null, 2)], {
+    type: "application/json"
+  });
+  const exportUrl = URL.createObjectURL(exportBlob);
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = exportUrl;
+  downloadLink.download = `altreurl-rules-${new Date().toISOString().slice(0, 10)}.json`;
+  downloadLink.click();
+  URL.revokeObjectURL(exportUrl);
+  notify(`${rulesToExport.length} ${rulesToExport.length === 1 ? "rule" : "rules"} exported`, "success");
+}
+
+async function importRules(file) {
+  if (!file) {
+    return;
+  }
+
+  try {
+    const parsedData = JSON.parse(await file.text());
+    const importedRules = Array.isArray(parsedData) ? parsedData : parsedData.rules;
+    const draftRules = Array.isArray(importedRules)
+      ? importedRules.map(normalizeImportedRule).filter(Boolean)
+      : [];
+
+    if (draftRules.length === 0) {
+      throw new Error("No valid rules found in import file.");
+    }
+
+    rules = [...draftRules, ...rules];
+    selectedRuleIds = new Set(draftRules.map((rule) => rule.id));
+    selectedRuleId = draftRules[0].id;
+    render();
+    notify(`${draftRules.length} imported ${draftRules.length === 1 ? "rule" : "rules"} added as draft`, "success");
+  } catch (error) {
+    notify(error.message, "error");
+  } finally {
+    importRulesFile.value = "";
+  }
+}
+
 function touchSelectedRule() {
   const modifiedAt = new Date().toISOString();
   rules = rules.map((rule) => rule.id === selectedRuleId ? { ...rule, modifiedAt } : rule);
@@ -520,8 +718,47 @@ addRuleButton.addEventListener("click", () => {
   const blankRule = createBlankRule();
   rules = [blankRule, ...rules];
   selectedRuleId = blankRule.id;
+  selectedRuleIds = new Set([blankRule.id]);
   render();
   notify("Rule added");
+});
+
+selectVisibleRules.addEventListener("change", () => {
+  const visibleRules = getFilteredRules();
+
+  if (selectVisibleRules.checked) {
+    visibleRules.forEach((rule) => selectedRuleIds.add(rule.id));
+  } else {
+    visibleRules.forEach((rule) => selectedRuleIds.delete(rule.id));
+  }
+
+  renderRuleList();
+});
+
+bulkEnable.addEventListener("click", async () => {
+  await updateSelectedRules((rule) => ({ ...rule, enabled: true }), "Selected rules enabled");
+});
+
+bulkDisable.addEventListener("click", async () => {
+  await updateSelectedRules((rule) => ({ ...rule, enabled: false }), "Selected rules disabled");
+});
+
+bulkMoveGroup.addEventListener("click", async () => {
+  const group = bulkGroupName.value.trim();
+
+  await updateSelectedRules((rule) => ({ ...rule, group }), "Selected rules moved");
+});
+
+bulkDuplicate.addEventListener("click", duplicateSelectedRules);
+bulkExport.addEventListener("click", exportRules);
+bulkRemove.addEventListener("click", removeSelectedRules);
+
+importRulesButton.addEventListener("click", () => {
+  importRulesFile.click();
+});
+
+importRulesFile.addEventListener("change", async () => {
+  await importRules(importRulesFile.files[0]);
 });
 
 [ruleSearch, statusFilter, groupFilter, credentialFilter].forEach((control) => {

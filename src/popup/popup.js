@@ -8,7 +8,7 @@ const activeRules = document.querySelector("#activeRules");
 const ruleSearch = document.querySelector("#ruleSearch");
 const openOptions = document.querySelector("#openOptions");
 const notifications = document.querySelector("#notifications");
-const notify = createNotifier(notifications);
+const notify = createNotifier(notifications, { scope: "popup" });
 
 let rules = await getRedirectRules();
 

@@ -248,6 +248,34 @@ label select {
   padding: 0 12px 14px;
 }
 
+.bulk-toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.bulk-toolbar label {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.bulk-toolbar input[type="checkbox"] {
+  width: auto;
+}
+
+.bulk-toolbar input[type="text"] {
+  max-width: 140px;
+}
+
+.bulk-toolbar button {
+  min-height: 32px;
+  padding: 6px 9px;
+}
+
 .filter-toggle {
   border: 0;
   border-bottom: 1px solid var(--line);
@@ -280,9 +308,22 @@ label select {
   overflow: auto;
 }
 
+.rule-list-row {
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+}
+
+.rule-select {
+  align-self: start;
+  justify-self: center;
+  margin-top: 17px;
+  width: auto;
+}
+
 .rule-list-item {
   border: 0;
-  border-bottom: 1px solid var(--line);
   border-radius: 0;
   display: grid;
   justify-items: start;
@@ -517,6 +558,14 @@ label select {
   z-index: 10;
 }
 
+.toast-stack--popup {
+  max-width: min(320px, calc(100vw - 24px));
+}
+
+.toast-stack--options {
+  max-width: min(420px, calc(100vw - 24px));
+}
+
 .toast {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -565,5 +614,14 @@ label select {
   .header-actions,
   .rule-actions {
     flex-direction: column;
+  }
+
+  .bulk-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bulk-toolbar input[type="text"] {
+    max-width: none;
   }
 }
