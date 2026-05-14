@@ -32,6 +32,7 @@ const notify = createNotifier(notifications);
 let rules = await getRedirectRules();
 let selectedRuleId = rules[0]?.id || "";
 let isSavingRule = false;
+let isRemovingRule = false;
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
 
 await initThemeControl(themePreference, { controlType: "toggle" });
@@ -281,11 +282,8 @@ function renderEditor() {
     await saveCurrentRule(event.currentTarget);
   });
 
-  card.querySelector('[data-action="removeRule"]').addEventListener("click", () => {
-    rules = rules.filter((currentRule) => currentRule.id !== selectedRuleId);
-    selectedRuleId = rules[0]?.id || "";
-    render();
-    notify("Rule removed");
+  card.querySelector('[data-action="removeRule"]').addEventListener("click", async (event) => {
+    await removeCurrentRule(event.currentTarget);
   });
 
   editorPanel.replaceChildren(fragment);
@@ -381,6 +379,46 @@ function upsertRule(savedRules, ruleToSave) {
   }
 
   return savedRules.map((rule) => rule.id === ruleToSave.id ? ruleToSave : rule);
+}
+
+async function removeCurrentRule(removeButton) {
+  if (isRemovingRule) {
+    return;
+  }
+
+  try {
+    isRemovingRule = true;
+    removeButton.disabled = true;
+    const ruleToRemove = getSelectedRule();
+
+    if (!ruleToRemove) {
+      return;
+    }
+
+    if (isDraftRule(ruleToRemove)) {
+      rules = rules.filter((rule) => rule.id !== ruleToRemove.id);
+      selectedRuleId = rules[0]?.id || "";
+      render();
+      notify("Draft rule removed");
+      return;
+    }
+
+    const persistedRules = await getRedirectRules();
+    const savedRules = persistedRules.filter((rule) => rule.id !== ruleToRemove.id);
+
+    savedRuleIds = new Set(savedRules.map((rule) => rule.id));
+    rules = mergePersistedRulesWithDrafts(savedRules).filter((rule) => rule.id !== ruleToRemove.id);
+    selectedRuleId = rules[0]?.id || "";
+    await saveRedirectRules(savedRules);
+    await applyRules(savedRules);
+    render();
+    notify("Rule removed", "success");
+  } catch (error) {
+    notify(error.message, "error");
+    removeButton.disabled = false;
+  } finally {
+    isRemovingRule = false;
+  }
 }
 
 function touchSelectedRule() {
