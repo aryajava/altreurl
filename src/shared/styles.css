@@ -9,7 +9,11 @@
   --line: #b9d7ea;
   --accent: #769fcd;
   --accent-soft: #d6e6f2;
-  --danger: #9f5f75;
+  --info: #769fcd;
+  --info-soft: #d6e6f2;
+  --warning: #b9852e;
+  --warning-soft: #f3e4c9;
+  --danger: #a85d78;
   --danger-soft: #f2d6df;
   --success: #5f9f8a;
   --success-soft: #d6f2e6;
@@ -27,6 +31,10 @@
   --line: #6b728e;
   --accent: #b9d7ea;
   --accent-soft: #50577a;
+  --info: #b9d7ea;
+  --info-soft: #50577a;
+  --warning: #f0cf8b;
+  --warning-soft: #66583f;
   --danger: #f2b9c8;
   --danger-soft: #6b4051;
   --success: #b9ead8;
@@ -46,6 +54,10 @@
     --line: #6b728e;
     --accent: #b9d7ea;
     --accent-soft: #50577a;
+    --info: #b9d7ea;
+    --info-soft: #50577a;
+    --warning: #f0cf8b;
+    --warning-soft: #66583f;
     --danger: #f2b9c8;
     --danger-soft: #6b4051;
     --success: #b9ead8;
@@ -557,8 +569,8 @@ label select {
 }
 
 .rule-badge {
-  background: var(--accent-soft);
-  border: 1px solid var(--accent);
+  background: var(--info-soft);
+  border: 1px solid var(--info);
   border-radius: 999px;
   color: var(--text);
   display: inline-flex;
@@ -575,8 +587,8 @@ label select {
 }
 
 .rule-badge[data-status="waiting"] {
-  background: var(--panel-soft);
-  border-color: var(--accent);
+  background: var(--warning-soft);
+  border-color: var(--warning);
 }
 
 .rule-badge[data-status="disabled"] {
@@ -934,7 +946,7 @@ label select {
 .toast {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--info);
   border-radius: 8px;
   box-shadow: var(--shadow);
   color: var(--text);
@@ -946,6 +958,16 @@ label select {
 .toast--success {
   background: var(--success-soft);
   border-left-color: var(--success);
+}
+
+.toast--info {
+  background: var(--info-soft);
+  border-left-color: var(--info);
+}
+
+.toast--warning {
+  background: var(--warning-soft);
+  border-left-color: var(--warning);
 }
 
 .toast--error {
