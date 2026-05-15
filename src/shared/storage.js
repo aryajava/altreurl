@@ -1,6 +1,7 @@
 export const STORAGE_KEYS = {
   rules: "redirectRules",
-  theme: "themePreference"
+  theme: "themePreference",
+  applyError: "altreurlApplyError"
 };
 
 export async function getRedirectRules() {

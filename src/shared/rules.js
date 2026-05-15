@@ -96,6 +96,8 @@ export function buildSourceMatcher(sourcePattern, patternType = PATTERN_TYPES.wi
   const normalizedPatternType = normalizePatternType(patternType);
   const regexSource = normalizedPatternType === PATTERN_TYPES.regex
     ? sourcePattern
+    : !sourcePattern.includes(WILDCARD)
+      ? buildRegexFilterFromLiteralUrl(sourcePattern)
     : buildRegexFilterFromWildcard(sourcePattern);
   const regex = new RegExp(regexSource);
 
@@ -116,6 +118,24 @@ function buildRegexFilterFromWildcard(sourcePattern) {
   }
 
   return `^${sourcePattern.split(WILDCARD).map(escapeRegex).join("(.*)")}$`;
+}
+
+function buildRegexFilterFromLiteralUrl(url, options = {}) {
+  const escapedUrl = escapeRegex(url);
+  const canPreserveUrlSuffix = /^https?:\/\//i.test(url) && !/[?#]/.test(url);
+  const canAppendQuerySuffix = /^https?:\/\//i.test(url) && url.includes("?") && !url.includes("#");
+  const suffixPattern = options.captureSuffix ? "([?#].*)?" : "(?:[?#].*)?";
+  const querySuffixPattern = options.captureSuffix ? "([&#].*)?" : "(?:[&#].*)?";
+
+  if (canPreserveUrlSuffix) {
+    return `^${escapedUrl}${suffixPattern}$`;
+  }
+
+  if (canAppendQuerySuffix) {
+    return `^${escapedUrl}${querySuffixPattern}$`;
+  }
+
+  return `^${escapedUrl}$`;
 }
 
 function buildRegexSubstitutionFromWildcard(targetUrl) {
@@ -160,8 +180,71 @@ function buildWildcardFromRegexSubstitution(targetUrl) {
 
 function buildRegexFilterFromRegexSubstitution(targetUrl) {
   return `^${targetUrl
-    .replace(/\\[1-9]\d*/g, "(.*)")
-    .replace(/\$[1-9]\d*/g, "(.*)")}$`;
+    .split(/(\\[1-9]\d*|\$[1-9]\d*)/g)
+    .map((part) => (/^(\\[1-9]\d*|\$[1-9]\d*)$/.test(part) ? "(.*)" : escapeRegex(part)))
+    .join("")}$`;
+}
+
+function countRegexCaptureGroups(regexPattern = "") {
+  let count = 0;
+  let inCharacterClass = false;
+
+  for (let index = 0; index < regexPattern.length; index += 1) {
+    const character = regexPattern[index];
+    const previousCharacter = regexPattern[index - 1];
+    const isEscaped = previousCharacter === "\\";
+
+    if (character === "[" && !isEscaped) {
+      inCharacterClass = true;
+      continue;
+    }
+
+    if (character === "]" && !isEscaped) {
+      inCharacterClass = false;
+      continue;
+    }
+
+    if (character !== "(" || isEscaped || inCharacterClass) {
+      continue;
+    }
+
+    if (regexPattern[index + 1] === "?" && regexPattern[index + 2] !== "<") {
+      continue;
+    }
+
+    if (regexPattern[index + 1] === "?" && regexPattern[index + 2] === "<" && ["=", "!"].includes(regexPattern[index + 3])) {
+      continue;
+    }
+
+    count += 1;
+  }
+
+  return count;
+}
+
+function getRegexSubstitutionRefs(targetUrl = "") {
+  return [...String(targetUrl).matchAll(/\\([1-9]\d*)|\$([1-9]\d*)/g)]
+    .map((match) => Number(match[1] || match[2]))
+    .filter((groupIndex) => Number.isInteger(groupIndex));
+}
+
+export function validateRegexSubstitutionRefs(sourcePattern, targetUrl) {
+  const captureGroupCount = countRegexCaptureGroups(sourcePattern);
+  const invalidRef = getRegexSubstitutionRefs(targetUrl)
+    .find((groupIndex) => groupIndex > captureGroupCount);
+
+  if (invalidRef) {
+    throw new Error(`Redirect target references capture group ${invalidRef}, but Source URL regex only defines ${captureGroupCount}.`);
+  }
+}
+
+export function isRegexSubstitutionValid(sourcePattern, targetUrl) {
+  try {
+    validateRegexSubstitutionRefs(sourcePattern, targetUrl);
+    return true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 export function convertPatternFormat(value, fromPatternType, toPatternType, fieldType) {
@@ -193,7 +276,7 @@ export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPE
 
   if (!sourcePattern.includes(WILDCARD)) {
     return {
-      urlFilter: sourcePattern,
+      regexFilter: buildRegexFilterFromLiteralUrl(sourcePattern, { captureSuffix: true }),
       resourceTypes: getResourceTypes()
     };
   }
@@ -220,13 +303,194 @@ export function buildHeaderCondition(sourcePattern, targetUrl, patternType = PAT
   }
 
   return {
-    urlFilter: targetUrl,
+    regexFilter: buildRegexFilterFromLiteralUrl(targetUrl),
     resourceTypes: getResourceTypes()
   };
 }
 
+function buildExactRedirectRules(sourcePattern, targetUrl, baseId) {
+  const escapedSource = escapeRegex(sourcePattern);
+  const queryJoiner = targetUrl.includes("?") ? "&" : "?";
+  const sourceHasQuery = sourcePattern.includes("?") && !sourcePattern.includes("#");
+  return [
+    {
+      id: baseId,
+      priority: 1,
+      action: {
+        type: "redirect",
+        redirect: {
+          url: targetUrl
+        }
+      },
+      condition: {
+        regexFilter: `^${escapedSource}$`,
+        resourceTypes: getResourceTypes()
+      }
+    },
+    {
+      id: baseId + 1,
+      priority: 1,
+      action: {
+        type: "redirect",
+        redirect: {
+          regexSubstitution: `${targetUrl}${queryJoiner}\\1`
+        }
+      },
+      condition: {
+        regexFilter: sourceHasQuery ? `^${escapedSource}&(.*)$` : `^${escapedSource}\\?(.*)$`,
+        resourceTypes: getResourceTypes()
+      }
+    }
+  ];
+}
+
+function shouldUseExactRedirectRules(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  return normalizePatternType(patternType) === PATTERN_TYPES.wildcard &&
+    countWildcards(sourcePattern) === 0 &&
+    countWildcards(targetUrl) === 0 &&
+    /^https?:\/\//i.test(sourcePattern) &&
+    !sourcePattern.includes("#");
+}
+
+function getConditionSignature(condition) {
+  return condition.regexFilter ? `regex:${condition.regexFilter}` : `url:${condition.urlFilter || ""}`;
+}
+
+function getTargetConflictScope(targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  const normalizedTargetUrl = String(targetUrl || "")
+    .replace(/^\^/, "")
+    .replace(/\$$/, "")
+    .replace(/\\\./g, ".");
+  const boundaryPattern = normalizePatternType(patternType) === PATTERN_TYPES.regex
+    ? /(\\[1-9]\d*|\$[1-9]\d*|\(\.\*\)|\.\*)/
+    : /\*/;
+  const literalPrefix = normalizedTargetUrl.split(boundaryPattern)[0];
+
+  try {
+    const parsedUrl = new URL(literalPrefix || normalizedTargetUrl);
+    const pathPrefix = parsedUrl.pathname || "/";
+
+    return {
+      origin: parsedUrl.origin,
+      pathPrefix: pathPrefix.endsWith("/") ? pathPrefix : pathPrefix,
+      raw: normalizedTargetUrl
+    };
+  } catch (_error) {
+    return {
+      origin: "",
+      pathPrefix: "",
+      raw: normalizedTargetUrl
+    };
+  }
+}
+
+function doTargetScopesOverlap(leftScope, rightScope) {
+  if (!leftScope.origin || !rightScope.origin || leftScope.origin !== rightScope.origin) {
+    return false;
+  }
+
+  return isSameOrNestedPath(leftScope.pathPrefix, rightScope.pathPrefix) ||
+    isSameOrNestedPath(rightScope.pathPrefix, leftScope.pathPrefix);
+}
+
+function isSameOrNestedPath(candidatePath, prefixPath) {
+  if (candidatePath === prefixPath) {
+    return true;
+  }
+
+  const normalizedPrefix = prefixPath.endsWith("/") ? prefixPath : `${prefixPath}/`;
+  return candidatePath.startsWith(normalizedPrefix);
+}
+
+function getTargetConflictScopes(rule) {
+  return {
+    rule,
+    hasCredentialHeaders: hasPotentialCredentialHeaders(rule),
+    scope: getTargetConflictScope(rule.targetUrl, rule.patternType),
+    signature: getConditionSignature(buildHeaderCondition(rule.sourcePattern, rule.targetUrl, normalizePatternType(rule.patternType)))
+  };
+}
+
+function getRuleTargetConflict(activeRule, activeRuleScopes) {
+  if (!activeRule.hasCredentialHeaders) {
+    return null;
+  }
+
+  return activeRuleScopes.find((candidateRule) => (
+    candidateRule.rule.id !== activeRule.rule.id &&
+    (
+      candidateRule.signature === activeRule.signature ||
+      doTargetScopesOverlap(candidateRule.scope, activeRule.scope)
+    )
+  )) || null;
+}
+
+export function getRuleSetIssuesByRuleId(configRules = []) {
+  const activeRules = configRules
+    .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl);
+  const issuesByRuleId = new Map();
+  const rulesEligibleForConflictCheck = activeRules.filter((rule) => {
+    if (String(rule.sourcePattern || "").includes("#") || String(rule.targetUrl || "").includes("#")) {
+      issuesByRuleId.set(
+        rule.id,
+        `Rule "${rule.name || "Unnamed rule"}" uses a URL fragment (#), but fragments are not sent in network requests. Remove the fragment from Source URL pattern and Redirect target URL.`
+      );
+      return false;
+    }
+
+    return true;
+  });
+  const activeRuleScopes = rulesEligibleForConflictCheck.map(getTargetConflictScopes);
+
+  activeRuleScopes.forEach((activeRule) => {
+    const conflictRule = getRuleTargetConflict(activeRule, activeRuleScopes);
+
+    if (!conflictRule) {
+      return;
+    }
+
+    issuesByRuleId.set(
+      activeRule.rule.id,
+      `Rule "${activeRule.rule.name || "Unnamed rule"}" uses credential headers on a target that overlaps "${conflictRule.rule.name || "Unnamed rule"}". Use unique target URL paths to avoid mixed headers.`
+    );
+    issuesByRuleId.set(
+      conflictRule.rule.id,
+      `Rule "${conflictRule.rule.name || "Unnamed rule"}" has a target that overlaps credential headers from "${activeRule.rule.name || "Unnamed rule"}". Use unique target URL paths to avoid mixed headers.`
+    );
+  });
+
+  return issuesByRuleId;
+}
+
+export function validateRuleSet(configRules = []) {
+  const issues = [...getRuleSetIssuesByRuleId(configRules).values()];
+
+  if (issues.length > 0) {
+    throw new Error(issues[0]);
+  }
+}
+
+function validateHeaderConditionUniqueness(headerCondition, rule, seenHeaderConditions) {
+  const signature = getConditionSignature(headerCondition);
+  const currentScope = getTargetConflictScope(rule.targetUrl, rule.patternType);
+  const previousRule = [...seenHeaderConditions.values()].find((entry) => (
+    entry.signature === signature ||
+    doTargetScopesOverlap(entry.scope, currentScope)
+  ))?.rule;
+
+  if (previousRule) {
+    throw new Error(
+      `Rules "${previousRule.name || "Unnamed rule"}" and "${rule.name || "Unnamed rule"}" use overlapping redirect targets for credential headers. Use unique target URL paths to avoid mixed headers.`
+    );
+  }
+
+  seenHeaderConditions.set(signature, { rule, scope: currentScope, signature });
+}
+
 export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexSubstitutionRefs(sourcePattern, targetUrl);
+
     return {
       type: "redirect",
       redirect: {
@@ -296,57 +560,86 @@ function mergeRequestHeaders(...headerGroups) {
   return [...headersByName.values()];
 }
 
+function getRequestHeadersForRule(rule) {
+  const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
+  const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
+    ? [{ name: "Authorization", value: rule.syncedAuthorization }]
+    : [];
+  const syncedCookieHeader = rule.syncCookies && rule.syncedCookieHeader
+    ? [{ name: "Cookie", value: rule.syncedCookieHeader }]
+    : [];
+  const manualAuthorization = rule.authorization
+    ? [{ name: "Authorization", value: rule.authorization }]
+    : [];
+
+  return mergeRequestHeaders(
+    syncedHeaders,
+    syncedAuthorization,
+    syncedCookieHeader,
+    normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? manualAuthorization : [],
+    normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? normalizeHeaderRows(rule.headers) : []
+  );
+}
+
+function hasPotentialCredentialHeaders(rule) {
+  if (getRequestHeadersForRule(rule).length > 0) {
+    return true;
+  }
+
+  return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
+    Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+}
+
+export function getGeneratedDynamicRuleCount(configRules = []) {
+  return buildDynamicRules(configRules).length;
+}
+
 export function buildDynamicRules(configRules = []) {
-  return configRules
+  validateRuleSet(configRules);
+  const seenHeaderConditions = new Map();
+  let nextRuleId = RULE_ID_BASE;
+  const dynamicRules = [];
+
+  configRules
     .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl)
     .filter((rule) => !isWaitingForSyncCapture(rule))
-    .flatMap((rule, index) => {
-      const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
-      const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
-        ? [{ name: "Authorization", value: rule.syncedAuthorization }]
-        : [];
-      const syncedCookieHeader = rule.syncCookies && rule.syncedCookieHeader
-        ? [{ name: "Cookie", value: rule.syncedCookieHeader }]
-        : [];
-      const manualAuthorization = rule.authorization
-        ? [{ name: "Authorization", value: rule.authorization }]
-        : [];
-      const requestHeaders = mergeRequestHeaders(
-        syncedHeaders,
-        syncedAuthorization,
-        syncedCookieHeader,
-        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? manualAuthorization : [],
-        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? normalizeHeaderRows(rule.headers) : []
-      );
+    .forEach((rule) => {
+      const requestHeaders = getRequestHeadersForRule(rule);
 
       const patternType = normalizePatternType(rule.patternType);
       const redirectCondition = buildRedirectCondition(rule.sourcePattern, patternType);
       const headerCondition = buildHeaderCondition(rule.sourcePattern, rule.targetUrl, patternType);
+      const redirectRules = shouldUseExactRedirectRules(rule.sourcePattern, rule.targetUrl, patternType)
+        ? buildExactRedirectRules(rule.sourcePattern, rule.targetUrl, nextRuleId)
+        : [{
+            id: nextRuleId,
+            priority: 1,
+            action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
+            condition: redirectCondition
+          }];
 
-      const redirectRule = {
-        id: RULE_ID_BASE + index * 2,
-        priority: 1,
-        action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
-        condition: redirectCondition
-      };
+      nextRuleId += redirectRules.length;
+      dynamicRules.push(...redirectRules);
 
       if (requestHeaders.length === 0) {
-        return [redirectRule];
+        return;
       }
 
-      return [
-        redirectRule,
-        {
-          id: RULE_ID_BASE + index * 2 + 1,
-          priority: 2,
-          action: {
-            type: "modifyHeaders",
-            requestHeaders
-          },
-          condition: headerCondition
-        }
-      ];
+      validateHeaderConditionUniqueness(headerCondition, rule, seenHeaderConditions);
+
+      dynamicRules.push({
+        id: nextRuleId,
+        priority: 2,
+        action: {
+          type: "modifyHeaders",
+          requestHeaders
+        },
+        condition: headerCondition
+      });
+      nextRuleId += 1;
     });
+
+  return dynamicRules;
 }
 
 export async function applyDynamicRules(configRules = []) {
@@ -354,11 +647,23 @@ export async function applyDynamicRules(configRules = []) {
   const removeRuleIds = existingRules
     .filter((rule) => rule.id >= RULE_ID_BASE)
     .map((rule) => rule.id);
+  const addRules = buildDynamicRules(configRules);
+  const dynamicRuleLimit = getDynamicRuleLimit();
+
+  if (addRules.length > dynamicRuleLimit) {
+    throw new Error(`Altreurl generated ${addRules.length} dynamic rules, which exceeds the browser limit of ${dynamicRuleLimit}. Reduce enabled rules or use broader wildcard patterns.`);
+  }
 
   await chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds,
-    addRules: buildDynamicRules(configRules)
+    addRules
   });
+}
+
+function getDynamicRuleLimit() {
+  return chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_RULES ||
+    chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES ||
+    5000;
 }
 
 export function createBlankRule() {

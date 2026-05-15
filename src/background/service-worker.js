@@ -1,4 +1,4 @@
-import { getRedirectRules } from "../shared/storage.js";
+import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import {
   applyDynamicRules,
   buildSourceMatcher,
@@ -17,12 +17,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(captureSourceRequest, CAPTURE_
 
 chrome.runtime.onInstalled.addListener(async () => {
   const rules = await getRedirectRules();
-  await applyDynamicRules(rules);
+  await prepareAndApplyRules(rules, { persistHydratedRules: true });
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   const rules = await getRedirectRules();
-  await applyDynamicRules(rules);
+  await prepareAndApplyRules(rules, { persistHydratedRules: true });
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -30,8 +30,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return false;
   }
 
-  prepareAndApplyRules(message.rules || [])
-    .then(() => sendResponse({ ok: true }))
+  prepareAndApplyRules(message.rules || [], { persistHydratedRules: Boolean(message.persistHydratedRules) })
+    .then((hydratedRules) => sendResponse({ ok: true, rules: hydratedRules }))
     .catch((error) => sendResponse({ ok: false, error: error.message }));
 
   return true;
@@ -42,13 +42,26 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  applyDynamicRules(changes.redirectRules.newValue || []);
+  prepareAndApplyRules(changes.redirectRules.newValue || [])
+    .catch(async (error) => {
+      console.warn("Unable to apply stored Altreurl rules", error);
+      await chrome.storage.local.set({
+        [STORAGE_KEYS.applyError]: {
+          message: error.message || "Unable to apply stored Altreurl rules.",
+          occurredAt: new Date().toISOString()
+        }
+      });
+    });
 });
 
 async function captureSourceRequest(details) {
   const rules = await getRedirectRules();
   const matchingRule = rules.find((rule) => {
-    if (!rule.enabled || !hasSyncEnabled(rule) || !rule.sourcePattern || !rule.targetUrl) {
+    if (!rule.enabled ||
+      !hasSyncEnabled(rule) ||
+      normalizeCredentialSource(rule) !== CREDENTIAL_SOURCES.request ||
+      !rule.sourcePattern ||
+      !rule.targetUrl) {
       return false;
     }
 
@@ -70,18 +83,25 @@ async function captureSourceRequest(details) {
 
   const nextRules = rules.map((rule) => (rule.id === capturedRule.id ? capturedRule : rule));
 
-  await chrome.storage.local.set({ redirectRules: nextRules });
   await applyDynamicRules(nextRules);
+
+  try {
+    await chrome.storage.local.set({ redirectRules: nextRules });
+  } catch (error) {
+    await applyDynamicRules(rules);
+    throw error;
+  }
 }
 
-async function prepareAndApplyRules(rules) {
+async function prepareAndApplyRules(rules, options = {}) {
   const hydratedRules = await hydrateCredentialSourceRules(rules);
 
-  if (JSON.stringify(hydratedRules) !== JSON.stringify(rules)) {
+  if (options.persistHydratedRules && JSON.stringify(hydratedRules) !== JSON.stringify(rules)) {
     await chrome.storage.local.set({ redirectRules: hydratedRules });
   }
 
   await applyDynamicRules(hydratedRules);
+  return hydratedRules;
 }
 
 async function hydrateCredentialSourceRules(rules) {

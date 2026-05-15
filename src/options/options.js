@@ -5,10 +5,13 @@ import {
   STORAGE_AREAS,
   convertPatternFormat,
   createBlankRule,
+  getGeneratedDynamicRuleCount,
+  getRuleSetIssuesByRuleId,
   hasSyncEnabled,
+  isRegexSubstitutionValid,
   isWaitingForSyncCapture
 } from "../shared/rules.js";
-import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
+import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
 
@@ -124,6 +127,12 @@ function getRuleGroup(rule) {
 }
 
 function getRuleStatus(rule) {
+  const ruleSetIssue = getRuleSetIssue(rule);
+
+  if (ruleSetIssue) {
+    return { key: "conflict", label: "Conflict", description: ruleSetIssue };
+  }
+
   if (isDraftRule(rule)) {
     return { key: "draft", label: "Draft" };
   }
@@ -144,7 +153,12 @@ function getRuleStatus(rule) {
 }
 
 function getRuleStatusDescription(ruleStatus) {
+  if (ruleStatus.description) {
+    return ruleStatus.description;
+  }
+
   const descriptions = {
+    conflict: "Rule target overlaps another rule that modifies credential headers.",
     draft: "Rule ini belum tersimpan. Klik Save Rule untuk menyimpan rule ini.",
     disabled: "Rule tersimpan tetapi sedang nonaktif.",
     invalid: "Rule aktif tetapi Source URL pattern atau Redirect target URL belum valid.",
@@ -155,8 +169,34 @@ function getRuleStatusDescription(ruleStatus) {
   return descriptions[ruleStatus.key] || "Status rule";
 }
 
+function getRuleSetIssue(rule) {
+  try {
+    const persistedRules = getPersistedRulesFromMemory();
+    const candidateRules = persistedRules.some((persistedRule) => persistedRule.id === rule.id)
+      ? persistedRules.map((persistedRule) => persistedRule.id === rule.id ? rule : persistedRule)
+      : [...persistedRules, rule];
+
+    return getRuleSetIssuesByRuleId(candidateRules).get(rule.id) || "";
+  } catch (_error) {
+    return "";
+  }
+}
+
+function getDynamicRuleCountLabel(rule) {
+  try {
+    const count = getGeneratedDynamicRuleCount([rule]);
+    return `${count} DNR ${count === 1 ? "rule" : "rules"}`;
+  } catch (_error) {
+    return "DNR invalid";
+  }
+}
+
 function isRuleConfigValid(rule) {
   if (!rule.sourcePattern || !rule.targetUrl) {
+    return false;
+  }
+
+  if (rule.sourcePattern.includes("#") || rule.targetUrl.includes("#")) {
     return false;
   }
 
@@ -167,7 +207,7 @@ function isRuleConfigValid(rule) {
       return false;
     }
 
-    return true;
+    return isRegexSubstitutionValid(rule.sourcePattern, rule.targetUrl);
   }
 
   const sourceWildcardCount = countWildcardCharacters(rule.sourcePattern);
@@ -269,7 +309,7 @@ function renderRuleList() {
     statusBadge.title = getRuleStatusDescription(ruleStatus);
     item.title = `Source: ${rule.sourcePattern || "No source pattern"}\nTarget: ${rule.targetUrl || "No redirect target"}`;
     item.querySelector('[data-role="ruleGroup"]').textContent = getRuleGroup(rule);
-    item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard}`;
+    item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard} · ${getDynamicRuleCountLabel(rule)}`;
     item.addEventListener("click", () => {
       updateSelectedRuleFromEditor();
       selectedRuleId = rule.id;
@@ -432,7 +472,7 @@ function renderEditor() {
 
   card.querySelectorAll("input, select").forEach((input) => {
     input.addEventListener("input", () => {
-      if (input === patternTypeInput) {
+      if (input === patternTypeInput || input === credentialModeInput || input === credentialSourceInput) {
         return;
       }
 
@@ -441,7 +481,7 @@ function renderEditor() {
       renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
     });
     input.addEventListener("change", () => {
-      if (input === patternTypeInput) {
+      if (input === patternTypeInput || input === credentialModeInput || input === credentialSourceInput) {
         return;
       }
 
@@ -688,6 +728,8 @@ async function applyRules(savedRules) {
   if (!response?.ok) {
     throw new Error(response?.error || "Unable to apply dynamic rules.");
   }
+
+  return Array.isArray(response.rules) ? response.rules : savedRules;
 }
 
 async function saveCurrentRule(saveButton) {
@@ -706,11 +748,11 @@ async function saveCurrentRule(saveButton) {
     const selectedRule = getSelectedRule();
     const persistedRules = await getRedirectRules();
     const savedRules = upsertRule(persistedRules, selectedRule);
+    const appliedRules = await applyRules(savedRules);
 
-    savedRuleIds = new Set(savedRules.map((rule) => rule.id));
-    rules = mergePersistedRulesWithDrafts(savedRules);
-    await saveRedirectRules(savedRules);
-    await applyRules(savedRules);
+    savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
+    rules = mergePersistedRulesWithDrafts(appliedRules);
+    await saveRedirectRules(appliedRules);
     render();
     notify("Rule saved", "success");
   } catch (error) {
@@ -756,12 +798,12 @@ async function removeCurrentRule(removeButton) {
 
     const persistedRules = await getRedirectRules();
     const savedRules = persistedRules.filter((rule) => rule.id !== ruleToRemove.id);
+    const appliedRules = await applyRules(savedRules);
 
-    savedRuleIds = new Set(savedRules.map((rule) => rule.id));
-    rules = mergePersistedRulesWithDrafts(savedRules).filter((rule) => rule.id !== ruleToRemove.id);
+    savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
+    rules = mergePersistedRulesWithDrafts(appliedRules).filter((rule) => rule.id !== ruleToRemove.id);
     selectedRuleId = "";
-    await saveRedirectRules(savedRules);
-    await applyRules(savedRules);
+    await saveRedirectRules(appliedRules);
     render();
     notify("Rule removed", "success");
   } catch (error) {
@@ -774,8 +816,11 @@ async function removeCurrentRule(removeButton) {
 
 async function savePersistedRules(nextRules) {
   const savedRules = nextRules.filter((rule) => savedRuleIds.has(rule.id));
-  await saveRedirectRules(savedRules);
-  await applyRules(savedRules);
+  const appliedRules = await applyRules(savedRules);
+
+  savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
+  rules = mergePersistedRulesWithDrafts(appliedRules);
+  await saveRedirectRules(appliedRules);
 }
 
 async function updateSelectedRules(mutator, successMessage) {
@@ -783,13 +828,23 @@ async function updateSelectedRules(mutator, successMessage) {
     return;
   }
 
-  const modifiedAt = timestampNow();
-  rules = rules.map((rule) => selectedRuleIds.has(rule.id)
-    ? mutator({ ...rule, modifiedAt })
-    : rule);
-  await savePersistedRules(rules);
-  render();
-  notify(successMessage, "success");
+  const previousRules = rules;
+  const previousSavedRuleIds = new Set(savedRuleIds);
+
+  try {
+    const modifiedAt = timestampNow();
+    rules = rules.map((rule) => selectedRuleIds.has(rule.id)
+      ? mutator({ ...rule, modifiedAt })
+      : rule);
+    await savePersistedRules(rules);
+    render();
+    notify(successMessage, "success");
+  } catch (error) {
+    rules = previousRules;
+    savedRuleIds = previousSavedRuleIds;
+    render();
+    notify(error.message, "error");
+  }
 }
 
 async function removeSelectedRules() {
@@ -803,14 +858,31 @@ async function removeSelectedRules() {
     return;
   }
 
-  rules = rules.filter((rule) => !selectedRuleIds.has(rule.id));
-  savedRuleIds = new Set(rules.filter((rule) => savedRuleIds.has(rule.id)).map((rule) => rule.id));
-  selectedRuleIds = new Set();
-  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
-  await saveRedirectRules(getPersistedRulesFromMemory());
-  await applyRules(getPersistedRulesFromMemory());
-  render();
-  notify("Selected rules removed", "success");
+  const previousRules = rules;
+  const previousSavedRuleIds = new Set(savedRuleIds);
+  const previousSelectedRuleIds = new Set(selectedRuleIds);
+  const previousSelectedRuleId = selectedRuleId;
+
+  try {
+    rules = rules.filter((rule) => !selectedRuleIds.has(rule.id));
+    savedRuleIds = new Set(rules.filter((rule) => savedRuleIds.has(rule.id)).map((rule) => rule.id));
+    selectedRuleIds = new Set();
+    selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
+    const appliedRules = await applyRules(getPersistedRulesFromMemory());
+
+    savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
+    rules = mergePersistedRulesWithDrafts(appliedRules);
+    await saveRedirectRules(appliedRules);
+    render();
+    notify("Selected rules removed", "success");
+  } catch (error) {
+    rules = previousRules;
+    savedRuleIds = previousSavedRuleIds;
+    selectedRuleIds = previousSelectedRuleIds;
+    selectedRuleId = previousSelectedRuleId;
+    render();
+    notify(error.message, "error");
+  }
 }
 
 function duplicateSelectedRules() {
@@ -949,15 +1021,21 @@ toggleRuleControls.addEventListener("click", () => {
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName !== "local" || !changes.redirectRules) {
+  if (areaName !== "local") {
     return;
   }
 
-  const persistedRules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
-  savedRuleIds = new Set(persistedRules.map((rule) => rule.id));
-  rules = mergePersistedRulesWithDrafts(persistedRules);
-  selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
-  render();
+  if (changes[STORAGE_KEYS.applyError]?.newValue?.message) {
+    notify(changes[STORAGE_KEYS.applyError].newValue.message, "error");
+  }
+
+  if (changes.redirectRules) {
+    const persistedRules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
+    savedRuleIds = new Set(persistedRules.map((rule) => rule.id));
+    rules = mergePersistedRulesWithDrafts(persistedRules);
+    selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
+    render();
+  }
 });
 
 render();
