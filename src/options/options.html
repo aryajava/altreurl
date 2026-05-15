@@ -29,6 +29,10 @@
               Light
             </span>
           </button>
+          <button id="checkUpdate" class="icon-button" type="button" title="Check GitHub Releases for a newer Altreurl version">
+            <img src="../shared/imgs/icons/icons8-up-squared-32.png" alt="" width="16" height="16">
+            Check update
+          </button>
           <button id="importRules" class="icon-button" type="button" title="Import rules from a JSON file as drafts">
             <img src="../shared/imgs/icons/icons8-import-32.png" alt="" width="16" height="16">
             Import
@@ -39,6 +43,7 @@
           </button>
           <input id="importRulesFile" type="file" accept="application/json,.json" hidden>
         </div>
+        <div id="updateStatus" class="update-status update-status--header" hidden></div>
       </header>
 
       <section class="options-layout">

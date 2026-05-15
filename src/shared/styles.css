@@ -264,6 +264,44 @@ label select {
   gap: 10px;
 }
 
+.update-status {
+  align-items: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--text);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 8px;
+  line-height: 1.35;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+}
+
+.update-status--header {
+  flex: 1 0 100%;
+  margin: 0;
+}
+
+.update-status[data-status="available"] {
+  background: var(--success-soft);
+  border-color: var(--success);
+}
+
+.update-status[data-status="error"] {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.update-status a {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .theme-toggle {
   align-items: center;
   background: var(--panel);
