@@ -84,6 +84,7 @@ async function captureSourceRequest(details) {
   const nextRules = rules.map((rule) => (rule.id === capturedRule.id ? capturedRule : rule));
 
   await applyDynamicRules(nextRules);
+  await clearApplyError();
 
   try {
     await chrome.storage.local.set({ redirectRules: nextRules });
@@ -96,12 +97,22 @@ async function captureSourceRequest(details) {
 async function prepareAndApplyRules(rules, options = {}) {
   const hydratedRules = await hydrateCredentialSourceRules(rules);
 
+  await applyDynamicRules(hydratedRules);
+  await clearApplyError();
+
   if (options.persistHydratedRules && JSON.stringify(hydratedRules) !== JSON.stringify(rules)) {
     await chrome.storage.local.set({ redirectRules: hydratedRules });
   }
 
-  await applyDynamicRules(hydratedRules);
   return hydratedRules;
+}
+
+async function clearApplyError() {
+  try {
+    await chrome.storage.local.remove(STORAGE_KEYS.applyError);
+  } catch (error) {
+    console.warn("Unable to clear Altreurl apply error", error);
+  }
 }
 
 async function hydrateCredentialSourceRules(rules) {

@@ -8,6 +8,7 @@ import {
   getGeneratedDynamicRuleCount,
   getRuleSetIssuesByRuleId,
   hasSyncEnabled,
+  isRegexPatternValid,
   isRegexSubstitutionValid,
   isWaitingForSyncCapture
 } from "../shared/rules.js";
@@ -66,8 +67,18 @@ function getDraftRules(persistedRules = []) {
   return rules.filter((rule) => !savedRuleIds.has(rule.id) && !persistedRuleIds.has(rule.id));
 }
 
-function mergePersistedRulesWithDrafts(persistedRules = []) {
-  return [...persistedRules, ...getDraftRules(persistedRules)];
+function mergePersistedRulesWithDrafts(persistedRules = [], options = {}) {
+  const committedRuleIds = options.committedRuleIds || new Set();
+  const localRulesById = new Map(rules.map((rule) => [rule.id, rule]));
+  const mergedPersistedRules = persistedRules.map((persistedRule) => {
+    const localRule = localRulesById.get(persistedRule.id);
+
+    return localRule && !committedRuleIds.has(persistedRule.id)
+      ? localRule
+      : persistedRule;
+  });
+
+  return [...mergedPersistedRules, ...getDraftRules(persistedRules)];
 }
 
 function isDraftRule(rule) {
@@ -129,12 +140,20 @@ function getRuleGroup(rule) {
 function getRuleStatus(rule) {
   const ruleSetIssue = getRuleSetIssue(rule);
 
-  if (ruleSetIssue) {
-    return { key: "conflict", label: "Conflict", description: ruleSetIssue };
+  if (isDraftRule(rule)) {
+    if (ruleSetIssue) {
+      return {
+        key: "draft",
+        label: "Draft conflict",
+        description: `Rule ini belum tersimpan dan target/header-nya conflict. ${ruleSetIssue}`
+      };
+    }
+
+    return { key: "draft", label: "Draft" };
   }
 
-  if (isDraftRule(rule)) {
-    return { key: "draft", label: "Draft" };
+  if (ruleSetIssue) {
+    return { key: "conflict", label: "Conflict", description: ruleSetIssue };
   }
 
   if (!rule.enabled) {
@@ -201,9 +220,7 @@ function isRuleConfigValid(rule) {
   }
 
   if (rule.patternType === PATTERN_TYPES.regex) {
-    try {
-      new RegExp(rule.sourcePattern);
-    } catch (_error) {
+    if (!isRegexPatternValid(rule.sourcePattern)) {
       return false;
     }
 
@@ -751,7 +768,7 @@ async function saveCurrentRule(saveButton) {
     const appliedRules = await applyRules(savedRules);
 
     savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
-    rules = mergePersistedRulesWithDrafts(appliedRules);
+    rules = mergePersistedRulesWithDrafts(appliedRules, { committedRuleIds: new Set([selectedRule.id]) });
     await saveRedirectRules(appliedRules);
     render();
     notify("Rule saved", "success");
@@ -814,12 +831,20 @@ async function removeCurrentRule(removeButton) {
   }
 }
 
-async function savePersistedRules(nextRules) {
-  const savedRules = nextRules.filter((rule) => savedRuleIds.has(rule.id));
+async function savePersistedRules(nextRules, committedRuleIds) {
+  const persistedRules = await getRedirectRules();
+  const nextRulesById = new Map(nextRules.map((rule) => [rule.id, rule]));
+  const savedRules = persistedRules.map((rule) => (
+    committedRuleIds.has(rule.id) && nextRulesById.has(rule.id)
+      ? nextRulesById.get(rule.id)
+      : rule
+  ));
   const appliedRules = await applyRules(savedRules);
 
   savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
-  rules = mergePersistedRulesWithDrafts(appliedRules);
+  rules = mergePersistedRulesWithDrafts(appliedRules, {
+    committedRuleIds
+  });
   await saveRedirectRules(appliedRules);
 }
 
@@ -833,10 +858,15 @@ async function updateSelectedRules(mutator, successMessage) {
 
   try {
     const modifiedAt = timestampNow();
+    const committedRuleIds = new Set([...selectedRuleIds].filter((ruleId) => savedRuleIds.has(ruleId)));
     rules = rules.map((rule) => selectedRuleIds.has(rule.id)
       ? mutator({ ...rule, modifiedAt })
       : rule);
-    await savePersistedRules(rules);
+
+    if (committedRuleIds.size > 0) {
+      await savePersistedRules(rules, committedRuleIds);
+    }
+
     render();
     notify(successMessage, "success");
   } catch (error) {
@@ -864,11 +894,14 @@ async function removeSelectedRules() {
   const previousSelectedRuleId = selectedRuleId;
 
   try {
+    const ruleIdsToRemove = new Set(selectedRuleIds);
+    const persistedRules = await getRedirectRules();
     rules = rules.filter((rule) => !selectedRuleIds.has(rule.id));
     savedRuleIds = new Set(rules.filter((rule) => savedRuleIds.has(rule.id)).map((rule) => rule.id));
     selectedRuleIds = new Set();
     selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
-    const appliedRules = await applyRules(getPersistedRulesFromMemory());
+    const savedRules = persistedRules.filter((rule) => !ruleIdsToRemove.has(rule.id));
+    const appliedRules = await applyRules(savedRules);
 
     savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(appliedRules);

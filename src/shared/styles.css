@@ -590,6 +590,11 @@ label select {
   border-color: var(--danger);
 }
 
+.rule-badge[data-status="conflict"] {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
 [data-role="ruleGroup"] {
   font-weight: 700;
 }

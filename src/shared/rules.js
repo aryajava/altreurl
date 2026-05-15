@@ -238,6 +238,21 @@ export function validateRegexSubstitutionRefs(sourcePattern, targetUrl) {
   }
 }
 
+export function isRegexPatternValid(sourcePattern) {
+  try {
+    new RegExp(sourcePattern);
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
+function validateRegexPattern(sourcePattern) {
+  if (!isRegexPatternValid(sourcePattern)) {
+    throw new Error("Source URL regex pattern is invalid.");
+  }
+}
+
 export function isRegexSubstitutionValid(sourcePattern, targetUrl) {
   try {
     validateRegexSubstitutionRefs(sourcePattern, targetUrl);
@@ -268,6 +283,8 @@ export function convertPatternFormat(value, fromPatternType, toPatternType, fiel
 
 export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexPattern(sourcePattern);
+
     return {
       regexFilter: sourcePattern,
       resourceTypes: getResourceTypes()
@@ -289,6 +306,8 @@ export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPE
 
 export function buildHeaderCondition(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexPattern(sourcePattern);
+
     return {
       regexFilter: buildRegexFilterFromRegexSubstitution(targetUrl),
       resourceTypes: getResourceTypes()
@@ -489,6 +508,7 @@ function validateHeaderConditionUniqueness(headerCondition, rule, seenHeaderCond
 
 export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexPattern(sourcePattern);
     validateRegexSubstitutionRefs(sourcePattern, targetUrl);
 
     return {
