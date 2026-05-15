@@ -71,13 +71,17 @@ export function isSyncableHeaderName(headerName) {
   return normalizedName && !UNSYNCED_HEADER_NAMES.has(normalizedName) && normalizedName !== "authorization";
 }
 
+function canSyncHeaders(rule) {
+  return normalizeCredentialSource(rule) !== CREDENTIAL_SOURCES.cookie;
+}
+
 export function normalizeSyncedHeaders(headers = []) {
   return normalizeHeaderRows(headers).filter((header) => isSyncableHeaderName(header.name));
 }
 
 export function hasSyncEnabled(rule) {
   return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
-    Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+    Boolean((canSyncHeaders(rule) && rule.syncHeaders) || rule.syncAuthorization || rule.syncCookies);
 }
 
 export function isWaitingForSyncCapture(rule) {
@@ -86,7 +90,7 @@ export function isWaitingForSyncCapture(rule) {
   }
 
   return Boolean(
-    (rule.syncHeaders && normalizeSyncedHeaders(rule.syncedHeaders).length === 0) ||
+    (canSyncHeaders(rule) && rule.syncHeaders && normalizeSyncedHeaders(rule.syncedHeaders).length === 0) ||
     (rule.syncAuthorization && !rule.syncedAuthorization) ||
     (rule.syncCookies && !rule.syncedCookieHeader)
   );
@@ -581,7 +585,7 @@ function mergeRequestHeaders(...headerGroups) {
 }
 
 function getRequestHeadersForRule(rule) {
-  const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
+  const syncedHeaders = canSyncHeaders(rule) && rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
   const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
     ? [{ name: "Authorization", value: rule.syncedAuthorization }]
     : [];
@@ -607,7 +611,7 @@ function hasPotentialCredentialHeaders(rule) {
   }
 
   return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
-    Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+    Boolean((canSyncHeaders(rule) && rule.syncHeaders) || rule.syncAuthorization || rule.syncCookies);
 }
 
 export function getGeneratedDynamicRuleCount(configRules = []) {

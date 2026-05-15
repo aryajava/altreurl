@@ -56,7 +56,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 async function captureSourceRequest(details) {
   const rules = await getRedirectRules();
-  const matchingRule = rules.find((rule) => {
+  const matchingRules = rules.filter((rule) => {
     if (!rule.enabled ||
       !hasSyncEnabled(rule) ||
       normalizeCredentialSource(rule) !== CREDENTIAL_SOURCES.request ||
@@ -72,16 +72,22 @@ async function captureSourceRequest(details) {
     }
   });
 
-  if (!matchingRule) {
+  if (matchingRules.length === 0) {
     return;
   }
 
-  const capturedRule = await buildCapturedRule(matchingRule, details);
-  if (isWaitingForSyncCapture(capturedRule)) {
+  const capturedRules = await Promise.all(
+    matchingRules.map((rule) => buildCapturedRule(rule, details))
+  );
+  const readyCapturedRulesById = new Map(capturedRules
+    .filter((rule) => !isWaitingForSyncCapture(rule))
+    .map((rule) => [rule.id, rule]));
+
+  if (readyCapturedRulesById.size === 0) {
     return;
   }
 
-  const nextRules = rules.map((rule) => (rule.id === capturedRule.id ? capturedRule : rule));
+  const nextRules = rules.map((rule) => readyCapturedRulesById.get(rule.id) || rule);
 
   await applyDynamicRules(nextRules);
   await clearApplyError();
@@ -126,25 +132,39 @@ async function hydrateCredentialSourceRules(rules) {
 }
 
 async function hydrateCredentialSourceRule(rule) {
-  if (!rule.enabled || !hasSyncEnabled(rule) || !rule.sourcePattern || !rule.targetUrl) {
-    return rule;
+  const capableRule = normalizeCredentialSourceCapabilities(rule);
+
+  if (!capableRule.enabled || !hasSyncEnabled(capableRule) || !capableRule.sourcePattern || !capableRule.targetUrl) {
+    return capableRule;
   }
 
-  const credentialSource = normalizeCredentialSource(rule);
+  const credentialSource = normalizeCredentialSource(capableRule);
 
   if (credentialSource === CREDENTIAL_SOURCES.request) {
-    return rule;
+    return capableRule;
   }
 
   if (credentialSource === CREDENTIAL_SOURCES.storage) {
-    return hydrateFromBrowserStorage(rule);
+    return hydrateFromBrowserStorage(capableRule);
   }
 
   if (credentialSource === CREDENTIAL_SOURCES.cookie) {
-    return hydrateFromCookies(rule);
+    return hydrateFromCookies(capableRule);
   }
 
-  return rule;
+  return capableRule;
+}
+
+function normalizeCredentialSourceCapabilities(rule) {
+  if (normalizeCredentialSource(rule) !== CREDENTIAL_SOURCES.cookie || !rule.syncHeaders) {
+    return rule;
+  }
+
+  return {
+    ...rule,
+    syncHeaders: false,
+    syncedHeaders: []
+  };
 }
 
 async function hydrateFromBrowserStorage(rule) {

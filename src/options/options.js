@@ -55,6 +55,12 @@ let isSavingRule = false;
 let isRemovingRule = false;
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
 let selectedRuleIds = new Set();
+const BACKGROUND_SYNC_FIELDS = [
+  "syncedHeaders",
+  "syncedAuthorization",
+  "syncedCookieHeader",
+  "lastSyncedAt"
+];
 
 await initThemeControl(themePreference, { controlType: "toggle" });
 
@@ -73,12 +79,24 @@ function mergePersistedRulesWithDrafts(persistedRules = [], options = {}) {
   const mergedPersistedRules = persistedRules.map((persistedRule) => {
     const localRule = localRulesById.get(persistedRule.id);
 
-    return localRule && !committedRuleIds.has(persistedRule.id)
-      ? localRule
-      : persistedRule;
+    if (!localRule || committedRuleIds.has(persistedRule.id)) {
+      return persistedRule;
+    }
+
+    return mergeLocalRuleWithBackgroundSync(localRule, persistedRule);
   });
 
   return [...mergedPersistedRules, ...getDraftRules(persistedRules)];
+}
+
+function mergeLocalRuleWithBackgroundSync(localRule, persistedRule) {
+  const nextRule = { ...persistedRule, ...localRule };
+
+  BACKGROUND_SYNC_FIELDS.forEach((field) => {
+    nextRule[field] = persistedRule[field];
+  });
+
+  return nextRule;
 }
 
 function isDraftRule(rule) {
@@ -138,6 +156,7 @@ function getRuleGroup(rule) {
 }
 
 function getRuleStatus(rule) {
+  rule = normalizeRuleCredentialCapabilities(rule);
   const ruleSetIssue = getRuleSetIssue(rule);
 
   if (isDraftRule(rule)) {
@@ -169,6 +188,18 @@ function getRuleStatus(rule) {
   }
 
   return { key: "ready", label: "Ready" };
+}
+
+function normalizeRuleCredentialCapabilities(rule) {
+  if (rule?.credentialSource !== CREDENTIAL_SOURCES.cookie || !rule.syncHeaders) {
+    return rule;
+  }
+
+  return {
+    ...rule,
+    syncHeaders: false,
+    syncedHeaders: []
+  };
 }
 
 function getRuleStatusDescription(ruleStatus) {
@@ -256,7 +287,7 @@ function updateSelectedRuleFromEditor() {
       return rule;
     }
 
-    return {
+    return normalizeRuleCredentialCapabilities({
       ...rule,
       name: card.querySelector('[data-field="name"]').value.trim(),
       group: card.querySelector('[data-field="group"]').value.trim(),
@@ -282,7 +313,7 @@ function updateSelectedRuleFromEditor() {
         name: row.querySelector('[data-field="headerName"]').value.trim(),
         value: row.querySelector('[data-field="headerValue"]').value.trim()
       }))
-    };
+    });
   });
 }
 
@@ -427,7 +458,7 @@ function renderHeader(header = { name: "", value: "" }) {
 }
 
 function renderEditor() {
-  const rule = getSelectedRule();
+  let rule = getSelectedRule();
 
   if (!rule) {
     const fragment = emptyEditorTemplate.content.cloneNode(true);
@@ -438,6 +469,12 @@ function renderEditor() {
     return;
   }
 
+  const normalizedRule = normalizeRuleCredentialCapabilities(rule);
+  if (normalizedRule !== rule) {
+    rule = normalizedRule;
+    rules = rules.map((currentRule) => currentRule.id === rule.id ? rule : currentRule);
+  }
+
   const fragment = ruleTemplate.content.cloneNode(true);
   const card = fragment.querySelector(".rule-editor");
   const headersContainer = card.querySelector('[data-role="headers"]');
@@ -446,6 +483,9 @@ function renderEditor() {
   const sourcePatternInput = card.querySelector('[data-field="sourcePattern"]');
   const targetUrlInput = card.querySelector('[data-field="targetUrl"]');
   const credentialSourceInput = card.querySelector('[data-field="credentialSource"]');
+  const syncHeadersInput = card.querySelector('[data-field="syncHeaders"]');
+  const syncAuthorizationInput = card.querySelector('[data-field="syncAuthorization"]');
+  const syncCookiesInput = card.querySelector('[data-field="syncCookies"]');
   const manualAuthorization = card.querySelector('[data-role="manualAuthorization"]');
   const manualHeaders = card.querySelector('[data-role="manualHeaders"]');
   const syncOptions = card.querySelector('[data-role="syncOptions"]');
@@ -473,9 +513,9 @@ function renderEditor() {
   sourcePatternInput.value = rule.sourcePattern || "";
   targetUrlInput.value = rule.targetUrl || "";
   card.querySelector('[data-field="authorization"]').value = rule.authorization || "";
-  card.querySelector('[data-field="syncHeaders"]').checked = Boolean(rule.syncHeaders);
-  card.querySelector('[data-field="syncAuthorization"]').checked = Boolean(rule.syncAuthorization);
-  card.querySelector('[data-field="syncCookies"]').checked = Boolean(rule.syncCookies);
+  syncHeadersInput.checked = Boolean(rule.syncHeaders);
+  syncAuthorizationInput.checked = Boolean(rule.syncAuthorization);
+  syncCookiesInput.checked = Boolean(rule.syncCookies);
   credentialSourceInput.value = rule.credentialSource || CREDENTIAL_SOURCES.request;
   card.querySelector('[data-field="storageArea"]').value = rule.storageArea || STORAGE_AREAS.localStorage;
   card.querySelector('[data-field="authorizationKey"]').value = rule.authorizationKey || "";
@@ -484,7 +524,7 @@ function renderEditor() {
   card.querySelector('[data-field="cookieNames"]').value = rule.cookieNames || "";
   card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
   updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
-  updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields);
+  updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields, syncHeadersInput);
   renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent);
 
   card.querySelectorAll("input, select").forEach((input) => {
@@ -532,7 +572,7 @@ function renderEditor() {
   });
 
   credentialSourceInput.addEventListener("change", () => {
-    updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields);
+    updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields, syncHeadersInput);
     updateSelectedRuleFromEditor();
     renderRuleList();
     renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
@@ -724,7 +764,7 @@ function updateCredentialModeVisibility(credentialMode, manualAuthorization, man
   syncOptions.hidden = !isSyncMode;
 }
 
-function updateCredentialSourceVisibility(credentialSource, sourceFields) {
+function updateCredentialSourceVisibility(credentialSource, sourceFields, syncHeadersInput) {
   const isRequestSource = credentialSource === CREDENTIAL_SOURCES.request;
   const isStorageSource = credentialSource === CREDENTIAL_SOURCES.storage;
   const isCookieSource = credentialSource === CREDENTIAL_SOURCES.cookie;
@@ -734,6 +774,17 @@ function updateCredentialSourceVisibility(credentialSource, sourceFields) {
   sourceFields.authorizationPrefix.hidden = isRequestSource;
   sourceFields.headersKey.hidden = !isStorageSource;
   sourceFields.cookieNames.hidden = !isCookieSource;
+
+  if (syncHeadersInput) {
+    syncHeadersInput.disabled = isCookieSource;
+    syncHeadersInput.title = isCookieSource
+      ? "Cookie credential source cannot sync request headers. Use Request learning or Browser storage for headers."
+      : "Sync request headers from the selected source.";
+
+    if (isCookieSource && syncHeadersInput.checked) {
+      syncHeadersInput.checked = false;
+    }
+  }
 }
 
 async function applyRules(savedRules) {

@@ -15,10 +15,10 @@ let rules = await getRedirectRules();
 await initThemeControl();
 
 function renderPopup() {
-  const issueIds = getRuleIssueIds(rules);
-  const activeRuleIds = getActiveRuleIds(rules);
+  const attentionIds = getRuleAttentionIds(rules);
+  const activeRuleIds = getActiveRuleIds(rules, attentionIds);
   const enabledRules = rules.filter((rule) => activeRuleIds.has(rule.id));
-  const blockedRuleCount = rules.filter((rule) => rule.enabled && issueIds.has(rule.id)).length;
+  const blockedRuleCount = rules.filter((rule) => rule.enabled && attentionIds.has(rule.id)).length;
   const query = ruleSearch.value.trim().toLowerCase();
   const visibleRules = enabledRules.filter((rule) => !query || [
     rule.name,
@@ -94,13 +94,12 @@ async function applyRules(configRules) {
   return Array.isArray(response.rules) ? response.rules : configRules;
 }
 
-function getActiveRuleIds(configRules) {
-  const issueIds = getRuleIssueIds(configRules);
+function getActiveRuleIds(configRules, attentionIds = getRuleAttentionIds(configRules)) {
 
   return new Set(configRules
     .filter((rule) => {
       try {
-        return !issueIds.has(rule.id) && buildDynamicRules([rule]).length > 0;
+        return !attentionIds.has(rule.id) && buildDynamicRules([rule]).length > 0;
       } catch (_error) {
         return false;
       }
@@ -114,6 +113,22 @@ function getRuleIssueIds(configRules) {
   } catch (_error) {
     return new Map();
   }
+}
+
+function getRuleAttentionIds(configRules) {
+  const attentionIds = getRuleIssueIds(configRules);
+
+  configRules
+    .filter((rule) => rule.enabled)
+    .forEach((rule) => {
+      try {
+        buildDynamicRules([rule]);
+      } catch (error) {
+        attentionIds.set(rule.id, error.message || "Rule cannot be applied.");
+      }
+    });
+
+  return attentionIds;
 }
 
 openOptions.addEventListener("click", () => {
