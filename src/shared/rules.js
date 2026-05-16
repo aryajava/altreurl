@@ -689,16 +689,55 @@ export async function applyDynamicRules(configRules = []) {
     throw new Error(t("rules.error.dynamicLimit", { count: addRules.length, limit: dynamicRuleLimit }));
   }
 
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds,
-    addRules
-  });
+  await validateDynamicRuleRegexFilters(addRules);
+
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds,
+      addRules
+    });
+  } catch (error) {
+    throw new Error(getDynamicRuleApplyErrorMessage(error, addRules));
+  }
 }
 
 function getDynamicRuleLimit() {
   return chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_RULES ||
     chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES ||
     5000;
+}
+
+async function validateDynamicRuleRegexFilters(dynamicRules) {
+  if (!chrome.declarativeNetRequest.isRegexSupported) {
+    return;
+  }
+
+  const regexFilters = [...new Set(dynamicRules
+    .map((rule) => rule.condition?.regexFilter)
+    .filter(Boolean))];
+
+  for (const regex of regexFilters) {
+    const result = await chrome.declarativeNetRequest.isRegexSupported({ regex });
+
+    if (!result.isSupported) {
+      throw new Error(t("rules.error.unsupportedRegex", {
+        reason: result.reason || t("common.unknown"),
+        regex
+      }));
+    }
+  }
+}
+
+function getDynamicRuleApplyErrorMessage(error, dynamicRules) {
+  const detail = error?.message || chrome.runtime?.lastError?.message || "";
+  const ruleSummary = dynamicRules.length === 0
+    ? t("rules.error.applyNoRules")
+    : t("rules.error.applyRuleCount", { count: dynamicRules.length });
+
+  return t("rules.error.applyDetail", {
+    detail: detail || t("runtime.error.apply"),
+    ruleSummary
+  });
 }
 
 export function createBlankRule() {

@@ -29,6 +29,7 @@
   "common.rulesNeed": "rules need",
   "common.is": "is",
   "common.are": "are",
+  "common.unknown": "unknown",
   "common.localStorage": "localStorage",
   "common.sessionStorage": "sessionStorage",
   "theme.toggle.title": "Switch between dark and light mode",
@@ -218,6 +219,10 @@
   "rules.error.headerOverlap": "Rules \"{leftName}\" and \"{rightName}\" use overlapping redirect targets for credential headers. Use unique target URL paths to avoid mixed headers.",
   "rules.error.wildcardMismatch": "Source URL pattern and redirect target URL must use the same number of wildcards.",
   "rules.error.targetWildcardWithoutSource": "Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.",
+  "rules.error.unsupportedRegex": "Chrome cannot apply this regexFilter ({reason}): {regex}",
+  "rules.error.applyNoRules": "No dynamic rules were generated.",
+  "rules.error.applyRuleCount": "{count} dynamic rules were generated.",
+  "rules.error.applyDetail": "Unable to apply dynamic rules. {detail} {ruleSummary}",
   "runtime.error.apply": "Unable to apply dynamic rules.",
   "runtime.error.clearApply": "Unable to clear Altreurl apply error.",
   "runtime.error.storedRules": "Unable to apply stored Altreurl rules."
