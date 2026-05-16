@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Support - Altreurl</title>
+    <meta name="description" content="Support information for Altreurl.">
+    <link rel="icon" href="assets/icons/Altreurl-32.png" sizes="32x32">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Altreurl home">
+        <img src="assets/icons/Altreurl-48.png" alt="" width="40" height="40">
+        <span>Altreurl</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="index.html#features">Features</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="support.html" aria-current="page">Support</a>
+      </nav>
+    </header>
+
+    <main class="document">
+      <article class="document__inner">
+        <p class="eyebrow">Support</p>
+        <h1>Help and issue reporting</h1>
+        <p>
+          Altreurl is built for local backend debugging workflows. If a redirect, header override,
+          cookie sync, or browser storage sync flow does not behave as expected, open an issue in GitHub
+          with the rule shape and browser version.
+        </p>
+
+        <div class="support-actions">
+          <a class="button button--primary" href="https://github.com/aryajava/altreurl/issues" rel="noopener">Open an issue</a>
+          <a class="button" href="https://github.com/aryajava/altreurl" rel="noopener">View source</a>
+        </div>
+
+        <h2>Useful details for reports</h2>
+        <ul>
+          <li>Chrome or Chromium version.</li>
+          <li>Altreurl extension version.</li>
+          <li>Pattern format: wildcard or regex.</li>
+          <li>Source URL pattern and redirect target URL with private hosts or tokens removed.</li>
+          <li>Credential mode and credential source.</li>
+          <li>Whether the rule is waiting for credential sync, invalid, disabled, or ready.</li>
+        </ul>
+
+        <h2>Known limitations</h2>
+        <ul>
+          <li>Chrome Web Store handles automatic updates after installation. Load unpacked development builds still need manual reloads.</li>
+          <li>Request learning needs one matching source request before redirected requests can use captured credentials.</li>
+          <li>The cookie credential source cannot sync request headers. Use request learning or browser storage for headers.</li>
+          <li>Some protected headers cannot be copied because of Chrome extension API limits.</li>
+        </ul>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <span>Altreurl</span>
+      <a href="index.html">Home</a>
+      <a href="privacy.html">Privacy</a>
+    </footer>
+  </body>
+</html>

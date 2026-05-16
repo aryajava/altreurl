@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Altreurl - Request Redirector for Local Backend Debugging</title>
+    <meta name="description" content="Altreurl is a Chromium extension for routing requests, headers, Authorization values, and cookies to local or alternate backend endpoints while debugging.">
+    <meta property="og:title" content="Altreurl">
+    <meta property="og:description" content="Debug backend requests locally with configurable redirects and credential forwarding.">
+    <meta property="og:image" content="assets/promo-440x280.png">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="assets/icons/Altreurl-32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="assets/icons/Altreurl-128.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Altreurl home">
+        <img src="assets/icons/Altreurl-48.png" alt="" width="40" height="40">
+        <span>Altreurl</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#workflow">Workflow</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="support.html">Support</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero__media" src="assets/hero-altreurl.png" alt="">
+        <div class="hero__shade"></div>
+        <div class="hero__content">
+          <img class="hero__icon" src="assets/icons/Altreurl-128.png" alt="" width="96" height="96">
+          <p class="eyebrow">Chromium Extension MV3</p>
+          <h1 id="hero-title">Altreurl</h1>
+          <p class="hero__lead">
+            Route app requests to local or alternate backend endpoints, then forward the exact headers,
+            Authorization values, or cookies you need for debugging.
+          </p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="https://github.com/aryajava/altreurl" rel="noopener">View extension repo</a>
+            <a class="button" href="store-listing.html">Chrome Web Store copy</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--intro" aria-labelledby="intro-title">
+        <div class="section__inner intro-grid">
+          <div>
+            <p class="eyebrow">Built for backend developers</p>
+            <h2 id="intro-title">Switch a production-shaped app flow to a local backend without editing app code.</h2>
+          </div>
+          <p>
+            Altreurl uses Chrome's Declarative Net Request APIs to match configured URLs, redirect them,
+            and apply request header overrides. It is designed for local debugging sessions where the
+            browser profile keeps rule data on your machine.
+          </p>
+        </div>
+      </section>
+
+      <section id="features" class="section" aria-labelledby="features-title">
+        <div class="section__inner">
+          <div class="section-heading">
+            <p class="eyebrow">Core features</p>
+            <h2 id="features-title">Redirects, credentials, and rule control in one extension.</h2>
+          </div>
+          <div class="feature-grid">
+            <article class="feature">
+              <span class="feature__mark">URL</span>
+              <h3>Wildcard and regex redirects</h3>
+              <p>Match source requests with simple wildcards or precise regex capture groups, then redirect to localhost or another endpoint.</p>
+            </article>
+            <article class="feature">
+              <span class="feature__mark">AUTH</span>
+              <h3>Manual credentials</h3>
+              <p>Set Authorization values and custom request headers by rule when a local backend needs explicit debugging context.</p>
+            </article>
+            <article class="feature">
+              <span class="feature__mark">SYNC</span>
+              <h3>Credential sync</h3>
+              <p>Learn headers, Authorization values, and session cookies from source requests, browser storage, or Chrome cookies.</p>
+            </article>
+            <article class="feature">
+              <span class="feature__mark">TAB</span>
+              <h3>Contextual popup</h3>
+              <p>See only the rules relevant to the active tab domain and enable or disable matching rules from the popup.</p>
+            </article>
+            <article class="feature">
+              <span class="feature__mark">BULK</span>
+              <h3>Rule management</h3>
+              <p>Search, filter, group, duplicate, import, export, and bulk edit rules from the options page.</p>
+            </article>
+            <article class="feature">
+              <span class="feature__mark">LOCAL</span>
+              <h3>Local-first storage</h3>
+              <p>Rule configuration and synced credentials stay in the browser profile through chrome.storage.local.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="section section--split" aria-labelledby="workflow-title">
+        <div class="section__inner split">
+          <div>
+            <p class="eyebrow">Example workflow</p>
+            <h2 id="workflow-title">Point a remote API route at localhost.</h2>
+            <p>
+              Create a rule for the source API path, choose the localhost target, and decide whether
+              credentials should be typed manually or learned from the source app flow.
+            </p>
+          </div>
+          <div class="code-panel" aria-label="Example redirect configuration">
+            <span>Source URL pattern</span>
+            <code>https://api.example.com/users/*</code>
+            <span>Redirect target URL</span>
+            <code>http://localhost:3000/users/*</code>
+            <span>Credential mode</span>
+            <code>Sync from source</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="privacy-title">
+        <div class="section__inner privacy-band">
+          <div>
+            <p class="eyebrow">Privacy stance</p>
+            <h2 id="privacy-title">No Altreurl server receives your rules or credentials.</h2>
+            <p>
+              Altreurl handles sensitive debugging data only for configured rules. It does not sell data,
+              send browsing activity to an Altreurl server, or transfer rule exports unless you create the export file yourself.
+            </p>
+          </div>
+          <a class="button button--primary" href="privacy.html">Read privacy policy</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Altreurl</span>
+      <a href="privacy.html">Privacy</a>
+      <a href="support.html">Support</a>
+      <a href="https://github.com/aryajava/altreurl" rel="noopener">GitHub</a>
+    </footer>
+  </body>
+</html>

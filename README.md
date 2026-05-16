@@ -1,0 +1,23 @@
+# Altreurl Web
+
+Static website for Altreurl, intended for GitHub Pages at:
+
+```text
+https://aryajava.github.io/altreurl-web/
+```
+
+## Pages
+
+- `index.html`: public product page.
+- `privacy.html`: public Chrome Web Store privacy policy URL.
+- `support.html`: support and known limitations.
+- `store-listing.html`: Chrome Web Store listing copy, permission justification, and reviewer test instructions.
+
+## Publish to GitHub Pages
+
+1. Push this repository to `https://github.com/aryajava/altreurl-web`.
+2. In GitHub, open Settings > Pages.
+3. Set Source to the target branch and `/root`.
+4. Use `https://aryajava.github.io/altreurl-web/privacy.html` as the Chrome Web Store privacy policy URL.
+
+No build step is required.
