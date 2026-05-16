@@ -121,6 +121,12 @@ button:focus-visible {
   outline-offset: 1px;
 }
 
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
+  border-color: var(--danger);
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -665,6 +671,36 @@ label select {
 .popup-empty {
   color: var(--muted);
   padding: 12px;
+}
+
+.field-feedback {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.field-feedback[hidden] {
+  display: none;
+}
+
+.popup-empty {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+}
+
+.popup-empty strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.popup-empty span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .rule-editor {

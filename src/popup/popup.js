@@ -24,6 +24,7 @@ function renderPopup() {
   const activeRuleIds = getActiveRuleIds(rules, attentionIds);
   const enabledRules = rules.filter((rule) => activeRuleIds.has(rule.id));
   const blockedRuleCount = rules.filter((rule) => rule.enabled && attentionIds.has(rule.id)).length;
+  const waitingRuleCount = getWaitingRuleCount(rules, attentionIds);
   const query = ruleSearch.value.trim().toLowerCase();
   const visibleRules = enabledRules.filter((rule) => !query || [
     rule.name,
@@ -39,10 +40,14 @@ function renderPopup() {
     : activeSummary;
 
   if (visibleRules.length === 0) {
-    const emptyState = document.createElement("div");
-    emptyState.className = "popup-empty";
-    emptyState.textContent = enabledRules.length === 0 ? "No active rules" : "No matching active rules";
-    activeRules.replaceChildren(emptyState);
+    activeRules.replaceChildren(renderEmptyState({
+      totalRuleCount: rules.length,
+      activeRuleCount: enabledRules.length,
+      enabledRuleCount: rules.filter((rule) => rule.enabled).length,
+      blockedRuleCount,
+      waitingRuleCount,
+      hasQuery: Boolean(query)
+    }));
     return;
   }
 
@@ -84,6 +89,37 @@ function renderPopup() {
     item.append(detail, disableButton);
     return item;
   }));
+}
+
+function renderEmptyState(context) {
+  const emptyState = document.createElement("div");
+  const title = document.createElement("strong");
+  const detail = document.createElement("span");
+
+  emptyState.className = "popup-empty";
+
+  if (context.hasQuery && context.activeRuleCount > 0) {
+    title.textContent = "No matching active rules";
+    detail.textContent = "Try another search keyword.";
+  } else if (context.totalRuleCount === 0) {
+    title.textContent = "No rules yet";
+    detail.textContent = "Open rules to create your first redirect.";
+  } else if (context.enabledRuleCount === 0) {
+    title.textContent = "All rules are disabled";
+    detail.textContent = "Open rules to enable one or create a new rule.";
+  } else if (context.blockedRuleCount > 0) {
+    title.textContent = `${context.blockedRuleCount} ${context.blockedRuleCount === 1 ? "rule needs" : "rules need"} attention`;
+    detail.textContent = "Open rules to fix invalid patterns, conflicts, or credential issues.";
+  } else if (context.waitingRuleCount > 0) {
+    title.textContent = `${context.waitingRuleCount} ${context.waitingRuleCount === 1 ? "rule is" : "rules are"} waiting sync`;
+    detail.textContent = "Trigger one source request first, then the redirect can use synced credentials.";
+  } else {
+    title.textContent = "No active rules";
+    detail.textContent = "Open rules to review enabled rules and credential state.";
+  }
+
+  emptyState.append(title, detail);
+  return emptyState;
 }
 
 async function applyRules(configRules) {
@@ -134,6 +170,20 @@ function getRuleAttentionIds(configRules) {
     });
 
   return attentionIds;
+}
+
+function getWaitingRuleCount(configRules, attentionIds) {
+  return configRules.filter((rule) => {
+    if (!rule.enabled || attentionIds.has(rule.id)) {
+      return false;
+    }
+
+    try {
+      return buildDynamicRules([rule]).length === 0;
+    } catch (_error) {
+      return false;
+    }
+  }).length;
 }
 
 openOptions.addEventListener("click", () => {

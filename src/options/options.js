@@ -246,32 +246,58 @@ function getDynamicRuleCountLabel(rule) {
 }
 
 function isRuleConfigValid(rule) {
+  return getRuleValidationMessages(rule).length === 0;
+}
+
+function getRuleValidationMessages(rule) {
+  const messages = [];
+
   if (!rule.sourcePattern || !rule.targetUrl) {
-    return false;
+    if (!rule.sourcePattern) {
+      messages.push({ field: "sourcePattern", message: "Source URL pattern wajib diisi." });
+    }
+
+    if (!rule.targetUrl) {
+      messages.push({ field: "targetUrl", message: "Redirect target URL wajib diisi." });
+    }
+
+    return messages;
   }
 
-  if (rule.sourcePattern.includes("#") || rule.targetUrl.includes("#")) {
-    return false;
+  if (rule.sourcePattern.includes("#")) {
+    messages.push({ field: "sourcePattern", message: "Fragment (#) tidak dikirim di network request. Hapus fragment dari source." });
+  }
+
+  if (rule.targetUrl.includes("#")) {
+    messages.push({ field: "targetUrl", message: "Fragment (#) tidak didukung untuk redirect target. Hapus fragment dari target." });
   }
 
   if (rule.patternType === PATTERN_TYPES.regex) {
     if (!isRegexPatternValid(rule.sourcePattern)) {
-      return false;
+      messages.push({ field: "sourcePattern", message: "Regex source tidak valid." });
+      return messages;
     }
 
-    return isRegexSubstitutionValid(rule.sourcePattern, rule.targetUrl);
+    if (!isRegexSubstitutionValid(rule.sourcePattern, rule.targetUrl)) {
+      messages.push({ field: "targetUrl", message: "Target regex memakai capture group yang tidak ada di source." });
+    }
+
+    return messages;
   }
 
   const sourceWildcardCount = countWildcardCharacters(rule.sourcePattern);
   const targetWildcardCount = countWildcardCharacters(rule.targetUrl);
 
   if (targetWildcardCount > 0 && sourceWildcardCount === 0) {
-    return false;
+    messages.push({ field: "targetUrl", message: "Target tidak boleh memakai wildcard jika source tidak memakai wildcard." });
+    return messages;
   }
 
-  return sourceWildcardCount === 0 ||
-    targetWildcardCount === 0 ||
-    sourceWildcardCount === targetWildcardCount;
+  if (sourceWildcardCount > 0 && targetWildcardCount > 0 && sourceWildcardCount !== targetWildcardCount) {
+    messages.push({ field: "targetUrl", message: `Jumlah wildcard target (${targetWildcardCount}) harus sama dengan source (${sourceWildcardCount}).` });
+  }
+
+  return messages;
 }
 
 function countWildcardCharacters(value) {
@@ -461,6 +487,27 @@ function renderHeader(header = { name: "", value: "" }) {
   return fragment;
 }
 
+function renderInlineValidation(rule, card) {
+  const messagesByField = new Map();
+
+  getRuleValidationMessages(rule).forEach((validation) => {
+    const messages = messagesByField.get(validation.field) || [];
+    messages.push(validation.message);
+    messagesByField.set(validation.field, messages);
+  });
+
+  card.querySelectorAll("[data-feedback-for]").forEach((feedback) => {
+    const field = feedback.dataset.feedbackFor;
+    const messages = messagesByField.get(field) || [];
+    const input = card.querySelector(`[data-field="${field}"]`);
+
+    feedback.textContent = messages.join(" ");
+    feedback.hidden = messages.length === 0;
+    input?.classList.toggle("is-invalid", messages.length > 0);
+    input?.setAttribute("aria-invalid", String(messages.length > 0));
+  });
+}
+
 function renderEditor() {
   let rule = getSelectedRule();
 
@@ -529,6 +576,7 @@ function renderEditor() {
   card.querySelector('[data-role="syncStatus"]').textContent = getSyncStatus(rule);
   updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
   updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields, syncHeadersInput);
+  renderInlineValidation(rule, card);
   renderSyncPreview(rule, syncPreview, syncTabs, syncPreviewContent);
 
   card.querySelectorAll("input, select").forEach((input) => {
@@ -538,6 +586,7 @@ function renderEditor() {
       }
 
       updateSelectedRuleFromEditor();
+      renderInlineValidation(getSelectedRule(), card);
       renderRuleList();
       renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
     });
@@ -547,6 +596,7 @@ function renderEditor() {
       }
 
       updateSelectedRuleFromEditor();
+      renderInlineValidation(getSelectedRule(), card);
       renderRuleList();
       renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
     });
@@ -564,6 +614,7 @@ function renderEditor() {
     sourcePatternInput.value = convertPatternFormat(sourcePatternInput.value.trim(), fromType, toType, "source");
     targetUrlInput.value = convertPatternFormat(targetUrlInput.value.trim(), fromType, toType, "target");
     updateSelectedRuleFromEditor();
+    renderInlineValidation(getSelectedRule(), card);
     renderRuleList();
     notify(`Pattern converted to ${toType}`);
   });
@@ -571,6 +622,7 @@ function renderEditor() {
   credentialModeInput.addEventListener("change", () => {
     updateCredentialModeVisibility(credentialModeInput.value, manualAuthorization, manualHeaders, syncOptions);
     updateSelectedRuleFromEditor();
+    renderInlineValidation(getSelectedRule(), card);
     renderRuleList();
     renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
   });
@@ -578,6 +630,7 @@ function renderEditor() {
   credentialSourceInput.addEventListener("change", () => {
     updateCredentialSourceVisibility(credentialSourceInput.value, sourceFields, syncHeadersInput);
     updateSelectedRuleFromEditor();
+    renderInlineValidation(getSelectedRule(), card);
     renderRuleList();
     renderSyncPreview(getSelectedRule(), syncPreview, syncTabs, syncPreviewContent);
   });
