@@ -13,6 +13,7 @@ import {
 
 const CAPTURE_FILTER = { urls: ["<all_urls>"] };
 const CAPTURE_OPTIONS = ["requestHeaders", "extraHeaders"];
+let appliedRuleWriteSignature = "";
 
 await initI18n();
 
@@ -29,11 +30,11 @@ chrome.runtime.onStartup.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== "APPLY_RULES") {
+  if (message?.type !== "SAVE_RULES") {
     return false;
   }
 
-  prepareAndApplyRules(message.rules || [], { persistHydratedRules: Boolean(message.persistHydratedRules) })
+  saveAndApplyRules(message.rules || [])
     .then((hydratedRules) => sendResponse({ ok: true, rules: hydratedRules }))
     .catch((error) => sendResponse({ ok: false, error: error.message }));
 
@@ -45,7 +46,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  prepareAndApplyRules(changes[STORAGE_KEYS.rules].newValue || [])
+  const nextRules = changes[STORAGE_KEYS.rules].newValue || [];
+
+  if (shouldSkipAppliedRuleWrite(nextRules)) {
+    return;
+  }
+
+  prepareAndApplyRules(nextRules)
     .catch(async (error) => {
       console.warn(t("runtime.error.storedRules"), error);
       await chrome.storage.local.set({
@@ -96,6 +103,7 @@ async function captureSourceRequest(details) {
   await clearApplyError();
 
   try {
+    rememberAppliedRuleWrite(nextRules);
     await chrome.storage.local.set({ [STORAGE_KEYS.rules]: nextRules });
   } catch (error) {
     await applyDynamicRules(rules);
@@ -110,10 +118,35 @@ async function prepareAndApplyRules(rules, options = {}) {
   await clearApplyError();
 
   if (options.persistHydratedRules && JSON.stringify(hydratedRules) !== JSON.stringify(rules)) {
+    rememberAppliedRuleWrite(hydratedRules);
     await chrome.storage.local.set({ [STORAGE_KEYS.rules]: hydratedRules });
   }
 
   return hydratedRules;
+}
+
+async function saveAndApplyRules(rules) {
+  const hydratedRules = await prepareAndApplyRules(rules);
+
+  rememberAppliedRuleWrite(hydratedRules);
+  await chrome.storage.local.set({ [STORAGE_KEYS.rules]: hydratedRules });
+
+  return hydratedRules;
+}
+
+function rememberAppliedRuleWrite(rules) {
+  appliedRuleWriteSignature = JSON.stringify(rules || []);
+}
+
+function shouldSkipAppliedRuleWrite(rules) {
+  const signature = JSON.stringify(rules || []);
+
+  if (!appliedRuleWriteSignature || signature !== appliedRuleWriteSignature) {
+    return false;
+  }
+
+  appliedRuleWriteSignature = "";
+  return true;
 }
 
 async function clearApplyError() {

@@ -1,5 +1,5 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
-import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
+import { getRedirectRules } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -88,18 +88,22 @@ function renderPopup() {
     toggleIcon.height = 16;
     toggleButton.append(toggleIcon);
     toggleButton.addEventListener("click", async () => {
+      const previousRules = rules;
+
       try {
         toggleButton.disabled = true;
         const nextRules = rules.map((currentRule) => currentRule.id === rule.id
           ? { ...currentRule, enabled: !isEnabled, modifiedAt: new Date().toISOString() }
           : currentRule);
-        rules = await applyRules(nextRules);
-        await saveRedirectRules(rules);
+        rules = nextRules;
+        renderPopup();
+        rules = await saveRules(nextRules);
         notify(t(isEnabled ? "popup.toast.disabled" : "popup.toast.enabled"), "success");
         renderPopup();
       } catch (error) {
+        rules = previousRules;
+        renderPopup();
         notify(error.message, "error");
-        toggleButton.disabled = false;
       }
     });
 
@@ -259,9 +263,9 @@ function getRuleTooltip(rule, isEnabled = rule.enabled) {
   ].join("\n");
 }
 
-async function applyRules(configRules) {
+async function saveRules(configRules) {
   const response = await chrome.runtime.sendMessage({
-    type: "APPLY_RULES",
+    type: "SAVE_RULES",
     rules: configRules
   });
 

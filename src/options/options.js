@@ -12,7 +12,7 @@ import {
   isRegexSubstitutionValid,
   isWaitingForSyncCapture
 } from "../shared/rules.js";
-import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
+import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { applyThemedIcons, getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -47,6 +47,7 @@ const ruleTemplate = document.querySelector("#ruleTemplate");
 const headerTemplate = document.querySelector("#headerTemplate");
 const addRuleButton = document.querySelector("#addRule");
 const importRulesButton = document.querySelector("#importRules");
+const copyDiagnosticsButton = document.querySelector("#copyDiagnostics");
 const importRulesFile = document.querySelector("#importRulesFile");
 const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
@@ -58,6 +59,7 @@ let rules = await getRedirectRules();
 let selectedRuleId = "";
 let isSavingRule = false;
 let isRemovingRule = false;
+let isUpdatingSelectedRules = false;
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
 let selectedRuleIds = new Set();
 const BACKGROUND_SYNC_FIELDS = [
@@ -425,9 +427,9 @@ function renderBulkToolbar(visibleRules = getFilteredRules()) {
   bulkActions.hidden = selectedCount === 0;
 
   [bulkEnable, bulkDisable, bulkMoveGroup, bulkDuplicate, bulkRemove].forEach((button) => {
-    button.disabled = selectedCount === 0;
+    button.disabled = selectedCount === 0 || isUpdatingSelectedRules;
   });
-  bulkGroupName.disabled = selectedCount === 0;
+  bulkGroupName.disabled = selectedCount === 0 || isUpdatingSelectedRules;
   bulkExportLabel.textContent = t(selectedCount > 0 ? "options.actions.exportSelected" : "options.actions.exportAll");
 }
 
@@ -863,9 +865,9 @@ function updateCredentialSourceVisibility(credentialSource, sourceFields, syncHe
   }
 }
 
-async function applyRules(savedRules) {
+async function saveRules(savedRules) {
   const response = await chrome.runtime.sendMessage({
-    type: "APPLY_RULES",
+    type: "SAVE_RULES",
     rules: savedRules
   });
 
@@ -892,11 +894,10 @@ async function saveCurrentRule(saveButton) {
     const selectedRule = getSelectedRule();
     const persistedRules = await getRedirectRules();
     const savedRules = upsertRule(persistedRules, selectedRule);
-    const appliedRules = await applyRules(savedRules);
+    const appliedRules = await saveRules(savedRules);
 
     savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(appliedRules, { committedRuleIds: new Set([selectedRule.id]) });
-    await saveRedirectRules(appliedRules);
     render();
     notify(t("options.toast.ruleSaved"), "success");
   } catch (error) {
@@ -942,12 +943,11 @@ async function removeCurrentRule(removeButton) {
 
     const persistedRules = await getRedirectRules();
     const savedRules = persistedRules.filter((rule) => rule.id !== ruleToRemove.id);
-    const appliedRules = await applyRules(savedRules);
+    const appliedRules = await saveRules(savedRules);
 
     savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(appliedRules).filter((rule) => rule.id !== ruleToRemove.id);
     selectedRuleId = "";
-    await saveRedirectRules(appliedRules);
     render();
     notify(t("options.toast.ruleRemoved"), "success");
   } catch (error) {
@@ -966,17 +966,16 @@ async function savePersistedRules(nextRules, committedRuleIds) {
       ? nextRulesById.get(rule.id)
       : rule
   ));
-  const appliedRules = await applyRules(savedRules);
+  const appliedRules = await saveRules(savedRules);
 
   savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
   rules = mergePersistedRulesWithDrafts(appliedRules, {
     committedRuleIds
   });
-  await saveRedirectRules(appliedRules);
 }
 
 async function updateSelectedRules(mutator, successMessage) {
-  if (selectedRuleIds.size === 0) {
+  if (selectedRuleIds.size === 0 || isUpdatingSelectedRules) {
     return;
   }
 
@@ -984,11 +983,13 @@ async function updateSelectedRules(mutator, successMessage) {
   const previousSavedRuleIds = new Set(savedRuleIds);
 
   try {
+    isUpdatingSelectedRules = true;
     const modifiedAt = timestampNow();
     const committedRuleIds = new Set([...selectedRuleIds].filter((ruleId) => savedRuleIds.has(ruleId)));
     rules = rules.map((rule) => selectedRuleIds.has(rule.id)
       ? mutator({ ...rule, modifiedAt })
       : rule);
+    render();
 
     if (committedRuleIds.size > 0) {
       await savePersistedRules(rules, committedRuleIds);
@@ -1001,6 +1002,9 @@ async function updateSelectedRules(mutator, successMessage) {
     savedRuleIds = previousSavedRuleIds;
     render();
     notify(error.message, "error");
+  } finally {
+    isUpdatingSelectedRules = false;
+    renderRuleList();
   }
 }
 
@@ -1011,10 +1015,17 @@ async function removeSelectedRules() {
     return;
   }
 
-  if (!window.confirm(t("options.dialog.removeSelected", {
-    count: selectedCount,
-    noun: selectedCount === 1 ? t("common.rule") : t("common.rules")
-  }))) {
+  const selectedRules = getSelectedRules();
+  const savedCount = selectedRules.filter((rule) => savedRuleIds.has(rule.id)).length;
+  const draftCount = selectedRules.length - savedCount;
+  const confirmMessage = savedCount > 0 && draftCount > 0
+    ? t("options.dialog.removeMixedSelected", { savedCount, draftCount })
+    : t("options.dialog.removeSelected", {
+        count: selectedCount,
+        noun: selectedCount === 1 ? t("common.rule") : t("common.rules")
+      });
+
+  if (!window.confirm(confirmMessage)) {
     return;
   }
 
@@ -1031,11 +1042,10 @@ async function removeSelectedRules() {
     selectedRuleIds = new Set();
     selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
     const savedRules = persistedRules.filter((rule) => !ruleIdsToRemove.has(rule.id));
-    const appliedRules = await applyRules(savedRules);
+    const appliedRules = await saveRules(savedRules);
 
     savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(appliedRules);
-    await saveRedirectRules(appliedRules);
     render();
     notify(t("options.toast.selectedRemoved"), "success");
   } catch (error) {
@@ -1093,6 +1103,49 @@ function exportRules() {
     count: rulesToExport.length,
     noun: rulesToExport.length === 1 ? t("common.rule") : t("common.rules")
   }), "success");
+}
+
+async function copyDiagnostics() {
+  try {
+    updateSelectedRuleFromEditor();
+    const result = await chrome.storage.local.get({ [STORAGE_KEYS.applyError]: null });
+    const manifest = chrome.runtime.getManifest();
+    const statusCounts = rules.reduce((counts, rule) => {
+      const status = getRuleStatus(rule).key;
+      counts[status] = (counts[status] || 0) + 1;
+      return counts;
+    }, {});
+    const enabledRules = rules
+      .filter((rule) => rule.enabled)
+      .map((rule) => ({
+        id: rule.id,
+        name: rule.name || t("options.rules.unnamed"),
+        status: getRuleStatus(rule).key,
+        patternType: rule.patternType || PATTERN_TYPES.wildcard,
+        credentialMode: rule.credentialMode || CREDENTIAL_MODES.manual
+      }));
+    const diagnostics = {
+      app: manifest.name,
+      version: manifest.version,
+      generatedAt: new Date().toISOString(),
+      ruleSummary: {
+        total: rules.length,
+        saved: rules.filter((rule) => savedRuleIds.has(rule.id)).length,
+        draft: rules.filter((rule) => !savedRuleIds.has(rule.id)).length,
+        selected: selectedRuleIds.size,
+        enabled: rules.filter((rule) => rule.enabled).length,
+        disabled: rules.filter((rule) => !rule.enabled).length,
+        statusCounts
+      },
+      enabledRules,
+      lastApplyError: result[STORAGE_KEYS.applyError] || null
+    };
+
+    await navigator.clipboard.writeText(JSON.stringify(diagnostics, null, 2));
+    notify(t("options.toast.diagnosticsCopied"), "success");
+  } catch (error) {
+    notify(error.message || t("options.toast.diagnosticsCopyFailed"), "error");
+  }
 }
 
 function hasExportableCredentials(rulesToExport = []) {
@@ -1187,6 +1240,7 @@ bulkMoveGroup.addEventListener("click", async () => {
 
 bulkDuplicate.addEventListener("click", duplicateSelectedRules);
 bulkExport.addEventListener("click", exportRules);
+copyDiagnosticsButton.addEventListener("click", copyDiagnostics);
 bulkRemove.addEventListener("click", removeSelectedRules);
 
 importRulesButton.addEventListener("click", () => {
