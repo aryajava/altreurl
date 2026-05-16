@@ -674,7 +674,14 @@ export function buildDynamicRules(configRules = []) {
       nextRuleId += 1;
     });
 
-  return dynamicRules;
+  return assignUniqueDynamicRuleIds(dynamicRules);
+}
+
+function assignUniqueDynamicRuleIds(dynamicRules) {
+  return dynamicRules.map((rule, index) => ({
+    ...rule,
+    id: RULE_ID_BASE + index
+  }));
 }
 
 export async function applyDynamicRules(configRules = []) {
