@@ -938,6 +938,129 @@ label select {
   border-left-color: var(--danger);
 }
 
+.import-dialog {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  max-width: min(860px, calc(100vw - 28px));
+  padding: 0;
+  width: 100%;
+}
+
+.import-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.import-dialog__panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 14px;
+  max-height: min(760px, calc(100vh - 28px));
+  overflow: auto;
+  padding: 16px;
+}
+
+.import-dialog__header,
+.import-dialog__actions {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.import-dialog__header h2,
+.import-dialog__header p {
+  margin: 0;
+}
+
+.import-dialog__header p {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.import-stats {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.import-stats > div {
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+}
+
+.import-stats strong {
+  font-size: 18px;
+}
+
+.import-stats span,
+.import-rule-preview__overflow {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.import-warnings {
+  display: grid;
+  gap: 8px;
+}
+
+.import-warnings p {
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  margin: 0;
+  padding: 10px;
+}
+
+.import-options {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.import-rule-preview {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: grid;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.import-preview-rule {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+}
+
+.import-preview-rule + .import-preview-rule {
+  border-top: 1px solid var(--line);
+}
+
+.import-preview-rule[data-issue="true"] {
+  background: var(--danger-soft);
+}
+
+.import-preview-rule span,
+.import-preview-rule small {
+  color: var(--muted);
+}
+
+.import-rule-preview__overflow {
+  margin: 0;
+  padding: 10px;
+}
+
+.import-dialog__actions {
+  justify-content: end;
+}
+
 @media (max-width: 960px) {
   .options-shell {
     height: auto;
@@ -975,6 +1098,10 @@ label select {
   .editor-grid--meta,
   .editor-grid--credentials {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .import-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1041,5 +1168,16 @@ label select {
 
   .sync-preview-row {
     grid-template-columns: 1fr;
+  }
+
+  .import-stats,
+  .import-options {
+    grid-template-columns: 1fr;
+  }
+
+  .import-dialog__header,
+  .import-dialog__actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

@@ -45,6 +45,51 @@
         </div>
       </header>
 
+      <dialog id="importDialog" class="import-dialog" aria-labelledby="importDialogTitle">
+        <form method="dialog" class="import-dialog__panel">
+          <header class="import-dialog__header">
+            <div>
+              <h2 id="importDialogTitle" data-i18n="options.import.title"></h2>
+              <p data-i18n="options.import.detail"></p>
+            </div>
+            <button id="importCancel" class="icon-button" type="button" data-i18n-title="options.import.cancel.title">
+              <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.import.cancel"></span>
+            </button>
+          </header>
+          <div id="importStats" class="import-stats"></div>
+          <div id="importWarnings" class="import-warnings"></div>
+          <div class="import-options">
+            <label>
+              <span data-i18n="options.import.mode.label"></span>
+              <select id="importMode" data-i18n-title="options.import.mode.title">
+                <option value="draft" data-i18n="options.import.mode.draft"></option>
+                <option value="saveValid" data-i18n="options.import.mode.saveValid"></option>
+                <option value="merge" data-i18n="options.import.mode.merge"></option>
+                <option value="replace" data-i18n="options.import.mode.replace"></option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="options.import.conflict.label"></span>
+              <select id="importConflictMode" data-i18n-title="options.import.conflict.title">
+                <option value="draft" data-i18n="options.import.conflict.draft"></option>
+                <option value="skip" data-i18n="options.import.conflict.skip"></option>
+                <option value="disable" data-i18n="options.import.conflict.disable"></option>
+                <option value="replace" data-i18n="options.import.conflict.replace"></option>
+              </select>
+            </label>
+          </div>
+          <div id="importRulePreview" class="import-rule-preview"></div>
+          <footer class="import-dialog__actions">
+            <button id="importClose" class="icon-button" type="button" data-i18n="options.import.cancel"></button>
+            <button id="importApply" class="icon-button" type="button">
+              <img data-icon="icons8-import-32.png" src="../shared/imgs/icons/b/icons8-import-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.import.apply"></span>
+            </button>
+          </footer>
+        </form>
+      </dialog>
+
       <section class="options-layout">
         <aside class="rule-list-panel">
           <div class="panel-title">

@@ -49,6 +49,15 @@ const addRuleButton = document.querySelector("#addRule");
 const importRulesButton = document.querySelector("#importRules");
 const copyDiagnosticsButton = document.querySelector("#copyDiagnostics");
 const importRulesFile = document.querySelector("#importRulesFile");
+const importDialog = document.querySelector("#importDialog");
+const importMode = document.querySelector("#importMode");
+const importConflictMode = document.querySelector("#importConflictMode");
+const importStats = document.querySelector("#importStats");
+const importWarnings = document.querySelector("#importWarnings");
+const importRulePreview = document.querySelector("#importRulePreview");
+const importApply = document.querySelector("#importApply");
+const importCancel = document.querySelector("#importCancel");
+const importClose = document.querySelector("#importClose");
 const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
@@ -61,6 +70,7 @@ let isSavingRule = false;
 let isRemovingRule = false;
 let isUpdatingSelectedRules = false;
 let isSavingRulesToStorage = false;
+let pendingImport = null;
 let pendingSavedRulesSignatures = new Set();
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
 let selectedRuleIds = new Set();
@@ -70,6 +80,18 @@ const BACKGROUND_SYNC_FIELDS = [
   "syncedCookieHeader",
   "lastSyncedAt"
 ];
+const IMPORT_MODES = {
+  draft: "draft",
+  saveValid: "saveValid",
+  merge: "merge",
+  replace: "replace"
+};
+const IMPORT_CONFLICT_MODES = {
+  draft: "draft",
+  skip: "skip",
+  disable: "disable",
+  replace: "replace"
+};
 
 applyTranslations();
 applyFavicons();
@@ -151,6 +173,25 @@ function normalizeImportedRule(rule) {
     enabled: Boolean(rule.enabled),
     name: String(rule.name || blankRule.name).trim() || blankRule.name,
     group: String(rule.group || "").trim()
+  };
+}
+
+function migrateImportedRule(rawRule, fileVersion = 1) {
+  if (!rawRule || typeof rawRule !== "object") {
+    return null;
+  }
+
+  return {
+    ...rawRule,
+    patternType: rawRule.patternType || PATTERN_TYPES.wildcard,
+    credentialMode: rawRule.credentialMode || (
+      rawRule.syncHeaders || rawRule.syncAuthorization || rawRule.syncCookies
+        ? CREDENTIAL_MODES.sync
+        : CREDENTIAL_MODES.manual
+    ),
+    credentialSource: rawRule.credentialSource || CREDENTIAL_SOURCES.request,
+    storageArea: rawRule.storageArea || STORAGE_AREAS.localStorage,
+    _importVersion: fileVersion
   };
 }
 
@@ -1193,28 +1234,353 @@ async function importRules(file) {
 
   try {
     const parsedData = JSON.parse(await file.text());
+    const fileVersion = Number(parsedData?.version || 1);
     const importedRules = Array.isArray(parsedData) ? parsedData : parsedData.rules;
     const draftRules = Array.isArray(importedRules)
-      ? importedRules.map(normalizeImportedRule).filter(Boolean)
+      ? importedRules
+        .map((rule) => migrateImportedRule(rule, fileVersion))
+        .map(normalizeImportedRule)
+        .filter(Boolean)
       : [];
 
     if (draftRules.length === 0) {
       throw new Error(t("options.import.noValidRules"));
     }
 
-    rules = [...draftRules, ...rules];
-    selectedRuleIds = new Set(draftRules.map((rule) => rule.id));
-    selectedRuleId = draftRules[0].id;
-    render();
-    notify(t("options.toast.imported", {
-      count: draftRules.length,
-      noun: draftRules.length === 1 ? t("common.rule") : t("common.rules")
-    }), "success");
+    pendingImport = createImportPreview(draftRules, importedRules, fileVersion);
+    renderImportDialog();
+    importDialog.showModal();
   } catch (error) {
     notify(error.message, "error");
   } finally {
     importRulesFile.value = "";
   }
+}
+
+function createImportPreview(importedRules, rawRules, fileVersion) {
+  const migratedRules = Array.isArray(rawRules)
+    ? rawRules.map((rule) => migrateImportedRule(rule, fileVersion)).filter(Boolean)
+    : [];
+  const importedRuleDetails = importedRules.map((rule, index) => ({
+    rule,
+    originalId: migratedRules[index]?.id || "",
+    validationMessages: getRuleValidationMessages(rule),
+    hasSensitiveData: hasExportableCredentials([rule])
+  }));
+  const existingRules = getPersistedRulesFromMemory();
+  const duplicateSummary = getImportDuplicateSummary(importedRuleDetails, existingRules);
+  const candidateRules = [...existingRules, ...importedRules];
+  const issuesByRuleId = getRuleSetIssuesByRuleId(candidateRules);
+
+  importedRuleDetails.forEach((detail) => {
+    detail.issue = issuesByRuleId.get(detail.rule.id) || "";
+    detail.isInvalid = detail.validationMessages.length > 0;
+    detail.isDuplicate = duplicateSummary.ruleIds.has(detail.rule.id);
+    detail.hasIssue = detail.isInvalid || detail.issue || detail.isDuplicate;
+  });
+
+  return {
+    fileVersion,
+    importedRuleDetails,
+    duplicateSummary,
+    hasSensitiveData: importedRuleDetails.some((detail) => detail.hasSensitiveData)
+  };
+}
+
+function getImportDuplicateSummary(importedRuleDetails, existingRules) {
+  const ruleIds = new Set();
+  const counts = {
+    id: 0,
+    name: 0,
+    source: 0,
+    target: 0,
+    route: 0
+  };
+  const importedRules = importedRuleDetails.map((detail) => detail.rule);
+  const existingOriginalIds = new Set(existingRules.map((rule) => rule.id));
+  const existingSignatures = buildImportSignatureMaps(existingRules);
+  const importedSignatures = buildImportSignatureMaps([]);
+
+  importedRuleDetails.forEach((detail) => {
+    const { rule, originalId } = detail;
+    const signatures = getImportRuleSignatures(rule);
+    const duplicateTypes = new Set();
+
+    if (originalId && existingOriginalIds.has(originalId)) {
+      duplicateTypes.add("id");
+    }
+
+    Object.entries(signatures).forEach(([type, signature]) => {
+      if (!signature) {
+        return;
+      }
+
+      if (existingSignatures[type].has(signature) || importedSignatures[type].has(signature)) {
+        duplicateTypes.add(type);
+      }
+
+      importedSignatures[type].add(signature);
+    });
+
+    duplicateTypes.forEach((type) => {
+      counts[type] += 1;
+      ruleIds.add(rule.id);
+    });
+  });
+
+  return {
+    ruleIds,
+    counts,
+    total: importedRules.filter((rule) => ruleIds.has(rule.id)).length
+  };
+}
+
+function buildImportSignatureMaps(sourceRules) {
+  const maps = {
+    name: new Set(),
+    source: new Set(),
+    target: new Set(),
+    route: new Set()
+  };
+
+  sourceRules.forEach((rule) => {
+    const signatures = getImportRuleSignatures(rule);
+    Object.entries(signatures).forEach(([type, signature]) => {
+      if (signature) {
+        maps[type].add(signature);
+      }
+    });
+  });
+
+  return maps;
+}
+
+function getImportRuleSignatures(rule) {
+  const patternType = rule.patternType || PATTERN_TYPES.wildcard;
+  const source = normalizeImportSignatureValue(rule.sourcePattern);
+  const target = normalizeImportSignatureValue(rule.targetUrl);
+
+  return {
+    name: normalizeImportSignatureValue(rule.name),
+    source: source ? `${patternType}:${source}` : "",
+    target: target ? `${patternType}:${target}` : "",
+    route: source && target ? `${patternType}:${source}->${target}` : ""
+  };
+}
+
+function normalizeImportSignatureValue(value) {
+  return String(value || "").trim().replace(/\/+$/, "").toLowerCase();
+}
+
+function renderImportDialog() {
+  if (!pendingImport) {
+    return;
+  }
+
+  const details = pendingImport.importedRuleDetails;
+  const invalidCount = details.filter((detail) => detail.isInvalid).length;
+  const conflictCount = details.filter((detail) => detail.issue).length;
+  const sensitiveCount = details.filter((detail) => detail.hasSensitiveData).length;
+
+  importStats.replaceChildren(...[
+    createImportStat(t("options.import.stat.total"), details.length),
+    createImportStat(t("options.import.stat.valid"), details.length - invalidCount),
+    createImportStat(t("options.import.stat.invalid"), invalidCount),
+    createImportStat(t("options.import.stat.conflicts"), conflictCount),
+    createImportStat(t("options.import.stat.duplicates"), pendingImport.duplicateSummary.total),
+    createImportStat(t("options.import.stat.sensitive"), sensitiveCount)
+  ]);
+
+  const warnings = [];
+  if (pendingImport.hasSensitiveData) {
+    warnings.push(t("options.import.warning.sensitive"));
+  }
+  if (conflictCount > 0 || pendingImport.duplicateSummary.total > 0) {
+    warnings.push(t("options.import.warning.conflicts"));
+  }
+
+  importWarnings.replaceChildren(...warnings.map((warning) => {
+    const item = document.createElement("p");
+    item.textContent = warning;
+    return item;
+  }));
+
+  importRulePreview.replaceChildren(...details.slice(0, 12).map(renderImportPreviewRule));
+  if (details.length > 12) {
+    const overflow = document.createElement("p");
+    overflow.className = "import-rule-preview__overflow";
+    overflow.textContent = t("options.import.preview.more", { count: details.length - 12 });
+    importRulePreview.append(overflow);
+  }
+}
+
+function createImportStat(label, value) {
+  const item = document.createElement("div");
+  const valueElement = document.createElement("strong");
+  const labelElement = document.createElement("span");
+
+  valueElement.textContent = String(value);
+  labelElement.textContent = label;
+  item.append(valueElement, labelElement);
+  return item;
+}
+
+function renderImportPreviewRule(detail) {
+  const item = document.createElement("div");
+  const name = document.createElement("strong");
+  const meta = document.createElement("span");
+  const issue = document.createElement("small");
+
+  item.className = "import-preview-rule";
+  item.dataset.issue = String(detail.hasIssue);
+  name.textContent = detail.rule.name || t("options.rules.unnamed");
+  meta.textContent = `${detail.rule.patternType || PATTERN_TYPES.wildcard} · ${detail.rule.credentialMode || CREDENTIAL_MODES.manual}`;
+  issue.textContent = getImportRulePreviewIssue(detail);
+  item.append(name, meta, issue);
+  return item;
+}
+
+function getImportRulePreviewIssue(detail) {
+  if (detail.isInvalid) {
+    return detail.validationMessages.map((validation) => validation.message).join(" ");
+  }
+
+  if (detail.issue) {
+    return detail.issue;
+  }
+
+  if (detail.isDuplicate) {
+    return t("options.import.preview.duplicate");
+  }
+
+  if (detail.hasSensitiveData) {
+    return t("options.import.preview.sensitive");
+  }
+
+  return t("common.ready");
+}
+
+async function applyPendingImport() {
+  if (!pendingImport) {
+    return;
+  }
+
+  try {
+    importApply.disabled = true;
+    const mode = importMode.value || IMPORT_MODES.draft;
+    const conflictMode = importConflictMode.value || IMPORT_CONFLICT_MODES.draft;
+    const result = await buildImportResult(mode, conflictMode);
+    const appliedRules = result.savedRules ? await saveRules(result.savedRules) : null;
+
+    if (appliedRules) {
+      savedRuleIds = new Set(appliedRules.map((rule) => rule.id));
+      rules = mergePersistedRulesWithDrafts(appliedRules, {
+        committedRuleIds: new Set(result.savedImportIds)
+      });
+    }
+
+    if (result.draftRules.length > 0) {
+      rules = [...result.draftRules, ...rules];
+      selectedRuleIds = new Set(result.draftRules.map((rule) => rule.id));
+      selectedRuleId = result.draftRules[0].id;
+    } else if (result.savedImportIds.length > 0) {
+      selectedRuleIds = new Set(result.savedImportIds);
+      selectedRuleId = result.savedImportIds[0];
+    }
+
+    render();
+    notify(t("options.import.report", {
+      draft: result.draftRules.length,
+      saved: result.savedImportIds.length,
+      skipped: result.skippedCount,
+      noun: result.draftRules.length + result.savedImportIds.length === 1 ? t("common.rule") : t("common.rules")
+    }), "success");
+    closeImportDialog();
+  } catch (error) {
+    notify(error.message || t("runtime.error.apply"), "error");
+  } finally {
+    importApply.disabled = false;
+  }
+}
+
+async function buildImportResult(mode, conflictMode) {
+  const existingRules = getPersistedRulesFromMemory();
+  const importDetails = pendingImport.importedRuleDetails;
+  const draftRules = [];
+  const saveCandidates = [];
+  let skippedCount = 0;
+  let baseRules = mode === IMPORT_MODES.replace ? [] : existingRules;
+
+  importDetails.forEach((detail) => {
+    const rule = detail.rule;
+    const shouldHandleAsIssue = detail.hasIssue;
+
+    if (shouldHandleAsIssue && conflictMode === IMPORT_CONFLICT_MODES.skip) {
+      skippedCount += 1;
+      return;
+    }
+
+    if (shouldHandleAsIssue && conflictMode === IMPORT_CONFLICT_MODES.draft) {
+      draftRules.push(rule);
+      return;
+    }
+
+    let nextRule = rule;
+    if (shouldHandleAsIssue && conflictMode === IMPORT_CONFLICT_MODES.disable) {
+      nextRule = { ...rule, enabled: false };
+    }
+
+    if (conflictMode === IMPORT_CONFLICT_MODES.replace || mode === IMPORT_MODES.replace) {
+      baseRules = removeMatchingImportRules(baseRules, nextRule);
+    }
+
+    if (mode === IMPORT_MODES.draft) {
+      draftRules.push(nextRule);
+      return;
+    }
+
+    saveCandidates.push(nextRule);
+  });
+
+  if (mode === IMPORT_MODES.draft) {
+    return {
+      draftRules,
+      savedRules: null,
+      savedImportIds: [],
+      skippedCount
+    };
+  }
+
+  const savedRules = [...saveCandidates, ...baseRules];
+
+  return {
+    draftRules,
+    savedRules,
+    savedImportIds: saveCandidates.map((rule) => rule.id),
+    skippedCount
+  };
+}
+
+function removeMatchingImportRules(sourceRules, importedRule) {
+  const importedSignatures = getImportRuleSignatures(importedRule);
+
+  return sourceRules.filter((rule) => {
+    const signatures = getImportRuleSignatures(rule);
+    return !(
+      signatures.name === importedSignatures.name ||
+      signatures.source === importedSignatures.source ||
+      signatures.target === importedSignatures.target ||
+      signatures.route === importedSignatures.route
+    );
+  });
+}
+
+function closeImportDialog() {
+  pendingImport = null;
+  importDialog.close();
+  importStats.replaceChildren();
+  importWarnings.replaceChildren();
+  importRulePreview.replaceChildren();
 }
 
 function touchSelectedRule() {
@@ -1268,6 +1634,12 @@ bulkRemove.addEventListener("click", removeSelectedRules);
 importRulesButton.addEventListener("click", () => {
   importRulesFile.click();
 });
+
+importApply.addEventListener("click", applyPendingImport);
+importCancel.addEventListener("click", closeImportDialog);
+importClose.addEventListener("click", closeImportDialog);
+importMode.addEventListener("change", renderImportDialog);
+importConflictMode.addEventListener("change", renderImportDialog);
 
 importRulesFile.addEventListener("change", async () => {
   await importRules(importRulesFile.files[0]);
