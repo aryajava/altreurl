@@ -145,11 +145,11 @@ async function saveAndApplyRules(rules) {
   await ensureI18nReady();
   const savedRules = Array.isArray(rules) ? rules : [];
 
-  rememberAppliedRuleWrite(savedRules);
-  await chrome.storage.local.set({ [STORAGE_KEYS.rules]: savedRules });
-
   try {
-    const hydratedRules = await prepareAndApplyRules(savedRules, { persistHydratedRules: true });
+    const hydratedRules = await prepareAndApplyRules(savedRules);
+
+    rememberAppliedRuleWrite(hydratedRules);
+    await chrome.storage.local.set({ [STORAGE_KEYS.rules]: hydratedRules });
 
     return { rules: hydratedRules };
   } catch (error) {
@@ -159,8 +159,7 @@ async function saveAndApplyRules(rules) {
     };
 
     await chrome.storage.local.set({ [STORAGE_KEYS.applyError]: applyError });
-
-    return { rules: savedRules, applyError };
+    throw error;
   }
 }
 

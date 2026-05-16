@@ -12,7 +12,7 @@ import {
   isRegexSubstitutionValid,
   isWaitingForSyncCapture
 } from "../shared/rules.js";
-import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
+import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { applyThemedIcons, getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -880,17 +880,11 @@ async function saveRules(savedRules) {
         rules: rulesToSave
       });
     } catch (error) {
-      pendingSavedRulesSignatures.add(getRulesSignature(rulesToSave));
-      await saveRedirectRules(rulesToSave);
-      notify(error.message || t("runtime.error.apply"), "error");
-      return rulesToSave;
+      throw new Error(error.message || t("runtime.error.apply"));
     }
 
     if (!response?.ok) {
-      pendingSavedRulesSignatures.add(getRulesSignature(rulesToSave));
-      await saveRedirectRules(rulesToSave);
-      notify(response?.error || t("runtime.error.apply"), "error");
-      return rulesToSave;
+      throw new Error(response?.error || t("runtime.error.apply"));
     }
 
     const responseRules = Array.isArray(response.rules) ? response.rules : rulesToSave;
@@ -1302,7 +1296,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  if (changes[STORAGE_KEYS.applyError]?.newValue?.message) {
+  if (!isSavingRulesToStorage && changes[STORAGE_KEYS.applyError]?.newValue?.message) {
     notify(changes[STORAGE_KEYS.applyError].newValue.message, "error");
   }
 

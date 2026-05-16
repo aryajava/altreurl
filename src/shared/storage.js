@@ -9,12 +9,6 @@ export async function getRedirectRules() {
   return Array.isArray(result[STORAGE_KEYS.rules]) ? result[STORAGE_KEYS.rules] : [];
 }
 
-export async function saveRedirectRules(rules) {
-  await chrome.storage.local.set({
-    [STORAGE_KEYS.rules]: Array.isArray(rules) ? rules : []
-  });
-}
-
 export async function getThemePreference() {
   const result = await chrome.storage.local.get({ [STORAGE_KEYS.theme]: "system" });
   return ["system", "light", "dark"].includes(result[STORAGE_KEYS.theme]) ? result[STORAGE_KEYS.theme] : "system";

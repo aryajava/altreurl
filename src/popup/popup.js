@@ -1,5 +1,5 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
-import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
+import { getRedirectRules } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -273,19 +273,11 @@ async function saveRules(configRules) {
       rules: rulesToSave
     });
   } catch (error) {
-    await saveRedirectRules(rulesToSave);
-    notify(error.message || t("runtime.error.apply"), "error");
-    return rulesToSave;
+    throw new Error(error.message || t("runtime.error.apply"));
   }
 
   if (!response?.ok) {
-    await saveRedirectRules(rulesToSave);
-    notify(response?.error || t("runtime.error.apply"), "error");
-    return rulesToSave;
-  }
-
-  if (response.applyError?.message) {
-    notify(response.applyError.message, "error");
+    throw new Error(response?.error || t("runtime.error.apply"));
   }
 
   return Array.isArray(response.rules) ? response.rules : rulesToSave;
