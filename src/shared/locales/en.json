@@ -220,6 +220,7 @@
   "rules.error.wildcardMismatch": "Source URL pattern and redirect target URL must use the same number of wildcards.",
   "rules.error.targetWildcardWithoutSource": "Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.",
   "rules.error.unsupportedRegex": "Chrome cannot apply this regexFilter ({reason}): {regex}",
+  "rules.error.duplicateDynamicIds": "Altreurl generated duplicate dynamic rule IDs: {ids}.",
   "rules.error.applyNoRules": "No dynamic rules were generated.",
   "rules.error.applyRuleCount": "{count} dynamic rules were generated.",
   "rules.error.applyDetail": "Unable to apply dynamic rules. {detail} {ruleSummary}",

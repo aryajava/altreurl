@@ -697,14 +697,42 @@ export async function applyDynamicRules(configRules = []) {
   }
 
   await validateDynamicRuleRegexFilters(addRules);
+  assertUniqueDynamicRuleIds(addRules);
 
   try {
-    await chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds,
-      addRules
-    });
+    if (removeRuleIds.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds
+      });
+    }
+
+    if (addRules.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        addRules
+      });
+    }
   } catch (error) {
     throw new Error(getDynamicRuleApplyErrorMessage(error, addRules));
+  }
+}
+
+function assertUniqueDynamicRuleIds(dynamicRules) {
+  const seenIds = new Set();
+  const duplicateIds = [];
+
+  dynamicRules.forEach((rule) => {
+    if (seenIds.has(rule.id)) {
+      duplicateIds.push(rule.id);
+      return;
+    }
+
+    seenIds.add(rule.id);
+  });
+
+  if (duplicateIds.length > 0) {
+    throw new Error(t("rules.error.duplicateDynamicIds", {
+      ids: [...new Set(duplicateIds)].join(", ")
+    }));
   }
 }
 
