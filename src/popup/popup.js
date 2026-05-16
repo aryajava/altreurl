@@ -1,5 +1,5 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
-import { getRedirectRules } from "../shared/storage.js";
+import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -264,20 +264,31 @@ function getRuleTooltip(rule, isEnabled = rule.enabled) {
 }
 
 async function saveRules(configRules) {
-  const response = await chrome.runtime.sendMessage({
-    type: "SAVE_RULES",
-    rules: configRules
-  });
+  const rulesToSave = Array.isArray(configRules) ? configRules : [];
+  let response;
+
+  try {
+    response = await chrome.runtime.sendMessage({
+      type: "SAVE_RULES",
+      rules: rulesToSave
+    });
+  } catch (error) {
+    await saveRedirectRules(rulesToSave);
+    notify(error.message || t("runtime.error.apply"), "error");
+    return rulesToSave;
+  }
 
   if (!response?.ok) {
-    throw new Error(response?.error || t("runtime.error.apply"));
+    await saveRedirectRules(rulesToSave);
+    notify(response?.error || t("runtime.error.apply"), "error");
+    return rulesToSave;
   }
 
   if (response.applyError?.message) {
     notify(response.applyError.message, "error");
   }
 
-  return Array.isArray(response.rules) ? response.rules : configRules;
+  return Array.isArray(response.rules) ? response.rules : rulesToSave;
 }
 
 function getRuleIssueIds(configRules) {

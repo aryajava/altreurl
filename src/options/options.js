@@ -12,7 +12,7 @@ import {
   isRegexSubstitutionValid,
   isWaitingForSyncCapture
 } from "../shared/rules.js";
-import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
+import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { applyThemedIcons, getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -869,18 +869,31 @@ function updateCredentialSourceVisibility(credentialSource, sourceFields, syncHe
 
 async function saveRules(savedRules) {
   isSavingRulesToStorage = true;
+  const rulesToSave = Array.isArray(savedRules) ? savedRules : [];
 
   try {
-    const response = await chrome.runtime.sendMessage({
-      type: "SAVE_RULES",
-      rules: savedRules
-    });
+    let response;
 
-    if (!response?.ok) {
-      throw new Error(response?.error || t("runtime.error.apply"));
+    try {
+      response = await chrome.runtime.sendMessage({
+        type: "SAVE_RULES",
+        rules: rulesToSave
+      });
+    } catch (error) {
+      pendingSavedRulesSignatures.add(getRulesSignature(rulesToSave));
+      await saveRedirectRules(rulesToSave);
+      notify(error.message || t("runtime.error.apply"), "error");
+      return rulesToSave;
     }
 
-    const responseRules = Array.isArray(response.rules) ? response.rules : savedRules;
+    if (!response?.ok) {
+      pendingSavedRulesSignatures.add(getRulesSignature(rulesToSave));
+      await saveRedirectRules(rulesToSave);
+      notify(response?.error || t("runtime.error.apply"), "error");
+      return rulesToSave;
+    }
+
+    const responseRules = Array.isArray(response.rules) ? response.rules : rulesToSave;
     pendingSavedRulesSignatures.add(getRulesSignature(responseRules));
 
     return responseRules;
