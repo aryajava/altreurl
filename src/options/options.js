@@ -58,6 +58,18 @@ const importRulePreview = document.querySelector("#importRulePreview");
 const importApply = document.querySelector("#importApply");
 const importCancel = document.querySelector("#importCancel");
 const importClose = document.querySelector("#importClose");
+const exportDialog = document.querySelector("#exportDialog");
+const exportScope = document.querySelector("#exportScope");
+const exportCredentialMode = document.querySelector("#exportCredentialMode");
+const exportGroupField = document.querySelector("#exportGroupField");
+const exportGroup = document.querySelector("#exportGroup");
+const exportStats = document.querySelector("#exportStats");
+const exportWarnings = document.querySelector("#exportWarnings");
+const exportRulePreview = document.querySelector("#exportRulePreview");
+const exportCancel = document.querySelector("#exportCancel");
+const exportClose = document.querySelector("#exportClose");
+const exportCopy = document.querySelector("#exportCopy");
+const exportDownload = document.querySelector("#exportDownload");
 const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
@@ -71,6 +83,7 @@ let isRemovingRule = false;
 let isUpdatingSelectedRules = false;
 let isSavingRulesToStorage = false;
 let pendingImport = null;
+let pendingExport = null;
 let pendingSavedRulesSignatures = new Set();
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
 let selectedRuleIds = new Set();
@@ -92,6 +105,18 @@ const IMPORT_CONFLICT_MODES = {
   disable: "disable",
   replace: "replace"
 };
+const EXPORT_SCOPES = {
+  selected: "selected",
+  all: "all",
+  enabled: "enabled",
+  group: "group"
+};
+const EXPORT_CREDENTIAL_MODES = {
+  include: "include",
+  redact: "redact",
+  remove: "remove"
+};
+const REDACTED_VALUE = "REDACTED";
 
 applyTranslations();
 applyFavicons();
@@ -1140,32 +1165,268 @@ function duplicateSelectedRules() {
 }
 
 function exportRules() {
-  const rulesToExport = selectedRuleIds.size > 0 ? getSelectedRules() : getPersistedRulesFromMemory();
+  pendingExport = createExportPreview();
 
-  if (rulesToExport.length === 0) {
+  if (pendingExport.rules.length === 0) {
+    notify(t("options.toast.noExport"), "error");
+    pendingExport = null;
+    return;
+  }
+
+  renderExportDialog();
+  exportDialog.showModal();
+}
+
+function createExportPreview() {
+  const scope = selectedRuleIds.size > 0 ? EXPORT_SCOPES.selected : EXPORT_SCOPES.all;
+  exportScope.value = scope;
+  exportCredentialMode.value = EXPORT_CREDENTIAL_MODES.redact;
+  renderExportGroups();
+
+  return buildExportPreview();
+}
+
+function buildExportPreview() {
+  const scope = exportScope.value || EXPORT_SCOPES.all;
+  const credentialMode = exportCredentialMode.value || EXPORT_CREDENTIAL_MODES.redact;
+  const selectedGroup = exportGroup.value;
+  const rulesToExport = getRulesForExportScope(scope, selectedGroup);
+  const statusCounts = rulesToExport.reduce((counts, rule) => {
+    const status = getRuleStatus(rule).key;
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
+  const sensitiveCount = rulesToExport.filter((rule) => hasExportableCredentials([rule])).length;
+  const transformed = transformRulesForExport(rulesToExport, credentialMode);
+
+  return {
+    scope,
+    credentialMode,
+    selectedGroup,
+    rules: rulesToExport,
+    exportedRules: transformed.rules,
+    credentialChangeCount: transformed.credentialChangeCount,
+    statusCounts,
+    sensitiveCount,
+    payload: buildExportPayload(transformed.rules, {
+      scope,
+      credentialMode,
+      selectedGroup,
+      sensitiveCount,
+      credentialChangeCount: transformed.credentialChangeCount
+    })
+  };
+}
+
+function getRulesForExportScope(scope, selectedGroup) {
+  if (scope === EXPORT_SCOPES.selected) {
+    return getSelectedRules();
+  }
+
+  const persistedRules = getPersistedRulesFromMemory();
+
+  if (scope === EXPORT_SCOPES.enabled) {
+    return persistedRules.filter((rule) => rule.enabled);
+  }
+
+  if (scope === EXPORT_SCOPES.group) {
+    return persistedRules.filter((rule) => getRuleGroup(rule) === selectedGroup);
+  }
+
+  return persistedRules;
+}
+
+function transformRulesForExport(rulesToExport, credentialMode) {
+  let credentialChangeCount = 0;
+  const rulesForExport = rulesToExport.map((rule) => {
+    const clonedRule = structuredClone(rule);
+
+    if (credentialMode === EXPORT_CREDENTIAL_MODES.include) {
+      return clonedRule;
+    }
+
+    ["authorization", "syncedAuthorization", "syncedCookieHeader"].forEach((field) => {
+      if (!clonedRule[field]) {
+        return;
+      }
+
+      credentialChangeCount += 1;
+      clonedRule[field] = credentialMode === EXPORT_CREDENTIAL_MODES.redact ? REDACTED_VALUE : "";
+    });
+
+    ["headers", "syncedHeaders"].forEach((field) => {
+      if (!Array.isArray(clonedRule[field]) || clonedRule[field].length === 0) {
+        return;
+      }
+
+      credentialChangeCount += clonedRule[field].filter((header) => header?.value).length;
+      clonedRule[field] = credentialMode === EXPORT_CREDENTIAL_MODES.redact
+        ? clonedRule[field].map((header) => ({ ...header, value: header.value ? REDACTED_VALUE : "" }))
+        : [];
+    });
+
+    return clonedRule;
+  });
+
+  return { rules: rulesForExport, credentialChangeCount };
+}
+
+function buildExportPayload(rulesToExport, metadata) {
+  const manifest = chrome.runtime.getManifest();
+
+  return {
+    version: 2,
+    metadata: {
+      app: manifest.name,
+      extensionVersion: manifest.version,
+      exportedAt: new Date().toISOString(),
+      scope: metadata.scope,
+      group: metadata.selectedGroup || "",
+      credentialMode: metadata.credentialMode,
+      ruleCount: rulesToExport.length,
+      sensitiveRuleCount: metadata.sensitiveCount,
+      credentialChangeCount: metadata.credentialChangeCount,
+      warning: metadata.sensitiveCount > 0
+        ? t("options.export.metadata.sensitiveWarning")
+        : ""
+    },
+    rules: rulesToExport
+  };
+}
+
+function renderExportGroups() {
+  const groups = [...new Set(getPersistedRulesFromMemory().map((rule) => getRuleGroup(rule)))].sort();
+  const options = groups.length > 0
+    ? groups.map((group) => new Option(group, group))
+    : [new Option(t("options.rules.ungrouped"), t("options.rules.ungrouped"))];
+
+  exportGroup.replaceChildren(...options);
+}
+
+function renderExportDialog() {
+  pendingExport = buildExportPreview();
+  exportGroupField.hidden = pendingExport.scope !== EXPORT_SCOPES.group;
+
+  exportStats.replaceChildren(...[
+    createImportStat(t("options.export.stat.total"), pendingExport.rules.length),
+    createImportStat(t("common.enabled"), pendingExport.rules.filter((rule) => rule.enabled).length),
+    createImportStat(t("common.disabled"), pendingExport.rules.filter((rule) => !rule.enabled).length),
+    createImportStat(t("common.conflict"), pendingExport.statusCounts.conflict || 0),
+    createImportStat(t("common.invalid"), pendingExport.statusCounts.invalid || 0),
+    createImportStat(t("options.export.stat.sensitive"), pendingExport.sensitiveCount)
+  ]);
+
+  const warnings = [];
+  if (pendingExport.sensitiveCount > 0) {
+    warnings.push(t("options.export.warning.sensitive", { count: pendingExport.sensitiveCount }));
+  }
+  if ((pendingExport.statusCounts.conflict || 0) > 0 || (pendingExport.statusCounts.invalid || 0) > 0) {
+    warnings.push(t("options.export.warning.status"));
+  }
+  if (pendingExport.credentialMode === EXPORT_CREDENTIAL_MODES.include && pendingExport.sensitiveCount > 0) {
+    warnings.push(t("options.export.warning.includeCredentials"));
+  }
+
+  exportWarnings.replaceChildren(...warnings.map((warning) => {
+    const item = document.createElement("p");
+    item.textContent = warning;
+    return item;
+  }));
+
+  exportRulePreview.replaceChildren(...pendingExport.rules.slice(0, 12).map(renderExportPreviewRule));
+  if (pendingExport.rules.length > 12) {
+    const overflow = document.createElement("p");
+    overflow.className = "import-rule-preview__overflow";
+    overflow.textContent = t("options.import.preview.more", { count: pendingExport.rules.length - 12 });
+    exportRulePreview.append(overflow);
+  }
+}
+
+function renderExportPreviewRule(rule) {
+  const item = document.createElement("div");
+  const name = document.createElement("strong");
+  const meta = document.createElement("span");
+  const issue = document.createElement("small");
+  const status = getRuleStatus(rule);
+
+  item.className = "import-preview-rule";
+  item.dataset.issue = String(["conflict", "invalid", "waiting"].includes(status.key));
+  name.textContent = rule.name || t("options.rules.unnamed");
+  meta.textContent = `${status.label} · ${rule.patternType || PATTERN_TYPES.wildcard} · ${rule.credentialMode || CREDENTIAL_MODES.manual}`;
+  issue.textContent = status.description || (hasExportableCredentials([rule])
+    ? t("options.export.preview.sensitive")
+    : t("common.ready"));
+  item.append(name, meta, issue);
+  return item;
+}
+
+function downloadPendingExport() {
+  if (!pendingExport || pendingExport.rules.length === 0) {
     notify(t("options.toast.noExport"), "error");
     return;
   }
 
-  if (hasExportableCredentials(rulesToExport) &&
-    !window.confirm(t("options.dialog.exportSensitive"))) {
-    return;
-  }
-
-  const exportBlob = new Blob([JSON.stringify({ version: 1, rules: rulesToExport }, null, 2)], {
+  const exportBlob = new Blob([JSON.stringify(pendingExport.payload, null, 2)], {
     type: "application/json"
   });
   const exportUrl = URL.createObjectURL(exportBlob);
   const downloadLink = document.createElement("a");
 
   downloadLink.href = exportUrl;
-  downloadLink.download = `altreurl-rules-${new Date().toISOString().slice(0, 10)}.json`;
+  downloadLink.download = getExportFileName(pendingExport);
   downloadLink.click();
   URL.revokeObjectURL(exportUrl);
-  notify(t("options.toast.exported", {
-    count: rulesToExport.length,
-    noun: rulesToExport.length === 1 ? t("common.rule") : t("common.rules")
+  notifyExportReport();
+  closeExportDialog();
+}
+
+async function copyPendingExportJson() {
+  if (!pendingExport || pendingExport.rules.length === 0) {
+    notify(t("options.toast.noExport"), "error");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(pendingExport.payload, null, 2));
+    notify(t("options.export.toast.copied"), "success");
+  } catch (error) {
+    notify(error.message || t("options.export.toast.copyFailed"), "error");
+  }
+}
+
+function notifyExportReport() {
+  notify(t("options.export.report", {
+    count: pendingExport.rules.length,
+    noun: pendingExport.rules.length === 1 ? t("common.rule") : t("common.rules"),
+    credentials: pendingExport.credentialChangeCount,
+    invalid: (pendingExport.statusCounts.invalid || 0) + (pendingExport.statusCounts.conflict || 0)
   }), "success");
+}
+
+function getExportFileName(exportPreview) {
+  const date = new Date().toISOString().slice(0, 10);
+  const group = exportPreview.scope === EXPORT_SCOPES.group
+    ? `-${sanitizeFileName(exportPreview.selectedGroup)}`
+    : "";
+  const safety = exportPreview.credentialMode === EXPORT_CREDENTIAL_MODES.include ? "rules" : "safe-export";
+
+  return `altreurl-${safety}${group}-${date}.json`;
+}
+
+function sanitizeFileName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "group";
+}
+
+function closeExportDialog() {
+  pendingExport = null;
+  exportDialog.close();
+  exportStats.replaceChildren();
+  exportWarnings.replaceChildren();
+  exportRulePreview.replaceChildren();
 }
 
 async function copyDiagnostics() {
@@ -1640,6 +1901,13 @@ importCancel.addEventListener("click", closeImportDialog);
 importClose.addEventListener("click", closeImportDialog);
 importMode.addEventListener("change", renderImportDialog);
 importConflictMode.addEventListener("change", renderImportDialog);
+exportCancel.addEventListener("click", closeExportDialog);
+exportClose.addEventListener("click", closeExportDialog);
+exportCopy.addEventListener("click", copyPendingExportJson);
+exportDownload.addEventListener("click", downloadPendingExport);
+exportScope.addEventListener("change", renderExportDialog);
+exportCredentialMode.addEventListener("change", renderExportDialog);
+exportGroup.addEventListener("change", renderExportDialog);
 
 importRulesFile.addEventListener("change", async () => {
   await importRules(importRulesFile.files[0]);

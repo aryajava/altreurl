@@ -90,6 +90,58 @@
         </form>
       </dialog>
 
+      <dialog id="exportDialog" class="import-dialog" aria-labelledby="exportDialogTitle">
+        <form method="dialog" class="import-dialog__panel">
+          <header class="import-dialog__header">
+            <div>
+              <h2 id="exportDialogTitle" data-i18n="options.export.title"></h2>
+              <p data-i18n="options.export.detail"></p>
+            </div>
+            <button id="exportCancel" class="icon-button" type="button" data-i18n-title="options.export.cancel.title">
+              <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.export.cancel"></span>
+            </button>
+          </header>
+          <div id="exportStats" class="import-stats"></div>
+          <div id="exportWarnings" class="import-warnings"></div>
+          <div class="import-options">
+            <label>
+              <span data-i18n="options.export.scope.label"></span>
+              <select id="exportScope" data-i18n-title="options.export.scope.title">
+                <option value="selected" data-i18n="options.export.scope.selected"></option>
+                <option value="all" data-i18n="options.export.scope.all"></option>
+                <option value="enabled" data-i18n="options.export.scope.enabled"></option>
+                <option value="group" data-i18n="options.export.scope.group"></option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="options.export.credentials.label"></span>
+              <select id="exportCredentialMode" data-i18n-title="options.export.credentials.title">
+                <option value="redact" data-i18n="options.export.credentials.redact"></option>
+                <option value="remove" data-i18n="options.export.credentials.remove"></option>
+                <option value="include" data-i18n="options.export.credentials.include"></option>
+              </select>
+            </label>
+            <label id="exportGroupField">
+              <span data-i18n="common.group"></span>
+              <select id="exportGroup" data-i18n-title="options.export.group.title"></select>
+            </label>
+          </div>
+          <div id="exportRulePreview" class="import-rule-preview"></div>
+          <footer class="import-dialog__actions">
+            <button id="exportClose" class="icon-button" type="button" data-i18n="options.export.cancel"></button>
+            <button id="exportCopy" class="icon-button" type="button">
+              <img data-icon="icons8-list-32.png" src="../shared/imgs/icons/b/icons8-list-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.export.copyJson"></span>
+            </button>
+            <button id="exportDownload" class="icon-button" type="button">
+              <img data-icon="icons8-export-32.png" src="../shared/imgs/icons/b/icons8-export-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.export.download"></span>
+            </button>
+          </footer>
+        </form>
+      </dialog>
+
       <section class="options-layout">
         <aside class="rule-list-panel">
           <div class="panel-title">
