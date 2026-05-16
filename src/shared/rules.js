@@ -466,6 +466,9 @@ export function getRuleSetIssuesByRuleId(configRules = []) {
 
     return true;
   });
+
+  addDuplicatePatternIssues(rulesEligibleForConflictCheck, issuesByRuleId);
+
   const activeRuleScopes = rulesEligibleForConflictCheck.map(getTargetConflictScopes);
 
   activeRuleScopes.forEach((activeRule) => {
@@ -492,6 +495,80 @@ export function getRuleSetIssuesByRuleId(configRules = []) {
   });
 
   return issuesByRuleId;
+}
+
+function addDuplicatePatternIssues(activeRules, issuesByRuleId) {
+  addDuplicateRuleIssue(
+    activeRules,
+    issuesByRuleId,
+    getRuleRouteSignature,
+    "rules.error.duplicateRoute"
+  );
+  addDuplicateRuleIssue(
+    activeRules,
+    issuesByRuleId,
+    getRuleSourceSignature,
+    "rules.error.duplicateSource"
+  );
+  addDuplicateRuleIssue(
+    activeRules,
+    issuesByRuleId,
+    getRuleTargetSignature,
+    "rules.error.duplicateTarget"
+  );
+}
+
+function addDuplicateRuleIssue(activeRules, issuesByRuleId, getSignature, messageKey) {
+  const firstRuleBySignature = new Map();
+
+  activeRules.forEach((rule) => {
+    const signature = getSignature(rule);
+
+    if (!signature) {
+      return;
+    }
+
+    const existingRule = firstRuleBySignature.get(signature);
+
+    if (!existingRule) {
+      firstRuleBySignature.set(signature, rule);
+      return;
+    }
+
+    markDuplicateRuleIssue(existingRule, rule, issuesByRuleId, messageKey);
+  });
+}
+
+function markDuplicateRuleIssue(leftRule, rightRule, issuesByRuleId, messageKey) {
+  if (!issuesByRuleId.has(leftRule.id)) {
+    issuesByRuleId.set(leftRule.id, t(messageKey, {
+      name: leftRule.name || t("options.rules.unnamed"),
+      otherName: rightRule.name || t("options.rules.unnamed")
+    }));
+  }
+
+  if (!issuesByRuleId.has(rightRule.id)) {
+    issuesByRuleId.set(rightRule.id, t(messageKey, {
+      name: rightRule.name || t("options.rules.unnamed"),
+      otherName: leftRule.name || t("options.rules.unnamed")
+    }));
+  }
+}
+
+function getRuleRouteSignature(rule) {
+  return `${getRuleSourceSignature(rule)} -> ${getRuleTargetSignature(rule)}`;
+}
+
+function getRuleSourceSignature(rule) {
+  return `${normalizePatternType(rule.patternType)}:${normalizePatternValue(rule.sourcePattern)}`;
+}
+
+function getRuleTargetSignature(rule) {
+  return `${normalizePatternType(rule.patternType)}:${normalizePatternValue(rule.targetUrl)}`;
+}
+
+function normalizePatternValue(value) {
+  return String(value || "").trim().replace(/\/+$/, "").toLowerCase();
 }
 
 export function validateRuleSet(configRules = []) {
