@@ -2,6 +2,7 @@ import { t } from "./i18n.js";
 
 const RULE_ID_BASE = 1000;
 const WILDCARD = "*";
+let dynamicRuleApplyQueue = Promise.resolve();
 export const PATTERN_TYPES = {
   wildcard: "wildcard",
   regex: "regex"
@@ -684,10 +685,17 @@ function assignUniqueDynamicRuleIds(dynamicRules) {
   }));
 }
 
-export async function applyDynamicRules(configRules = []) {
+export function applyDynamicRules(configRules = []) {
+  dynamicRuleApplyQueue = dynamicRuleApplyQueue
+    .catch(() => {})
+    .then(() => applyDynamicRulesNow(configRules));
+
+  return dynamicRuleApplyQueue;
+}
+
+async function applyDynamicRulesNow(configRules = []) {
   const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
   const removeRuleIds = existingRules
-    .filter((rule) => rule.id >= RULE_ID_BASE)
     .map((rule) => rule.id);
   const addRules = buildDynamicRules(configRules);
   const dynamicRuleLimit = getDynamicRuleLimit();
