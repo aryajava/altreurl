@@ -20,21 +20,21 @@
         <div class="header-actions">
           <button id="themePreference" class="theme-toggle" type="button" aria-pressed="false" data-i18n-title="theme.toggle.title">
             <span class="theme-toggle__option theme-toggle__option--dark">
-              <img src="../shared/imgs/icons/icons8-moon-and-stars-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-moon-and-stars-32.png" src="../shared/imgs/icons/b/icons8-moon-and-stars-32.png" alt="" width="16" height="16">
               <span data-i18n="common.dark"></span>
             </span>
             <span class="theme-toggle__thumb" aria-hidden="true"></span>
             <span class="theme-toggle__option theme-toggle__option--light">
-              <img src="../shared/imgs/icons/icons8-sun-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-sun-32.png" src="../shared/imgs/icons/b/icons8-sun-32.png" alt="" width="16" height="16">
               <span data-i18n="common.light"></span>
             </span>
           </button>
           <button id="importRules" class="icon-button" type="button" data-i18n-title="options.actions.import.title">
-            <img src="../shared/imgs/icons/icons8-import-32.png" alt="" width="16" height="16">
+            <img data-icon="icons8-import-32.png" src="../shared/imgs/icons/b/icons8-import-32.png" alt="" width="16" height="16">
             <span data-i18n="options.actions.import"></span>
           </button>
           <button id="addRule" class="icon-button" type="button" data-i18n-title="options.actions.createDraft.title">
-            <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="16" height="16">
+            <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
             <span data-i18n="options.actions.addRule"></span>
           </button>
           <input id="importRulesFile" type="file" accept="application/json,.json" hidden>
@@ -45,21 +45,21 @@
         <aside class="rule-list-panel">
           <div class="panel-title">
             <strong class="panel-title__label">
-              <img src="../shared/imgs/icons/icons8-list-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-list-32.png" src="../shared/imgs/icons/b/icons8-list-32.png" alt="" width="16" height="16">
               <span data-i18n="options.rules.title"></span>
             </strong>
             <span id="ruleCount"></span>
           </div>
           <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false" data-i18n-title="options.actions.showFilters">
             <span class="filter-toggle__label">
-              <img data-role="filterToggleStateIcon" src="../shared/imgs/icons/icons8-eye-32.png" alt="" width="16" height="16">
+              <img data-role="filterToggleStateIcon" data-icon="icons8-eye-32.png" src="../shared/imgs/icons/b/icons8-eye-32.png" alt="" width="16" height="16">
               <span data-role="filterToggleLabel" data-i18n="options.actions.showFilters"></span>
             </span>
-            <img class="filter-toggle__icon" src="../shared/imgs/icons/icons8-arrow-down-32.png" alt="" width="16" height="16" aria-hidden="true">
+            <img class="filter-toggle__icon" data-icon="icons8-arrow-down-32.png" src="../shared/imgs/icons/b/icons8-arrow-down-32.png" alt="" width="16" height="16" aria-hidden="true">
           </button>
           <div id="ruleListControls" class="rule-list-controls" hidden>
             <label class="search-field">
-              <img src="../shared/imgs/icons/icons8-search-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-search-32.png" src="../shared/imgs/icons/b/icons8-search-32.png" alt="" width="16" height="16">
               <input id="ruleSearch" type="search" data-i18n-placeholder="options.rules.search.placeholder" data-i18n-title="options.rules.search.title">
             </label>
             <select id="statusFilter" data-i18n-aria-label="options.rules.filter.status.label" data-i18n-title="options.rules.filter.status.title">
@@ -88,30 +88,30 @@
                 <span id="selectedRuleCount"></span>
               </label>
               <button id="bulkExport" class="icon-button" type="button" data-i18n-title="options.actions.export.title">
-                <img src="../shared/imgs/icons/icons8-export-32.png" alt="" width="16" height="16">
+                <img data-icon="icons8-export-32.png" src="../shared/imgs/icons/b/icons8-export-32.png" alt="" width="16" height="16">
                 <span data-role="bulkExportLabel" data-i18n="options.actions.exportAll"></span>
               </button>
             </div>
             <div class="bulk-actions" data-role="bulkActions" hidden>
               <button id="bulkEnable" class="icon-button" type="button" data-i18n-title="options.actions.enable.title">
-                <img src="../shared/imgs/icons/icons8-checkbox-checked-32.png" alt="" width="16" height="16">
+                <img data-icon="icons8-checkbox-checked-32.png" src="../shared/imgs/icons/b/icons8-checkbox-checked-32.png" alt="" width="16" height="16">
                 <span data-i18n="options.actions.enable"></span>
               </button>
               <button id="bulkDisable" class="icon-button" type="button" data-i18n-title="options.actions.disable.title">
-                <img src="../shared/imgs/icons/icons8-checkbox-32.png" alt="" width="16" height="16">
+                <img data-icon="icons8-checkbox-32.png" src="../shared/imgs/icons/b/icons8-checkbox-32.png" alt="" width="16" height="16">
                 <span data-i18n="options.actions.disable"></span>
               </button>
               <button id="bulkDuplicate" class="icon-button" type="button" data-i18n-title="options.actions.duplicate.title">
-                <img src="../shared/imgs/icons/icons8-duplicate-32.png" alt="" width="16" height="16">
+                <img data-icon="icons8-duplicate-32.png" src="../shared/imgs/icons/b/icons8-duplicate-32.png" alt="" width="16" height="16">
                 <span data-i18n="common.duplicate"></span>
               </button>
               <button id="bulkRemove" class="icon-button" type="button" data-i18n-title="options.actions.remove.title">
-                <img src="../shared/imgs/icons/icons8-remove-32.png" alt="" width="16" height="16">
+                <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
                 <span data-i18n="common.remove"></span>
               </button>
               <input id="bulkGroupName" type="text" data-i18n-placeholder="options.actions.moveToGroup.placeholder" data-i18n-title="options.actions.moveGroup.title">
               <button id="bulkMoveGroup" class="icon-button" type="button" data-i18n-title="options.actions.move.title">
-                <img src="../shared/imgs/icons/icons8-arrow-up-32.png" alt="" width="16" height="16">
+                <img data-icon="icons8-arrow-up-32.png" src="../shared/imgs/icons/b/icons8-arrow-up-32.png" alt="" width="16" height="16">
                 <span data-i18n="common.move"></span>
               </button>
             </div>
@@ -144,12 +144,12 @@
       <div class="empty-editor">
         <div class="empty-editor__content">
           <button data-action="addEmptyRule" class="empty-editor__quick-add" type="button" data-i18n-title="options.actions.createDraft.title">
-            <img src="../shared/imgs/icons/icons8-add-64.png" alt="" width="24" height="24">
+            <img data-icon="icons8-add-64.png" src="../shared/imgs/icons/b/icons8-add-64.png" alt="" width="24" height="24">
           </button>
           <h2 data-i18n="options.empty.title"></h2>
           <p data-i18n="options.empty.detail"></p>
           <button data-action="addEmptyRule" class="icon-button" type="button" data-i18n-title="options.actions.createDraft.title">
-            <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="16" height="16">
+            <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
             <span data-i18n="options.actions.addRule"></span>
           </button>
         </div>
@@ -168,11 +168,11 @@
           </div>
           <div class="rule-actions">
             <button data-action="saveRule" class="icon-button" type="button" data-i18n-title="options.actions.saveRule.title">
-              <img src="../shared/imgs/icons/icons8-save-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-save-32.png" src="../shared/imgs/icons/b/icons8-save-32.png" alt="" width="16" height="16">
               <span data-role="saveRuleLabel" data-i18n="options.actions.saveRule"></span>
             </button>
             <button data-action="removeRule" class="icon-button" type="button" data-i18n-title="options.actions.removeRule.title">
-              <img src="../shared/imgs/icons/icons8-remove-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
               <span data-i18n="common.remove"></span>
             </button>
           </div>
@@ -181,7 +181,7 @@
         <section class="editor-section">
           <div class="editor-section__title">
             <strong class="section-title-with-icon">
-              <img src="../shared/imgs/icons/icons8-pen-squared-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-pen-squared-32.png" src="../shared/imgs/icons/b/icons8-pen-squared-32.png" alt="" width="16" height="16">
               <span data-i18n="options.editor.ruleDetails"></span>
             </strong>
           </div>
@@ -311,7 +311,7 @@
           <div class="headers-block__title">
             <strong data-i18n="common.headers"></strong>
             <button data-action="addHeader" class="icon-button" type="button">
-              <img src="../shared/imgs/icons/icons8-add-32.png" alt="" width="16" height="16">
+              <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
               <span data-i18n="options.actions.addHeader"></span>
             </button>
           </div>
@@ -325,7 +325,7 @@
         <input data-field="headerName" type="text" data-i18n-placeholder="options.editor.headerName.placeholder">
         <input data-field="headerValue" type="text" data-i18n-placeholder="options.editor.headerValue.placeholder">
         <button data-action="removeHeader" class="icon-button" type="button" data-i18n-title="options.actions.removeHeader.title">
-          <img src="../shared/imgs/icons/icons8-remove-32.png" alt="" width="16" height="16">
+          <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
           <span data-i18n="common.remove"></span>
         </button>
       </div>

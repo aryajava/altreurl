@@ -13,7 +13,7 @@ import {
   isWaitingForSyncCapture
 } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
-import { initThemeControl } from "../shared/theme.js";
+import { applyThemedIcons, getThemedIconPath, initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
 import { applyTranslations, initI18n, t } from "../shared/i18n.js";
 
@@ -370,6 +370,7 @@ function renderRuleList() {
   rulesList.replaceChildren(...filteredRules.map((rule) => {
     const fragment = ruleListItemTemplate.content.cloneNode(true);
     applyTranslations(fragment);
+    applyThemedIcons(fragment);
     const row = fragment.querySelector(".rule-list-row");
     const selector = fragment.querySelector('[data-role="ruleSelect"]');
     const item = fragment.querySelector(".rule-list-item");
@@ -484,6 +485,7 @@ function getRuleUpdatedAt(rule) {
 function renderHeader(header = { name: "", value: "" }) {
   const fragment = headerTemplate.content.cloneNode(true);
   applyTranslations(fragment);
+  applyThemedIcons(fragment);
   const row = fragment.querySelector(".header-row");
 
   row.querySelector('[data-field="headerName"]').value = header.name || "";
@@ -524,6 +526,7 @@ function renderEditor() {
   if (!rule) {
     const fragment = emptyEditorTemplate.content.cloneNode(true);
     applyTranslations(fragment);
+    applyThemedIcons(fragment);
     fragment.querySelectorAll('[data-action="addEmptyRule"]').forEach((button) => {
       button.addEventListener("click", addDraftRule);
     });
@@ -539,6 +542,7 @@ function renderEditor() {
 
   const fragment = ruleTemplate.content.cloneNode(true);
   applyTranslations(fragment);
+  applyThemedIcons(fragment);
   const card = fragment.querySelector(".rule-editor");
   const headersContainer = card.querySelector('[data-role="headers"]');
   const patternTypeInput = card.querySelector('[data-field="patternType"]');
@@ -1203,8 +1207,9 @@ toggleRuleControls.addEventListener("click", () => {
   filterToggleLabel.textContent = t(isHidden ? "options.actions.hideFilters" : "options.actions.showFilters");
   toggleRuleControls.title = t(isHidden ? "options.actions.hideFilters" : "options.actions.showFilters");
   filterToggleStateIcon.src = isHidden
-    ? "../shared/imgs/icons/icons8-eye-close-32.png"
-    : "../shared/imgs/icons/icons8-eye-32.png";
+    ? getThemedIconPath("icons8-eye-close-32.png")
+    : getThemedIconPath("icons8-eye-32.png");
+  filterToggleStateIcon.dataset.icon = isHidden ? "icons8-eye-close-32.png" : "icons8-eye-32.png";
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {

@@ -1,6 +1,6 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
-import { initThemeControl } from "../shared/theme.js";
+import { getThemedIconPath, initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
 import { applyTranslations, initI18n, t } from "../shared/i18n.js";
 
@@ -78,9 +78,8 @@ function renderPopup() {
     toggleButton.className = "icon-button";
     toggleButton.setAttribute("aria-label", actionLabel);
     toggleButton.title = `${actionLabel}\n\n${ruleTooltip}`;
-    toggleIcon.src = isEnabled
-      ? "../shared/imgs/icons/icons8-checkbox-32.png"
-      : "../shared/imgs/icons/icons8-checkbox-checked-32.png";
+    toggleIcon.dataset.icon = isEnabled ? "icons8-checkbox-32.png" : "icons8-checkbox-checked-32.png";
+    toggleIcon.src = getThemedIconPath(toggleIcon.dataset.icon);
     toggleIcon.alt = "";
     toggleIcon.width = 16;
     toggleIcon.height = 16;
