@@ -66,18 +66,19 @@ function renderPopup() {
     const toggleButton = document.createElement("button");
     const toggleIcon = document.createElement("img");
     const isEnabled = rule.enabled;
+    const ruleTooltip = getRuleTooltip(rule, isEnabled);
+    const actionLabel = `${isEnabled ? "Disable" : "Enable"} ${rule.name || "Unnamed rule"}`;
 
     item.className = "popup-rule";
-    item.title = getRuleTooltip(rule);
+    item.title = ruleTooltip;
     item.dataset.enabled = String(isEnabled);
     name.textContent = rule.name || "Unnamed rule";
-    name.title = `${isEnabled ? "Enabled" : "Disabled"} · ${rule.name || "Unnamed rule"}`;
     toggleButton.type = "button";
     toggleButton.className = "icon-button";
-    toggleButton.setAttribute("aria-label", `${isEnabled ? "Disable" : "Enable"} ${rule.name || "Unnamed rule"}`);
-    toggleButton.title = `${isEnabled ? "Disable" : "Enable"} ${rule.name || "Unnamed rule"}`;
+    toggleButton.setAttribute("aria-label", actionLabel);
+    toggleButton.title = `${actionLabel}\n\n${ruleTooltip}`;
     toggleIcon.src = isEnabled
-      ? "../shared/imgs/icons/icons8-remove-32.png"
+      ? "../shared/imgs/icons/icons8-checkbox-32.png"
       : "../shared/imgs/icons/icons8-checkbox-checked-32.png";
     toggleIcon.alt = "";
     toggleIcon.width = 16;
@@ -228,8 +229,9 @@ function getUrlScope(value) {
   }
 }
 
-function getRuleTooltip(rule) {
+function getRuleTooltip(rule, isEnabled = rule.enabled) {
   return [
+    `Status: ${isEnabled ? "Enabled" : "Disabled"}`,
     `Source URL pattern: ${rule.sourcePattern || "Not set"}`,
     `Redirect target URL: ${rule.targetUrl || "Not set"}`
   ].join("\n");
