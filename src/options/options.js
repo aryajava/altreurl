@@ -15,7 +15,6 @@ import {
 import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
-import { checkForUpdates, renderUpdateStatus } from "../shared/update-checker.js";
 
 const rulesList = document.querySelector("#rulesList");
 const editorPanel = document.querySelector("#editorPanel");
@@ -47,8 +46,6 @@ const addRuleButton = document.querySelector("#addRule");
 const importRulesButton = document.querySelector("#importRules");
 const importRulesFile = document.querySelector("#importRulesFile");
 const themePreference = document.querySelector("#themePreference");
-const checkUpdateButton = document.querySelector("#checkUpdate");
-const updateStatus = document.querySelector("#updateStatus");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
 
@@ -66,7 +63,6 @@ const BACKGROUND_SYNC_FIELDS = [
 ];
 
 await initThemeControl(themePreference, { controlType: "toggle" });
-renderLatestUpdateStatus();
 
 function getSelectedRule() {
   return rules.find((rule) => rule.id === selectedRuleId);
@@ -1141,23 +1137,6 @@ importRulesButton.addEventListener("click", () => {
   importRulesFile.click();
 });
 
-checkUpdateButton.addEventListener("click", async () => {
-  try {
-    checkUpdateButton.disabled = true;
-    renderUpdateStatus(updateStatus, {
-      status: "checking",
-      message: "Checking update..."
-    });
-    const status = await checkForUpdates({ force: true });
-    renderUpdateStatus(updateStatus, status);
-    notify(status.message, status.status === "error" ? "error" : "info");
-  } catch (error) {
-    notify(error.message, "error");
-  } finally {
-    checkUpdateButton.disabled = false;
-  }
-});
-
 importRulesFile.addEventListener("change", async () => {
   await importRules(importRulesFile.files[0]);
 });
@@ -1197,11 +1176,3 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 render();
-
-async function renderLatestUpdateStatus() {
-  try {
-    renderUpdateStatus(updateStatus, await checkForUpdates());
-  } catch (error) {
-    notify(error.message, "error");
-  }
-}

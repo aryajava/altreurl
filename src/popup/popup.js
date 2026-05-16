@@ -2,13 +2,11 @@ import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATT
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
-import { checkForUpdates, renderUpdateStatus } from "../shared/update-checker.js";
 
 const summary = document.querySelector("#summary");
 const activeRules = document.querySelector("#activeRules");
 const ruleSearch = document.querySelector("#ruleSearch");
 const openOptions = document.querySelector("#openOptions");
-const updateStatus = document.querySelector("#updateStatus");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "popup" });
 
@@ -16,9 +14,6 @@ let rules = await getRedirectRules();
 let activeTabContext = await getActiveTabContext();
 
 await initThemeControl();
-checkForUpdates()
-  .then((status) => renderUpdateStatus(updateStatus, status))
-  .catch((error) => notify(error.message, "error"));
 
 function renderPopup() {
   const attentionIds = getRuleAttentionIds(rules);
