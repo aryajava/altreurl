@@ -14,17 +14,18 @@ import {
 const CAPTURE_FILTER = { urls: ["<all_urls>"] };
 const CAPTURE_OPTIONS = ["requestHeaders", "extraHeaders"];
 let appliedRuleWriteSignature = "";
-
-await initI18n();
+const i18nReady = initI18n();
 
 chrome.webRequest.onBeforeSendHeaders.addListener(captureSourceRequest, CAPTURE_FILTER, CAPTURE_OPTIONS);
 
 chrome.runtime.onInstalled.addListener(async () => {
+  await i18nReady;
   const rules = await getRedirectRules();
   await prepareAndApplyRules(rules, { persistHydratedRules: true });
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  await i18nReady;
   const rules = await getRedirectRules();
   await prepareAndApplyRules(rules, { persistHydratedRules: true });
 });
@@ -52,8 +53,9 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  prepareAndApplyRules(nextRules)
+  awaitI18nAndApplyRules(nextRules)
     .catch(async (error) => {
+      await i18nReady;
       console.warn(t("runtime.error.storedRules"), error);
       await chrome.storage.local.set({
         [STORAGE_KEYS.applyError]: {
@@ -64,7 +66,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     });
 });
 
+async function awaitI18nAndApplyRules(rules) {
+  await i18nReady;
+  await prepareAndApplyRules(rules);
+}
+
 async function captureSourceRequest(details) {
+  await i18nReady;
   const rules = await getRedirectRules();
   const matchingRules = rules.filter((rule) => {
     if (!rule.enabled ||
@@ -99,8 +107,7 @@ async function captureSourceRequest(details) {
 
   const nextRules = rules.map((rule) => readyCapturedRulesById.get(rule.id) || rule);
 
-  await applyDynamicRules(nextRules);
-  await clearApplyError();
+  await prepareAndApplyRules(nextRules);
 
   try {
     rememberAppliedRuleWrite(nextRules);
@@ -112,6 +119,7 @@ async function captureSourceRequest(details) {
 }
 
 async function prepareAndApplyRules(rules, options = {}) {
+  await i18nReady;
   const hydratedRules = await hydrateCredentialSourceRules(rules);
 
   await applyDynamicRules(hydratedRules);
@@ -126,6 +134,7 @@ async function prepareAndApplyRules(rules, options = {}) {
 }
 
 async function saveAndApplyRules(rules) {
+  await i18nReady;
   const savedRules = Array.isArray(rules) ? rules : [];
 
   rememberAppliedRuleWrite(savedRules);
