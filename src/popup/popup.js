@@ -81,7 +81,7 @@ function renderPopup() {
     toggleButton.className = "icon-button";
     toggleButton.setAttribute("aria-label", actionLabel);
     toggleButton.title = `${actionLabel}\n\n${ruleTooltip}`;
-    toggleIcon.dataset.icon = isEnabled ? "icons8-checkbox-32.png" : "icons8-checkbox-checked-32.png";
+    toggleIcon.dataset.icon = isEnabled ? "icons8-checkbox-checked-32.png" : "icons8-checkbox-32.png";
     toggleIcon.src = getThemedIconPath(toggleIcon.dataset.icon);
     toggleIcon.alt = "";
     toggleIcon.width = 16;

@@ -60,6 +60,8 @@ let selectedRuleId = "";
 let isSavingRule = false;
 let isRemovingRule = false;
 let isUpdatingSelectedRules = false;
+let isSavingRulesToStorage = false;
+let pendingSavedRulesSignatures = new Set();
 let savedRuleIds = new Set(rules.map((rule) => rule.id));
 let selectedRuleIds = new Set();
 const BACKGROUND_SYNC_FIELDS = [
@@ -866,16 +868,29 @@ function updateCredentialSourceVisibility(credentialSource, sourceFields, syncHe
 }
 
 async function saveRules(savedRules) {
-  const response = await chrome.runtime.sendMessage({
-    type: "SAVE_RULES",
-    rules: savedRules
-  });
+  isSavingRulesToStorage = true;
 
-  if (!response?.ok) {
-    throw new Error(response?.error || t("runtime.error.apply"));
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: "SAVE_RULES",
+      rules: savedRules
+    });
+
+    if (!response?.ok) {
+      throw new Error(response?.error || t("runtime.error.apply"));
+    }
+
+    const responseRules = Array.isArray(response.rules) ? response.rules : savedRules;
+    pendingSavedRulesSignatures.add(getRulesSignature(responseRules));
+
+    return responseRules;
+  } finally {
+    isSavingRulesToStorage = false;
   }
+}
 
-  return Array.isArray(response.rules) ? response.rules : savedRules;
+function getRulesSignature(configRules) {
+  return JSON.stringify(configRules || []);
 }
 
 async function saveCurrentRule(saveButton) {
@@ -1282,6 +1297,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     const persistedRules = Array.isArray(changes[STORAGE_KEYS.rules].newValue)
       ? changes[STORAGE_KEYS.rules].newValue
       : [];
+    const persistedRulesSignature = getRulesSignature(persistedRules);
+
+    if (isSavingRulesToStorage || pendingSavedRulesSignatures.has(persistedRulesSignature)) {
+      pendingSavedRulesSignatures.delete(persistedRulesSignature);
+      return;
+    }
+
     savedRuleIds = new Set(persistedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(persistedRules);
     selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";
