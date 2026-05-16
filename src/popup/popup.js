@@ -2,6 +2,7 @@ import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATT
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
+import { applyTranslations, t } from "../shared/i18n.js";
 
 const summary = document.querySelector("#summary");
 const activeRules = document.querySelector("#activeRules");
@@ -13,6 +14,7 @@ const notify = createNotifier(notifications, { scope: "popup" });
 let rules = await getRedirectRules();
 let activeTabContext = await getActiveTabContext();
 
+applyTranslations();
 await initThemeControl();
 
 function renderPopup() {
@@ -31,12 +33,16 @@ function renderPopup() {
   ].some((value) => String(value || "").toLowerCase().includes(query)));
 
   const activeSummary = !activeTabContext.isSupported
-    ? "Unsupported page"
+    ? t("popup.unsupportedPage")
     : applicableRules.length === 0
-      ? `No rules for ${activeTabContext.hostLabel}`
-      : `${enabledRuleCount}/${applicableRules.length} enabled for ${activeTabContext.hostLabel}`;
+      ? t("popup.noRulesFor", { host: activeTabContext.hostLabel })
+      : t("popup.enabledForHost", {
+          enabled: enabledRuleCount,
+          total: applicableRules.length,
+          host: activeTabContext.hostLabel
+        });
   summary.textContent = blockedRuleCount > 0
-    ? `${activeSummary} · ${blockedRuleCount} need attention`
+    ? t("popup.needsAttentionSuffix", { summary: activeSummary, count: blockedRuleCount })
     : activeSummary;
 
   if (visibleRules.length === 0) {
@@ -60,12 +66,13 @@ function renderPopup() {
     const toggleIcon = document.createElement("img");
     const isEnabled = rule.enabled;
     const ruleTooltip = getRuleTooltip(rule, isEnabled);
-    const actionLabel = `${isEnabled ? "Disable" : "Enable"} ${rule.name || "Unnamed rule"}`;
+    const ruleName = rule.name || t("options.rules.unnamed");
+    const actionLabel = t(isEnabled ? "popup.action.disable" : "popup.action.enable", { name: ruleName });
 
     item.className = "popup-rule";
     item.title = ruleTooltip;
     item.dataset.enabled = String(isEnabled);
-    name.textContent = rule.name || "Unnamed rule";
+    name.textContent = ruleName;
     toggleButton.type = "button";
     toggleButton.className = "icon-button";
     toggleButton.setAttribute("aria-label", actionLabel);
@@ -85,7 +92,7 @@ function renderPopup() {
           : currentRule);
         rules = await applyRules(nextRules);
         await saveRedirectRules(rules);
-        notify(isEnabled ? "Rule disabled" : "Rule enabled", "success");
+        notify(t(isEnabled ? "popup.toast.disabled" : "popup.toast.enabled"), "success");
         renderPopup();
       } catch (error) {
         notify(error.message, "error");
@@ -107,29 +114,35 @@ function renderEmptyState(context) {
   emptyState.className = "popup-empty";
 
   if (!context.activeTabContext?.isSupported) {
-    title.textContent = "This page cannot be matched";
-    detail.textContent = "Open an http or https page so Altreurl can show contextual rules.";
+    title.textContent = t("popup.empty.unsupported.title");
+    detail.textContent = t("popup.empty.unsupported.detail");
   } else if (context.hasQuery && context.contextualRuleCount > 0) {
-    title.textContent = "No matching rules on this page";
-    detail.textContent = "Try another search keyword for this domain.";
+    title.textContent = t("popup.empty.search.title");
+    detail.textContent = t("popup.empty.search.detail");
   } else if (context.totalRuleCount === 0) {
-    title.textContent = "No rules yet";
-    detail.textContent = "Open rules to create your first redirect.";
+    title.textContent = t("popup.empty.noRules.title");
+    detail.textContent = t("popup.empty.noRules.detail");
   } else if (context.contextualRuleCount === 0) {
-    title.textContent = `No rules for ${context.activeTabContext.hostLabel}`;
-    detail.textContent = "Open rules to create or adjust a Source URL pattern for this domain.";
+    title.textContent = t("popup.empty.noContextual.title", { host: context.activeTabContext.hostLabel });
+    detail.textContent = t("popup.empty.noContextual.detail");
   } else if (context.enabledRuleCount === 0) {
-    title.textContent = "All matching rules are disabled";
-    detail.textContent = "Enable a rule from this popup or open rules for more details.";
+    title.textContent = t("popup.empty.disabled.title");
+    detail.textContent = t("popup.empty.disabled.detail");
   } else if (context.blockedRuleCount > 0 && context.contextualRuleCount > 0) {
-    title.textContent = `${context.blockedRuleCount} ${context.blockedRuleCount === 1 ? "rule needs" : "rules need"} attention`;
-    detail.textContent = "Open rules to fix invalid patterns, conflicts, or credential issues.";
+    title.textContent = t("popup.empty.attention.title", {
+      count: context.blockedRuleCount,
+      noun: context.blockedRuleCount === 1 ? t("common.ruleNeeds") : t("common.rulesNeed")
+    });
+    detail.textContent = t("popup.empty.attention.detail");
   } else if (context.waitingRuleCount > 0) {
-    title.textContent = `${context.waitingRuleCount} ${context.waitingRuleCount === 1 ? "rule is" : "rules are"} waiting sync`;
-    detail.textContent = "Trigger one source request first, then the redirect can use synced credentials.";
+    title.textContent = t("popup.empty.waiting.title", {
+      count: context.waitingRuleCount,
+      verb: context.waitingRuleCount === 1 ? t("common.is") : t("common.are")
+    });
+    detail.textContent = t("popup.empty.waiting.detail");
   } else {
-    title.textContent = "No enabled matching rules";
-    detail.textContent = "Enable a matching rule here or open rules to review credential state.";
+    title.textContent = t("popup.empty.noEnabled.title");
+    detail.textContent = t("popup.empty.noEnabled.detail");
   }
 
   emptyState.append(title, detail);
@@ -144,7 +157,7 @@ async function getActiveTabContext() {
     if (!url || !["http:", "https:"].includes(url.protocol)) {
       return {
         isSupported: false,
-        hostLabel: "this page",
+        hostLabel: t("common.thisPage"),
         hostname: "",
         origin: "",
         url: tab?.url || ""
@@ -162,7 +175,7 @@ async function getActiveTabContext() {
   } catch (_error) {
     return {
       isSupported: false,
-      hostLabel: "this page",
+      hostLabel: t("common.thisPage"),
       hostname: "",
       origin: "",
       url: ""
@@ -237,9 +250,9 @@ function escapeRegex(value) {
 
 function getRuleTooltip(rule, isEnabled = rule.enabled) {
   return [
-    `Status: ${isEnabled ? "Enabled" : "Disabled"}`,
-    `Source URL pattern: ${rule.sourcePattern || "Not set"}`,
-    `Redirect target URL: ${rule.targetUrl || "Not set"}`
+    t("popup.tooltip.status", { status: isEnabled ? t("common.enabled") : t("common.disabled") }),
+    t("popup.tooltip.source", { source: rule.sourcePattern || t("popup.value.notSet") }),
+    t("popup.tooltip.target", { target: rule.targetUrl || t("popup.value.notSet") })
   ].join("\n");
 }
 
@@ -250,7 +263,7 @@ async function applyRules(configRules) {
   });
 
   if (!response?.ok) {
-    throw new Error(response?.error || "Unable to apply dynamic rules.");
+    throw new Error(response?.error || t("runtime.error.apply"));
   }
 
   return Array.isArray(response.rules) ? response.rules : configRules;
@@ -273,7 +286,7 @@ function getRuleAttentionIds(configRules) {
       try {
         buildDynamicRules([rule]);
       } catch (error) {
-        attentionIds.set(rule.id, error.message || "Rule cannot be applied.");
+        attentionIds.set(rule.id, error.message || t("runtime.error.apply"));
       }
     });
 

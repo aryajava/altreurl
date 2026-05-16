@@ -15,6 +15,7 @@ import {
 import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
+import { applyTranslations, t } from "../shared/i18n.js";
 
 const rulesList = document.querySelector("#rulesList");
 const editorPanel = document.querySelector("#editorPanel");
@@ -48,6 +49,7 @@ const importRulesFile = document.querySelector("#importRulesFile");
 const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
+const bulkExportLabel = bulkExport.querySelector('[data-role="bulkExportLabel"]');
 
 let rules = await getRedirectRules();
 let selectedRuleId = "";
@@ -62,6 +64,7 @@ const BACKGROUND_SYNC_FIELDS = [
   "lastSyncedAt"
 ];
 
+applyTranslations();
 await initThemeControl(themePreference, { controlType: "toggle" });
 
 function getSelectedRule() {
@@ -117,7 +120,7 @@ function cloneRuleAsDraft(rule, suffix = "Copy") {
   return {
     ...rule,
     id: createRuleId(),
-    name: `${rule.name || "Unnamed rule"} ${suffix}`.trim(),
+    name: `${rule.name || t("options.rules.unnamed")} ${suffix}`.trim(),
     enabled: false,
     createdAt: now,
     modifiedAt: now
@@ -152,7 +155,7 @@ function getPersistedRulesFromMemory() {
 }
 
 function getRuleGroup(rule) {
-  return String(rule.group || "").trim() || "Ungrouped";
+  return String(rule.group || "").trim() || t("options.rules.ungrouped");
 }
 
 function getRuleStatus(rule) {
@@ -163,31 +166,31 @@ function getRuleStatus(rule) {
     if (ruleSetIssue) {
       return {
         key: "draft",
-        label: "Draft conflict",
-        description: `Rule ini belum tersimpan dan target/header-nya conflict. ${ruleSetIssue}`
+        label: t("options.status.draftConflict"),
+        description: t("options.status.draftConflict.description", { issue: ruleSetIssue })
       };
     }
 
-    return { key: "draft", label: "Draft" };
+    return { key: "draft", label: t("common.draft") };
   }
 
   if (ruleSetIssue) {
-    return { key: "conflict", label: "Conflict", description: ruleSetIssue };
+    return { key: "conflict", label: t("common.conflict"), description: ruleSetIssue };
   }
 
   if (!rule.enabled) {
-    return { key: "disabled", label: "Disabled" };
+    return { key: "disabled", label: t("common.disabled") };
   }
 
   if (!isRuleConfigValid(rule)) {
-    return { key: "invalid", label: "Invalid" };
+    return { key: "invalid", label: t("common.invalid") };
   }
 
   if (isWaitingForSyncCapture(rule)) {
-    return { key: "waiting", label: "Waiting sync" };
+    return { key: "waiting", label: t("options.status.waiting") };
   }
 
-  return { key: "ready", label: "Ready" };
+  return { key: "ready", label: t("common.ready") };
 }
 
 function normalizeRuleCredentialCapabilities(rule) {
@@ -208,15 +211,15 @@ function getRuleStatusDescription(ruleStatus) {
   }
 
   const descriptions = {
-    conflict: "Rule target overlaps another rule that modifies credential headers.",
-    draft: "Rule ini belum tersimpan. Klik Save Rule untuk menyimpan rule ini.",
-    disabled: "Rule tersimpan tetapi sedang nonaktif.",
-    invalid: "Rule aktif tetapi Source URL pattern atau Redirect target URL belum valid.",
-    waiting: "Rule menunggu credential sync. Jalankan satu request source atau lengkapi sumber storage/cookie.",
-    ready: "Rule aktif, valid, dan siap menjalankan redirect."
+    conflict: t("options.status.conflict.description"),
+    draft: t("options.status.draft.description"),
+    disabled: t("options.status.disabled.description"),
+    invalid: t("options.status.invalid.description"),
+    waiting: t("options.status.waiting.description"),
+    ready: t("options.status.ready.description")
   };
 
-  return descriptions[ruleStatus.key] || "Status rule";
+  return descriptions[ruleStatus.key] || t("options.status.label");
 }
 
 function getRuleSetIssue(rule) {
@@ -235,9 +238,9 @@ function getRuleSetIssue(rule) {
 function getDynamicRuleCountLabel(rule) {
   try {
     const count = getGeneratedDynamicRuleCount([rule]);
-    return `${count} DNR ${count === 1 ? "rule" : "rules"}`;
+    return t("options.rules.dynamicCount", { count, noun: count === 1 ? t("common.rule") : t("common.rules") });
   } catch (_error) {
-    return "DNR invalid";
+    return t("options.rules.dynamicInvalid");
   }
 }
 
@@ -250,32 +253,32 @@ function getRuleValidationMessages(rule) {
 
   if (!rule.sourcePattern || !rule.targetUrl) {
     if (!rule.sourcePattern) {
-      messages.push({ field: "sourcePattern", message: "Source URL pattern wajib diisi." });
+      messages.push({ field: "sourcePattern", message: t("options.validation.sourceRequired") });
     }
 
     if (!rule.targetUrl) {
-      messages.push({ field: "targetUrl", message: "Redirect target URL wajib diisi." });
+      messages.push({ field: "targetUrl", message: t("options.validation.targetRequired") });
     }
 
     return messages;
   }
 
   if (rule.sourcePattern.includes("#")) {
-    messages.push({ field: "sourcePattern", message: "Fragment (#) tidak dikirim di network request. Hapus fragment dari source." });
+    messages.push({ field: "sourcePattern", message: t("options.validation.sourceFragment") });
   }
 
   if (rule.targetUrl.includes("#")) {
-    messages.push({ field: "targetUrl", message: "Fragment (#) tidak didukung untuk redirect target. Hapus fragment dari target." });
+    messages.push({ field: "targetUrl", message: t("options.validation.targetFragment") });
   }
 
   if (rule.patternType === PATTERN_TYPES.regex) {
     if (!isRegexPatternValid(rule.sourcePattern)) {
-      messages.push({ field: "sourcePattern", message: "Regex source tidak valid." });
+      messages.push({ field: "sourcePattern", message: t("options.validation.regexInvalid") });
       return messages;
     }
 
     if (!isRegexSubstitutionValid(rule.sourcePattern, rule.targetUrl)) {
-      messages.push({ field: "targetUrl", message: "Target regex memakai capture group yang tidak ada di source." });
+      messages.push({ field: "targetUrl", message: t("options.validation.missingCaptureGroup") });
     }
 
     return messages;
@@ -285,12 +288,18 @@ function getRuleValidationMessages(rule) {
   const targetWildcardCount = countWildcardCharacters(rule.targetUrl);
 
   if (targetWildcardCount > 0 && sourceWildcardCount === 0) {
-    messages.push({ field: "targetUrl", message: "Target tidak boleh memakai wildcard jika source tidak memakai wildcard." });
+    messages.push({ field: "targetUrl", message: t("options.validation.targetWildcardWithoutSource") });
     return messages;
   }
 
   if (sourceWildcardCount > 0 && targetWildcardCount > 0 && sourceWildcardCount !== targetWildcardCount) {
-    messages.push({ field: "targetUrl", message: `Jumlah wildcard target (${targetWildcardCount}) harus sama dengan source (${sourceWildcardCount}).` });
+    messages.push({
+      field: "targetUrl",
+      message: t("options.validation.wildcardCount", {
+        targetCount: targetWildcardCount,
+        sourceCount: sourceWildcardCount
+      })
+    });
   }
 
   return messages;
@@ -346,19 +355,20 @@ function updateSelectedRuleFromEditor() {
 function renderRuleList() {
   renderGroupFilter();
   const filteredRules = getFilteredRules();
-  ruleCount.textContent = `${filteredRules.length}/${rules.length} shown`;
+  ruleCount.textContent = t("options.rules.count", { shown: filteredRules.length, total: rules.length });
   renderBulkToolbar(filteredRules);
 
   if (filteredRules.length === 0) {
     const emptyState = document.createElement("div");
     emptyState.className = "rule-list-empty";
-    emptyState.textContent = "No matching rules";
+    emptyState.textContent = t("options.rules.empty");
     rulesList.replaceChildren(emptyState);
     return;
   }
 
   rulesList.replaceChildren(...filteredRules.map((rule) => {
     const fragment = ruleListItemTemplate.content.cloneNode(true);
+    applyTranslations(fragment);
     const row = fragment.querySelector(".rule-list-row");
     const selector = fragment.querySelector('[data-role="ruleSelect"]');
     const item = fragment.querySelector(".rule-list-item");
@@ -376,12 +386,15 @@ function renderRuleList() {
       renderRuleList();
     });
     const ruleStatus = getRuleStatus(rule);
-    item.querySelector('[data-role="ruleName"]').textContent = rule.name || "Unnamed rule";
+    item.querySelector('[data-role="ruleName"]').textContent = rule.name || t("options.rules.unnamed");
     const statusBadge = item.querySelector('[data-role="statusBadge"]');
     statusBadge.textContent = ruleStatus.label;
     statusBadge.dataset.status = ruleStatus.key;
     statusBadge.title = getRuleStatusDescription(ruleStatus);
-    item.title = `Source: ${rule.sourcePattern || "No source pattern"}\nTarget: ${rule.targetUrl || "No redirect target"}`;
+    item.title = t("options.rules.itemTooltip", {
+      source: rule.sourcePattern || t("options.rules.noSource"),
+      target: rule.targetUrl || t("options.rules.noTarget")
+    });
     item.querySelector('[data-role="ruleGroup"]').textContent = getRuleGroup(rule);
     item.querySelector('[data-role="ruleMeta"]').textContent = `${rule.credentialMode || CREDENTIAL_MODES.manual} · ${rule.patternType || PATTERN_TYPES.wildcard} · ${getDynamicRuleCountLabel(rule)}`;
     item.addEventListener("click", () => {
@@ -401,8 +414,8 @@ function renderBulkToolbar(visibleRules = getFilteredRules()) {
 
   bulkToolbar.hidden = rules.length === 0;
   selectedRuleCount.textContent = selectedCount > 0
-    ? `${selectedCount} selected`
-    : `${visibleRules.length} visible`;
+    ? t("options.rules.selected", { count: selectedCount })
+    : t("options.rules.visible", { count: visibleRules.length });
   selectVisibleRules.checked = visibleRules.length > 0 && selectedVisibleCount === visibleRules.length;
   selectVisibleRules.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visibleRules.length;
   bulkActions.hidden = selectedCount === 0;
@@ -411,24 +424,24 @@ function renderBulkToolbar(visibleRules = getFilteredRules()) {
     button.disabled = selectedCount === 0;
   });
   bulkGroupName.disabled = selectedCount === 0;
-  bulkExport.textContent = selectedCount > 0 ? "Export selected" : "Export all";
+  bulkExportLabel.textContent = t(selectedCount > 0 ? "options.actions.exportSelected" : "options.actions.exportAll");
 }
 
 function renderGroupFilter() {
   const selectedGroup = groupFilter.value || "all";
   const groups = [...new Set(rules.map((rule) => getRuleGroup(rule)))].sort((leftGroup, rightGroup) => {
-    if (leftGroup === "Ungrouped") {
+    if (leftGroup === t("options.rules.ungrouped")) {
       return 1;
     }
 
-    if (rightGroup === "Ungrouped") {
+    if (rightGroup === t("options.rules.ungrouped")) {
       return -1;
     }
 
     return leftGroup.localeCompare(rightGroup);
   });
   const options = [
-    new Option("All groups", "all"),
+    new Option(t("options.rules.filter.allGroups"), "all"),
     ...groups.map((group) => new Option(group, group))
   ];
 
@@ -470,6 +483,7 @@ function getRuleUpdatedAt(rule) {
 
 function renderHeader(header = { name: "", value: "" }) {
   const fragment = headerTemplate.content.cloneNode(true);
+  applyTranslations(fragment);
   const row = fragment.querySelector(".header-row");
 
   row.querySelector('[data-field="headerName"]').value = header.name || "";
@@ -509,6 +523,7 @@ function renderEditor() {
 
   if (!rule) {
     const fragment = emptyEditorTemplate.content.cloneNode(true);
+    applyTranslations(fragment);
     fragment.querySelectorAll('[data-action="addEmptyRule"]').forEach((button) => {
       button.addEventListener("click", addDraftRule);
     });
@@ -523,6 +538,7 @@ function renderEditor() {
   }
 
   const fragment = ruleTemplate.content.cloneNode(true);
+  applyTranslations(fragment);
   const card = fragment.querySelector(".rule-editor");
   const headersContainer = card.querySelector('[data-role="headers"]');
   const patternTypeInput = card.querySelector('[data-field="patternType"]');
@@ -612,7 +628,7 @@ function renderEditor() {
     updateSelectedRuleFromEditor();
     renderInlineValidation(getSelectedRule(), card);
     renderRuleList();
-    notify(`Pattern converted to ${toType}`);
+    notify(t("options.toast.patternConverted", { type: toType }));
   });
 
   credentialModeInput.addEventListener("change", () => {
@@ -658,9 +674,9 @@ function getSyncPreviewTabs(rule) {
     const headers = normalizeSyncedHeadersForPreview(rule.syncedHeaders);
     tabs.push({
       key: "headers",
-      label: "Headers",
-      title: "Readonly headers captured from the source request or credential source",
-      emptyText: "No synced headers captured yet.",
+      label: t("common.headers"),
+      title: t("options.sync.headers.title"),
+      emptyText: t("options.sync.headers.empty"),
       rows: headers
     });
   }
@@ -668,9 +684,9 @@ function getSyncPreviewTabs(rule) {
   if (rule.syncAuthorization) {
     tabs.push({
       key: "authorization",
-      label: "Authorization",
-      title: "Readonly Authorization value captured from the source request or credential source",
-      emptyText: "No synced authorization captured yet.",
+      label: t("common.authorization"),
+      title: t("options.sync.authorization.title"),
+      emptyText: t("options.sync.authorization.empty"),
       rows: rule.syncedAuthorization
         ? [{ name: "Authorization", value: rule.syncedAuthorization }]
         : []
@@ -680,9 +696,9 @@ function getSyncPreviewTabs(rule) {
   if (rule.syncCookies) {
     tabs.push({
       key: "cookies",
-      label: "Session cookies",
-      title: "Readonly Cookie header generated from synced session cookies",
-      emptyText: "No synced session cookies captured yet.",
+      label: t("options.editor.sessionCookies"),
+      title: t("options.sync.cookies.title"),
+      emptyText: t("options.sync.cookies.empty"),
       rows: parseCookieHeaderForPreview(rule.syncedCookieHeader)
     });
   }
@@ -795,18 +811,18 @@ function render() {
 
 function getSyncStatus(rule) {
   if (!hasSyncEnabled(rule)) {
-    return "Sync disabled";
+    return t("options.sync.status.disabled");
   }
 
   if (isWaitingForSyncCapture(rule)) {
     return rule.credentialSource && rule.credentialSource !== CREDENTIAL_SOURCES.request
-      ? "Waiting for credential source values"
-      : "Learning mode: trigger one source request";
+      ? t("options.sync.status.waitingCredentialSource")
+      : t("options.sync.status.waitingSource");
   }
 
   return rule.lastSyncedAt
-    ? `Last synced ${new Date(rule.lastSyncedAt).toLocaleString()}`
-    : "Ready";
+    ? t("options.sync.status.lastSynced", { time: new Date(rule.lastSyncedAt).toLocaleString() })
+    : t("common.ready");
 }
 
 function updateCredentialModeVisibility(credentialMode, manualAuthorization, manualHeaders, syncOptions) {
@@ -831,8 +847,8 @@ function updateCredentialSourceVisibility(credentialSource, sourceFields, syncHe
   if (syncHeadersInput) {
     syncHeadersInput.disabled = isCookieSource;
     syncHeadersInput.title = isCookieSource
-      ? "Cookie credential source cannot sync request headers. Use Request learning or Browser storage for headers."
-      : "Sync request headers from the selected source.";
+      ? t("options.sync.cookieSourceHeaders.title")
+      : t("options.sync.headersInput.title");
 
     if (isCookieSource && syncHeadersInput.checked) {
       syncHeadersInput.checked = false;
@@ -847,7 +863,7 @@ async function applyRules(savedRules) {
   });
 
   if (!response?.ok) {
-    throw new Error(response?.error || "Unable to apply dynamic rules.");
+    throw new Error(response?.error || t("runtime.error.apply"));
   }
 
   return Array.isArray(response.rules) ? response.rules : savedRules;
@@ -863,7 +879,7 @@ async function saveCurrentRule(saveButton) {
   try {
     isSavingRule = true;
     saveButton.disabled = true;
-    saveButtonLabel.textContent = "Saving...";
+    saveButtonLabel.textContent = t("options.actions.saving");
     updateSelectedRuleFromEditor();
     touchSelectedRule();
     const selectedRule = getSelectedRule();
@@ -875,13 +891,13 @@ async function saveCurrentRule(saveButton) {
     rules = mergePersistedRulesWithDrafts(appliedRules, { committedRuleIds: new Set([selectedRule.id]) });
     await saveRedirectRules(appliedRules);
     render();
-    notify("Rule saved", "success");
+    notify(t("options.toast.ruleSaved"), "success");
   } catch (error) {
     notify(error.message, "error");
   } finally {
     isSavingRule = false;
     saveButton.disabled = false;
-    saveButtonLabel.textContent = "Save Rule";
+    saveButtonLabel.textContent = t("options.actions.saveRule");
   }
 }
 
@@ -913,7 +929,7 @@ async function removeCurrentRule(removeButton) {
       rules = rules.filter((rule) => rule.id !== ruleToRemove.id);
       selectedRuleId = "";
       render();
-      notify("Draft rule removed");
+      notify(t("options.toast.draftRemoved"));
       return;
     }
 
@@ -926,7 +942,7 @@ async function removeCurrentRule(removeButton) {
     selectedRuleId = "";
     await saveRedirectRules(appliedRules);
     render();
-    notify("Rule removed", "success");
+    notify(t("options.toast.ruleRemoved"), "success");
   } catch (error) {
     notify(error.message, "error");
     removeButton.disabled = false;
@@ -988,7 +1004,10 @@ async function removeSelectedRules() {
     return;
   }
 
-  if (!window.confirm(`Remove ${selectedCount} selected ${selectedCount === 1 ? "rule" : "rules"}?`)) {
+  if (!window.confirm(t("options.dialog.removeSelected", {
+    count: selectedCount,
+    noun: selectedCount === 1 ? t("common.rule") : t("common.rules")
+  }))) {
     return;
   }
 
@@ -1011,7 +1030,7 @@ async function removeSelectedRules() {
     rules = mergePersistedRulesWithDrafts(appliedRules);
     await saveRedirectRules(appliedRules);
     render();
-    notify("Selected rules removed", "success");
+    notify(t("options.toast.selectedRemoved"), "success");
   } catch (error) {
     rules = previousRules;
     savedRuleIds = previousSavedRuleIds;
@@ -1034,19 +1053,22 @@ function duplicateSelectedRules() {
   selectedRuleIds = new Set(duplicatedRules.map((rule) => rule.id));
   selectedRuleId = duplicatedRules[0].id;
   render();
-  notify(`${duplicatedRules.length} duplicated ${duplicatedRules.length === 1 ? "rule" : "rules"} added as draft`);
+  notify(t("options.toast.duplicated", {
+    count: duplicatedRules.length,
+    noun: duplicatedRules.length === 1 ? t("common.rule") : t("common.rules")
+  }));
 }
 
 function exportRules() {
   const rulesToExport = selectedRuleIds.size > 0 ? getSelectedRules() : getPersistedRulesFromMemory();
 
   if (rulesToExport.length === 0) {
-    notify("No rules to export", "error");
+    notify(t("options.toast.noExport"), "error");
     return;
   }
 
   if (hasExportableCredentials(rulesToExport) &&
-    !window.confirm("Exported rules may include Authorization values, custom headers, synced headers, or session cookies. Continue exporting this sensitive JSON file?")) {
+    !window.confirm(t("options.dialog.exportSensitive"))) {
     return;
   }
 
@@ -1060,7 +1082,10 @@ function exportRules() {
   downloadLink.download = `altreurl-rules-${new Date().toISOString().slice(0, 10)}.json`;
   downloadLink.click();
   URL.revokeObjectURL(exportUrl);
-  notify(`${rulesToExport.length} ${rulesToExport.length === 1 ? "rule" : "rules"} exported`, "success");
+  notify(t("options.toast.exported", {
+    count: rulesToExport.length,
+    noun: rulesToExport.length === 1 ? t("common.rule") : t("common.rules")
+  }), "success");
 }
 
 function hasExportableCredentials(rulesToExport = []) {
@@ -1092,14 +1117,17 @@ async function importRules(file) {
       : [];
 
     if (draftRules.length === 0) {
-      throw new Error("No valid rules found in import file.");
+      throw new Error(t("options.import.noValidRules"));
     }
 
     rules = [...draftRules, ...rules];
     selectedRuleIds = new Set(draftRules.map((rule) => rule.id));
     selectedRuleId = draftRules[0].id;
     render();
-    notify(`${draftRules.length} imported ${draftRules.length === 1 ? "rule" : "rules"} added as draft`, "success");
+    notify(t("options.toast.imported", {
+      count: draftRules.length,
+      noun: draftRules.length === 1 ? t("common.rule") : t("common.rules")
+    }), "success");
   } catch (error) {
     notify(error.message, "error");
   } finally {
@@ -1119,7 +1147,7 @@ function addDraftRule() {
   selectedRuleId = blankRule.id;
   selectedRuleIds = new Set([blankRule.id]);
   render();
-  notify("Rule added");
+  notify(t("options.toast.ruleAdded"));
 }
 
 addRuleButton.addEventListener("click", addDraftRule);
@@ -1137,17 +1165,17 @@ selectVisibleRules.addEventListener("change", () => {
 });
 
 bulkEnable.addEventListener("click", async () => {
-  await updateSelectedRules((rule) => ({ ...rule, enabled: true }), "Selected rules enabled");
+  await updateSelectedRules((rule) => ({ ...rule, enabled: true }), t("options.toast.selectedEnabled"));
 });
 
 bulkDisable.addEventListener("click", async () => {
-  await updateSelectedRules((rule) => ({ ...rule, enabled: false }), "Selected rules disabled");
+  await updateSelectedRules((rule) => ({ ...rule, enabled: false }), t("options.toast.selectedDisabled"));
 });
 
 bulkMoveGroup.addEventListener("click", async () => {
   const group = bulkGroupName.value.trim();
 
-  await updateSelectedRules((rule) => ({ ...rule, group }), "Selected rules moved");
+  await updateSelectedRules((rule) => ({ ...rule, group }), t("options.toast.selectedMoved"));
 });
 
 bulkDuplicate.addEventListener("click", duplicateSelectedRules);
@@ -1172,7 +1200,7 @@ toggleRuleControls.addEventListener("click", () => {
 
   ruleListControls.hidden = !isHidden;
   toggleRuleControls.setAttribute("aria-expanded", String(isHidden));
-  filterToggleLabel.textContent = isHidden ? "Hide search and filters" : "Show search and filters";
+  filterToggleLabel.textContent = t(isHidden ? "options.actions.hideFilters" : "options.actions.showFilters");
   filterToggleStateIcon.src = isHidden
     ? "../shared/imgs/icons/icons8-eye-close-32.png"
     : "../shared/imgs/icons/icons8-eye-32.png";

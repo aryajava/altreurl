@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 const RULE_ID_BASE = 1000;
 const WILDCARD = "*";
 export const PATTERN_TYPES = {
@@ -238,7 +240,7 @@ export function validateRegexSubstitutionRefs(sourcePattern, targetUrl) {
     .find((groupIndex) => groupIndex > captureGroupCount);
 
   if (invalidRef) {
-    throw new Error(`Redirect target references capture group ${invalidRef}, but Source URL regex only defines ${captureGroupCount}.`);
+    throw new Error(t("rules.error.captureRef", { group: invalidRef, count: captureGroupCount }));
   }
 }
 
@@ -253,7 +255,7 @@ export function isRegexPatternValid(sourcePattern) {
 
 function validateRegexPattern(sourcePattern) {
   if (!isRegexPatternValid(sourcePattern)) {
-    throw new Error("Source URL regex pattern is invalid.");
+    throw new Error(t("rules.error.regexInvalid"));
   }
 }
 
@@ -456,7 +458,7 @@ export function getRuleSetIssuesByRuleId(configRules = []) {
     if (String(rule.sourcePattern || "").includes("#") || String(rule.targetUrl || "").includes("#")) {
       issuesByRuleId.set(
         rule.id,
-        `Rule "${rule.name || "Unnamed rule"}" uses a URL fragment (#), but fragments are not sent in network requests. Remove the fragment from Source URL pattern and Redirect target URL.`
+        t("rules.error.fragment", { name: rule.name || t("options.rules.unnamed") })
       );
       return false;
     }
@@ -474,11 +476,17 @@ export function getRuleSetIssuesByRuleId(configRules = []) {
 
     issuesByRuleId.set(
       activeRule.rule.id,
-      `Rule "${activeRule.rule.name || "Unnamed rule"}" uses credential headers on a target that overlaps "${conflictRule.rule.name || "Unnamed rule"}". Use unique target URL paths to avoid mixed headers.`
+      t("rules.error.credentialOverlap", {
+        name: activeRule.rule.name || t("options.rules.unnamed"),
+        otherName: conflictRule.rule.name || t("options.rules.unnamed")
+      })
     );
     issuesByRuleId.set(
       conflictRule.rule.id,
-      `Rule "${conflictRule.rule.name || "Unnamed rule"}" has a target that overlaps credential headers from "${activeRule.rule.name || "Unnamed rule"}". Use unique target URL paths to avoid mixed headers.`
+      t("rules.error.credentialOverlapReverse", {
+        name: conflictRule.rule.name || t("options.rules.unnamed"),
+        otherName: activeRule.rule.name || t("options.rules.unnamed")
+      })
     );
   });
 
@@ -503,7 +511,10 @@ function validateHeaderConditionUniqueness(headerCondition, rule, seenHeaderCond
 
   if (previousRule) {
     throw new Error(
-      `Rules "${previousRule.name || "Unnamed rule"}" and "${rule.name || "Unnamed rule"}" use overlapping redirect targets for credential headers. Use unique target URL paths to avoid mixed headers.`
+      t("rules.error.headerOverlap", {
+        leftName: previousRule.name || t("options.rules.unnamed"),
+        rightName: rule.name || t("options.rules.unnamed")
+      })
     );
   }
 
@@ -528,7 +539,7 @@ export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATT
 
   if (sourceWildcardCount > 0 && targetWildcardCount > 0) {
     if (sourceWildcardCount !== targetWildcardCount) {
-      throw new Error("Source URL pattern and redirect target URL must use the same number of wildcards.");
+      throw new Error(t("rules.error.wildcardMismatch"));
     }
 
     return {
@@ -540,7 +551,7 @@ export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATT
   }
 
   if (targetWildcardCount > 0) {
-    throw new Error("Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.");
+    throw new Error(t("rules.error.targetWildcardWithoutSource"));
   }
 
   return {
@@ -675,7 +686,7 @@ export async function applyDynamicRules(configRules = []) {
   const dynamicRuleLimit = getDynamicRuleLimit();
 
   if (addRules.length > dynamicRuleLimit) {
-    throw new Error(`Altreurl generated ${addRules.length} dynamic rules, which exceeds the browser limit of ${dynamicRuleLimit}. Reduce enabled rules or use broader wildcard patterns.`);
+    throw new Error(t("rules.error.dynamicLimit", { count: addRules.length, limit: dynamicRuleLimit }));
   }
 
   await chrome.declarativeNetRequest.updateDynamicRules({
@@ -697,7 +708,7 @@ export function createBlankRule() {
     id: crypto.randomUUID(),
     createdAt: now,
     modifiedAt: now,
-    name: "Local backend",
+    name: t("options.editor.name.placeholder"),
     group: "",
     enabled: true,
     patternType: PATTERN_TYPES.wildcard,

@@ -1,4 +1,5 @@
 import { getThemePreference, saveThemePreference, STORAGE_KEYS } from "./storage.js";
+import { t } from "./i18n.js";
 
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -24,8 +25,8 @@ function updateToggleControl(themeControl, themePreference) {
   const resolvedTheme = resolveTheme(themePreference);
   themeControl.dataset.activeTheme = resolvedTheme;
   themeControl.setAttribute("aria-pressed", String(resolvedTheme === "light"));
-  themeControl.setAttribute("aria-label", `Theme mode: ${resolvedTheme}`);
-  themeControl.title = `Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`;
+  themeControl.setAttribute("aria-label", t("theme.mode", { theme: resolvedTheme }));
+  themeControl.title = t("theme.switchTo", { theme: resolvedTheme === "dark" ? "light" : "dark" });
 }
 
 export async function initThemeControl(themeControl, options = {}) {

@@ -1,4 +1,5 @@
 import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
+import { t } from "../shared/i18n.js";
 import {
   applyDynamicRules,
   buildSourceMatcher,
@@ -44,10 +45,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
   prepareAndApplyRules(changes.redirectRules.newValue || [])
     .catch(async (error) => {
-      console.warn("Unable to apply stored Altreurl rules", error);
+      console.warn(t("runtime.error.storedRules"), error);
       await chrome.storage.local.set({
         [STORAGE_KEYS.applyError]: {
-          message: error.message || "Unable to apply stored Altreurl rules.",
+          message: error.message || t("runtime.error.storedRules"),
           occurredAt: new Date().toISOString()
         }
       });
