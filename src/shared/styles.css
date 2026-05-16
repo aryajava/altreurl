@@ -977,7 +977,7 @@ label select {
   background: var(--panel);
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 10px;
 }
 
@@ -992,6 +992,25 @@ label select {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.popup-rule small[data-status="ready"] {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.popup-rule small[data-status="waiting"] {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.popup-rule small[data-status="disabled"] {
+  color: var(--muted);
+}
+
+.popup-rule small[data-status="invalid"] {
+  color: var(--danger);
+  font-weight: 700;
 }
 
 .popup-rule .icon-button {
