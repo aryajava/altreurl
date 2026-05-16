@@ -56,13 +56,19 @@ async function loadMessages(locale) {
 }
 
 function translateText(root, selector, propertyName) {
-  root.querySelectorAll(selector).forEach((element) => {
+  getMatchingElements(root, selector).forEach((element) => {
     element[propertyName] = t(element.dataset.i18n);
   });
 }
 
 function translateAttribute(root, selector, attributeName, datasetName) {
-  root.querySelectorAll(selector).forEach((element) => {
+  getMatchingElements(root, selector).forEach((element) => {
     element.setAttribute(attributeName, t(element.dataset[datasetName]));
   });
+}
+
+function getMatchingElements(root, selector) {
+  const elements = root.querySelectorAll ? [...root.querySelectorAll(selector)] : [];
+
+  return root.matches?.(selector) ? [root, ...elements] : elements;
 }

@@ -784,18 +784,15 @@ async function applyDynamicRulesNow(configRules = []) {
   await validateDynamicRuleRegexFilters(addRules);
   assertUniqueDynamicRuleIds(addRules);
 
-  try {
-    if (removeRuleIds.length > 0) {
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds
-      });
-    }
+  if (removeRuleIds.length === 0 && addRules.length === 0) {
+    return;
+  }
 
-    if (addRules.length > 0) {
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules
-      });
-    }
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds,
+      addRules
+    });
   } catch (error) {
     throw new Error(getDynamicRuleApplyErrorMessage(error, addRules));
   }

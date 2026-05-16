@@ -5,7 +5,11 @@ export function getFaviconPath(size) {
 }
 
 export function applyFavicons(root = document) {
-  root.querySelectorAll("[data-favicon]").forEach((favicon) => {
+  const favicons = root.matches?.("[data-favicon]")
+    ? [root, ...root.querySelectorAll("[data-favicon]")]
+    : [...root.querySelectorAll("[data-favicon]")];
+
+  favicons.forEach((favicon) => {
     favicon.src = getFaviconPath(favicon.dataset.favicon);
   });
 }

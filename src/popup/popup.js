@@ -1,5 +1,5 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
-import { appendDiagnosticLog, getRedirectRules } from "../shared/storage.js";
+import { appendDiagnosticLog, getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -92,7 +92,15 @@ function renderPopup() {
 
       try {
         toggleButton.disabled = true;
-        const nextRules = rules.map((currentRule) => currentRule.id === rule.id
+        const latestRules = await getRedirectRules();
+        const ruleStillExists = latestRules.some((currentRule) => currentRule.id === rule.id);
+
+        if (!ruleStillExists) {
+          rules = latestRules;
+          throw new Error(t("popup.toast.ruleMissing"));
+        }
+
+        const nextRules = latestRules.map((currentRule) => currentRule.id === rule.id
           ? { ...currentRule, enabled: !isEnabled, modifiedAt: new Date().toISOString() }
           : currentRule);
         rules = nextRules;
@@ -330,5 +338,16 @@ openOptions.addEventListener("click", () => {
 });
 
 ruleSearch.addEventListener("input", renderPopup);
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local" || !changes[STORAGE_KEYS.rules]) {
+    return;
+  }
+
+  rules = Array.isArray(changes[STORAGE_KEYS.rules].newValue)
+    ? changes[STORAGE_KEYS.rules].newValue
+    : [];
+  renderPopup();
+});
 
 renderPopup();

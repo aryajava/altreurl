@@ -1903,6 +1903,15 @@ async function buildImportResult(mode, conflictMode) {
     const rule = detail.rule;
     const shouldHandleAsIssue = detail.hasIssue;
 
+    if (detail.isInvalid && mode !== IMPORT_MODES.draft) {
+      if (conflictMode === IMPORT_CONFLICT_MODES.skip) {
+        skippedCount += 1;
+      } else {
+        draftRules.push(rule);
+      }
+      return;
+    }
+
     if (shouldHandleAsIssue && conflictMode === IMPORT_CONFLICT_MODES.skip) {
       skippedCount += 1;
       return;

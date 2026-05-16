@@ -10,7 +10,11 @@ export function getThemedIconPath(iconName, theme = document.documentElement.dat
 }
 
 export function applyThemedIcons(root = document, theme = document.documentElement.dataset.colorScheme || "light") {
-  root.querySelectorAll("[data-icon]").forEach((icon) => {
+  const icons = root.matches?.("[data-icon]")
+    ? [root, ...root.querySelectorAll("[data-icon]")]
+    : [...root.querySelectorAll("[data-icon]")];
+
+  icons.forEach((icon) => {
     icon.src = getThemedIconPath(icon.dataset.icon, theme);
   });
 }
