@@ -1045,6 +1045,11 @@ function exportRules() {
     return;
   }
 
+  if (hasExportableCredentials(rulesToExport) &&
+    !window.confirm("Exported rules may include Authorization values, custom headers, synced headers, or session cookies. Continue exporting this sensitive JSON file?")) {
+    return;
+  }
+
   const exportBlob = new Blob([JSON.stringify({ version: 1, rules: rulesToExport }, null, 2)], {
     type: "application/json"
   });
@@ -1056,6 +1061,22 @@ function exportRules() {
   downloadLink.click();
   URL.revokeObjectURL(exportUrl);
   notify(`${rulesToExport.length} ${rulesToExport.length === 1 ? "rule" : "rules"} exported`, "success");
+}
+
+function hasExportableCredentials(rulesToExport = []) {
+  return rulesToExport.some((rule) => Boolean(
+    rule.authorization ||
+    normalizeExportHeaders(rule.headers).length > 0 ||
+    normalizeExportHeaders(rule.syncedHeaders).length > 0 ||
+    rule.syncedAuthorization ||
+    rule.syncedCookieHeader
+  ));
+}
+
+function normalizeExportHeaders(headers = []) {
+  return Array.isArray(headers)
+    ? headers.filter((header) => header?.name || header?.value)
+    : [];
 }
 
 async function importRules(file) {

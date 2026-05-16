@@ -20,8 +20,7 @@ function renderPopup() {
   const applicableRules = activeTabContext.isSupported
     ? rules.filter((rule) => isRuleApplicableToTab(rule, activeTabContext))
     : [];
-  const activeRuleIds = getActiveRuleIds(applicableRules, attentionIds);
-  const enabledRules = applicableRules.filter((rule) => activeRuleIds.has(rule.id));
+  const enabledRuleCount = applicableRules.filter((rule) => rule.enabled).length;
   const blockedRuleCount = applicableRules.filter((rule) => rule.enabled && attentionIds.has(rule.id)).length;
   const waitingRuleCount = getWaitingRuleCount(applicableRules, attentionIds);
   const query = ruleSearch.value.trim().toLowerCase();
@@ -35,7 +34,7 @@ function renderPopup() {
     ? "Unsupported page"
     : applicableRules.length === 0
       ? `No rules for ${activeTabContext.hostLabel}`
-      : `${enabledRules.length}/${applicableRules.length} enabled for ${activeTabContext.hostLabel}`;
+      : `${enabledRuleCount}/${applicableRules.length} enabled for ${activeTabContext.hostLabel}`;
   summary.textContent = blockedRuleCount > 0
     ? `${activeSummary} · ${blockedRuleCount} need attention`
     : activeSummary;
@@ -44,8 +43,7 @@ function renderPopup() {
     activeRules.replaceChildren(renderEmptyState({
       totalRuleCount: rules.length,
       contextualRuleCount: applicableRules.length,
-      activeRuleCount: enabledRules.length,
-      enabledRuleCount: applicableRules.filter((rule) => rule.enabled).length,
+      enabledRuleCount,
       blockedRuleCount,
       waitingRuleCount,
       hasQuery: Boolean(query),
@@ -156,6 +154,7 @@ async function getActiveTabContext() {
     return {
       isSupported: true,
       hostLabel: url.hostname,
+      host: url.host,
       hostname: url.hostname,
       origin: url.origin,
       url: url.href
@@ -172,12 +171,12 @@ async function getActiveTabContext() {
 }
 
 function isRuleApplicableToTab(rule, tabContext) {
-  const scope = getRuleSourceScope(rule);
+  const matcher = getRuleSourceMatcher(rule);
 
-  return Boolean(scope?.hostname && tabContext.hostname && scope.hostname === tabContext.hostname);
+  return Boolean(matcher?.(tabContext));
 }
 
-function getRuleSourceScope(rule) {
+function getRuleSourceMatcher(rule) {
   const patternType = normalizePatternType(rule.patternType);
   const sourcePattern = String(rule.sourcePattern || "").trim();
 
@@ -186,42 +185,54 @@ function getRuleSourceScope(rule) {
   }
 
   return patternType === PATTERN_TYPES.regex
-    ? getRegexSourceScope(sourcePattern)
-    : getWildcardSourceScope(sourcePattern);
+    ? getRegexSourceMatcher(sourcePattern)
+    : getWildcardSourceMatcher(sourcePattern);
 }
 
-function getWildcardSourceScope(sourcePattern) {
-  const literalPrefix = sourcePattern.split("*")[0];
+function getWildcardSourceMatcher(sourcePattern) {
+  const hostPattern = getWildcardSourceHostPattern(sourcePattern);
 
-  return getUrlScope(literalPrefix || sourcePattern);
+  return hostPattern ? buildHostMatcher(hostPattern) : null;
 }
 
-function getRegexSourceScope(sourcePattern) {
+function getRegexSourceMatcher(sourcePattern) {
   const readablePattern = sourcePattern
     .replace(/^\^/, "")
     .replace(/\\\//g, "/")
     .replace(/\\\./g, ".")
     .replace(/\\:/g, ":");
-  const match = readablePattern.match(/https?:\/\/[A-Za-z0-9.-]+(?::\d+)?/i);
+  const match = readablePattern.match(/(?:https\?:|https?:)\/\/([A-Za-z0-9.-]+(?::\d+)?)/i);
 
-  return match ? getUrlScope(match[0]) : null;
+  return match ? buildHostMatcher(match[1]) : null;
 }
 
-function getUrlScope(value) {
-  try {
-    const url = new URL(value);
+function getWildcardSourceHostPattern(sourcePattern) {
+  const match = sourcePattern.match(/^(?:https?|\*):\/\/([^/\s]+)/i);
 
-    if (!["http:", "https:"].includes(url.protocol)) {
-      return null;
-    }
+  return match?.[1] || "";
+}
 
-    return {
-      hostname: url.hostname,
-      origin: url.origin
-    };
-  } catch (_error) {
+function buildHostMatcher(hostPattern) {
+  const normalizedHostPattern = String(hostPattern || "").trim().toLowerCase();
+
+  if (!normalizedHostPattern) {
     return null;
   }
+
+  const shouldMatchPort = normalizedHostPattern.includes(":");
+  const regex = normalizedHostPattern.includes("*")
+    ? new RegExp(`^${escapeRegex(normalizedHostPattern).replace(/\*/g, ".*")}$`, "i")
+    : null;
+
+  return (tabContext) => {
+    const candidate = String(shouldMatchPort ? tabContext.host : tabContext.hostname || "").toLowerCase();
+
+    return regex ? regex.test(candidate) : candidate === normalizedHostPattern;
+  };
+}
+
+function escapeRegex(value) {
+  return value.replace(/[\\^$+?.()|[\]{}]/g, "\\$&");
 }
 
 function getRuleTooltip(rule, isEnabled = rule.enabled) {
@@ -243,19 +254,6 @@ async function applyRules(configRules) {
   }
 
   return Array.isArray(response.rules) ? response.rules : configRules;
-}
-
-function getActiveRuleIds(configRules, attentionIds = getRuleAttentionIds(configRules)) {
-
-  return new Set(configRules
-    .filter((rule) => {
-      try {
-        return !attentionIds.has(rule.id) && buildDynamicRules([rule]).length > 0;
-      } catch (_error) {
-        return false;
-      }
-    })
-    .map((rule) => rule.id));
 }
 
 function getRuleIssueIds(configRules) {

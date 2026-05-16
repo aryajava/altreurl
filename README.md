@@ -19,7 +19,8 @@ Current version: `1.10.19`
   - session cookies
 - Prime synced credentials from browser storage or cookies before redirect rules run.
 - Enable or disable rules individually.
-- Search active rules from the popup.
+- Show contextual popup rules for the active tab domain.
+- Enable or disable matching rules from the popup.
 - Search and filter rules from the options page.
 - Organize rules by group and filter the options list by group.
 - Show rule status indicators for draft, waiting sync, ready, disabled, and invalid states.
@@ -38,6 +39,7 @@ Current version: `1.10.19`
 - Remove duplicate editor header badges and apply the duplicate action icon.
 - Select multiple rules and run bulk enable, disable, move, duplicate, export, or remove actions.
 - Import rules from JSON as drafts and export saved or selected rules to JSON.
+- Warn before exporting rules that include Authorization, custom headers, synced headers, or session cookies.
 - Show hover tooltips on rule controls to explain how each helper behaves.
 - Switch between system, light, and dark theme preferences.
 - Show bounded top-right notifications for save and rule actions.
@@ -135,7 +137,9 @@ For cookies, set:
 
 ## Popup
 
-The popup shows active rules, supports search, and lets you disable an active rule quickly without opening the full options page.
+The popup shows rules that match the active tab domain, supports search within those matching rules, and lets you enable or disable a matching rule quickly without opening the full options page.
+
+Rule rows are compact: the rule name color indicates enabled or disabled state, while the source and target URLs are available from the row tooltip.
 
 ## Permissions
 
@@ -151,6 +155,12 @@ Altreurl uses these permissions:
 - `<all_urls>` host access
 
 These permissions are required so the extension can match requests, redirect them, modify request headers, read configured browser storage from matching source tabs, and sync cookies or credential headers for local debugging.
+
+## Privacy
+
+Altreurl stores rule configuration and synced credential values locally in the browser profile. It does not send rule data, headers, cookies, authorization values, or browsing activity to an Altreurl server.
+
+See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for details. For Chrome Web Store publication, publish this policy at a public URL and provide that URL in the Developer Dashboard.
 
 ## Development
 
