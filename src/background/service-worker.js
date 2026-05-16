@@ -35,7 +35,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   saveAndApplyRules(message.rules || [])
-    .then((hydratedRules) => sendResponse({ ok: true, rules: hydratedRules }))
+    .then((result) => sendResponse({ ok: true, ...result }))
     .catch((error) => sendResponse({ ok: false, error: error.message }));
 
   return true;
@@ -126,12 +126,25 @@ async function prepareAndApplyRules(rules, options = {}) {
 }
 
 async function saveAndApplyRules(rules) {
-  const hydratedRules = await prepareAndApplyRules(rules);
+  const savedRules = Array.isArray(rules) ? rules : [];
 
-  rememberAppliedRuleWrite(hydratedRules);
-  await chrome.storage.local.set({ [STORAGE_KEYS.rules]: hydratedRules });
+  rememberAppliedRuleWrite(savedRules);
+  await chrome.storage.local.set({ [STORAGE_KEYS.rules]: savedRules });
 
-  return hydratedRules;
+  try {
+    const hydratedRules = await prepareAndApplyRules(savedRules, { persistHydratedRules: true });
+
+    return { rules: hydratedRules };
+  } catch (error) {
+    const applyError = {
+      message: error.message || t("runtime.error.apply"),
+      occurredAt: new Date().toISOString()
+    };
+
+    await chrome.storage.local.set({ [STORAGE_KEYS.applyError]: applyError });
+
+    return { rules: savedRules, applyError };
+  }
 }
 
 function rememberAppliedRuleWrite(rules) {

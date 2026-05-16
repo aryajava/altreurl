@@ -273,6 +273,10 @@ async function saveRules(configRules) {
     throw new Error(response?.error || t("runtime.error.apply"));
   }
 
+  if (response.applyError?.message) {
+    notify(response.applyError.message, "error");
+  }
+
   return Array.isArray(response.rules) ? response.rules : configRules;
 }
 
