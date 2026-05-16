@@ -1,5 +1,5 @@
 import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
-import { t } from "../shared/i18n.js";
+import { initI18n, t } from "../shared/i18n.js";
 import {
   applyDynamicRules,
   buildSourceMatcher,
@@ -13,6 +13,8 @@ import {
 
 const CAPTURE_FILTER = { urls: ["<all_urls>"] };
 const CAPTURE_OPTIONS = ["requestHeaders", "extraHeaders"];
+
+await initI18n();
 
 chrome.webRequest.onBeforeSendHeaders.addListener(captureSourceRequest, CAPTURE_FILTER, CAPTURE_OPTIONS);
 

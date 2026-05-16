@@ -15,7 +15,7 @@ import {
 import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
-import { applyTranslations, t } from "../shared/i18n.js";
+import { applyTranslations, initI18n, t } from "../shared/i18n.js";
 
 const rulesList = document.querySelector("#rulesList");
 const editorPanel = document.querySelector("#editorPanel");
@@ -64,6 +64,7 @@ const BACKGROUND_SYNC_FIELDS = [
   "lastSyncedAt"
 ];
 
+await initI18n();
 applyTranslations();
 await initThemeControl(themePreference, { controlType: "toggle" });
 

@@ -2,7 +2,7 @@ import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATT
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
 import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
-import { applyTranslations, t } from "../shared/i18n.js";
+import { applyTranslations, initI18n, t } from "../shared/i18n.js";
 
 const summary = document.querySelector("#summary");
 const activeRules = document.querySelector("#activeRules");
@@ -11,6 +11,7 @@ const openOptions = document.querySelector("#openOptions");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "popup" });
 
+await initI18n();
 let rules = await getRedirectRules();
 let activeTabContext = await getActiveTabContext();
 
