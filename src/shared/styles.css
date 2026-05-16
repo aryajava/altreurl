@@ -203,7 +203,7 @@ label select {
 .options-shell {
   display: grid;
   gap: 16px;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100dvh;
   margin: 0 auto;
   max-width: min(1540px, 100vw);
@@ -325,6 +325,53 @@ label select {
 .rule-card__header,
 .headers-block__title {
   justify-content: space-between;
+}
+
+.app-footer {
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 10px 12px;
+}
+
+.app-footer p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.app-footer__links {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.footer-link {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  display: inline-flex;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 10px;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  border-color: var(--accent);
+}
+
+.footer-link img {
+  display: block;
+  flex: 0 0 auto;
 }
 
 .options-layout {
@@ -1075,6 +1122,15 @@ label select {
     justify-content: stretch;
   }
 
+  .app-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-footer__links {
+    justify-content: flex-start;
+  }
+
   .header-actions > button {
     flex: 1 1 160px;
   }
@@ -1126,6 +1182,11 @@ label select {
 
   .header-actions,
   .rule-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-footer__links {
     align-items: stretch;
     flex-direction: column;
   }
