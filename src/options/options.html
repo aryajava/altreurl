@@ -35,7 +35,7 @@
           </button>
           <button id="copyDiagnostics" class="icon-button" type="button" data-i18n-title="options.actions.copyDiagnostics.title">
             <img data-icon="icons8-list-32.png" src="../shared/imgs/icons/b/icons8-list-32.png" alt="" width="16" height="16">
-            <span data-i18n="options.actions.copyDiagnostics"></span>
+            <span data-i18n="options.actions.diagnostics"></span>
           </button>
           <button id="addRule" class="icon-button" type="button" data-i18n-title="options.actions.createDraft.title">
             <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
@@ -137,6 +137,39 @@
             <button id="exportDownload" class="icon-button" type="button">
               <img data-icon="icons8-export-32.png" src="../shared/imgs/icons/b/icons8-export-32.png" alt="" width="16" height="16">
               <span data-i18n="options.export.download"></span>
+            </button>
+          </footer>
+        </form>
+      </dialog>
+
+      <dialog id="diagnosticsDialog" class="import-dialog" aria-labelledby="diagnosticsDialogTitle">
+        <form method="dialog" class="import-dialog__panel">
+          <header class="import-dialog__header">
+            <div>
+              <h2 id="diagnosticsDialogTitle" data-i18n="options.diagnostics.title"></h2>
+              <p data-i18n="options.diagnostics.detail"></p>
+            </div>
+            <button id="diagnosticsCloseTop" class="icon-button" type="button" data-i18n-title="options.diagnostics.close.title">
+              <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.close"></span>
+            </button>
+          </header>
+          <div id="diagnosticsStats" class="import-stats"></div>
+          <div id="diagnosticsErrors" class="import-warnings"></div>
+          <div id="diagnosticsLogs" class="import-rule-preview"></div>
+          <footer class="import-dialog__actions">
+            <button id="diagnosticsClose" class="icon-button" type="button" data-i18n="options.diagnostics.close"></button>
+            <button id="diagnosticsCopy" class="icon-button" type="button">
+              <img data-icon="icons8-list-32.png" src="../shared/imgs/icons/b/icons8-list-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.copy"></span>
+            </button>
+            <button id="diagnosticsCopyLogs" class="icon-button" type="button">
+              <img data-icon="icons8-export-32.png" src="../shared/imgs/icons/b/icons8-export-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.copyLogs"></span>
+            </button>
+            <button id="diagnosticsClearLogs" class="icon-button" type="button">
+              <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.clearLogs"></span>
             </button>
           </footer>
         </form>

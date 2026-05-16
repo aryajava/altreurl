@@ -1,4 +1,4 @@
-import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
+import { appendDiagnosticLog, getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
 import { initI18n, t } from "../shared/i18n.js";
 import {
   applyDynamicRules,
@@ -120,6 +120,9 @@ async function captureSourceRequest(details) {
   try {
     rememberAppliedRuleWrite(nextRules);
     await chrome.storage.local.set({ [STORAGE_KEYS.rules]: nextRules });
+    await appendDiagnosticLog("sync_captured", "info", {
+      ruleCount: readyCapturedRulesById.size
+    });
   } catch (error) {
     await applyDynamicRules(rules);
     throw error;
@@ -132,6 +135,10 @@ async function prepareAndApplyRules(rules, options = {}) {
 
   await applyDynamicRules(hydratedRules);
   await clearApplyError();
+  await appendDiagnosticLog("dynamic_rules_applied", "info", {
+    ruleCount: hydratedRules.length,
+    enabledRuleCount: hydratedRules.filter((rule) => rule.enabled).length
+  });
 
   if (options.persistHydratedRules && JSON.stringify(hydratedRules) !== JSON.stringify(rules)) {
     rememberAppliedRuleWrite(hydratedRules);
@@ -150,6 +157,10 @@ async function saveAndApplyRules(rules) {
 
     rememberAppliedRuleWrite(hydratedRules);
     await chrome.storage.local.set({ [STORAGE_KEYS.rules]: hydratedRules });
+    await appendDiagnosticLog("rules_saved", "info", {
+      ruleCount: hydratedRules.length,
+      enabledRuleCount: hydratedRules.filter((rule) => rule.enabled).length
+    });
 
     return { rules: hydratedRules };
   } catch (error) {
@@ -159,6 +170,10 @@ async function saveAndApplyRules(rules) {
     };
 
     await chrome.storage.local.set({ [STORAGE_KEYS.applyError]: applyError });
+    await appendDiagnosticLog("rule_save_failed", "error", {
+      message: applyError.message,
+      ruleCount: savedRules.length
+    });
     throw error;
   }
 }

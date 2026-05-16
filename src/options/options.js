@@ -12,7 +12,13 @@ import {
   isRegexSubstitutionValid,
   isWaitingForSyncCapture
 } from "../shared/rules.js";
-import { getRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
+import {
+  appendDiagnosticLog,
+  clearDiagnosticLogs,
+  getDiagnosticLogs,
+  getRedirectRules,
+  STORAGE_KEYS
+} from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { applyThemedIcons, getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -70,6 +76,15 @@ const exportCancel = document.querySelector("#exportCancel");
 const exportClose = document.querySelector("#exportClose");
 const exportCopy = document.querySelector("#exportCopy");
 const exportDownload = document.querySelector("#exportDownload");
+const diagnosticsDialog = document.querySelector("#diagnosticsDialog");
+const diagnosticsStats = document.querySelector("#diagnosticsStats");
+const diagnosticsErrors = document.querySelector("#diagnosticsErrors");
+const diagnosticsLogs = document.querySelector("#diagnosticsLogs");
+const diagnosticsCloseTop = document.querySelector("#diagnosticsCloseTop");
+const diagnosticsClose = document.querySelector("#diagnosticsClose");
+const diagnosticsCopy = document.querySelector("#diagnosticsCopy");
+const diagnosticsCopyLogs = document.querySelector("#diagnosticsCopyLogs");
+const diagnosticsClearLogs = document.querySelector("#diagnosticsClearLogs");
 const themePreference = document.querySelector("#themePreference");
 const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
@@ -1377,6 +1392,11 @@ function downloadPendingExport() {
   downloadLink.click();
   URL.revokeObjectURL(exportUrl);
   notifyExportReport();
+  appendDiagnosticLog("export_downloaded", "info", {
+    scope: pendingExport.scope,
+    credentialMode: pendingExport.credentialMode,
+    ruleCount: pendingExport.rules.length
+  });
   closeExportDialog();
 }
 
@@ -1388,6 +1408,11 @@ async function copyPendingExportJson() {
 
   try {
     await navigator.clipboard.writeText(JSON.stringify(pendingExport.payload, null, 2));
+    await appendDiagnosticLog("export_copied", "info", {
+      scope: pendingExport.scope,
+      credentialMode: pendingExport.credentialMode,
+      ruleCount: pendingExport.rules.length
+    });
     notify(t("options.export.toast.copied"), "success");
   } catch (error) {
     notify(error.message || t("options.export.toast.copyFailed"), "error");
@@ -1429,47 +1454,142 @@ function closeExportDialog() {
   exportRulePreview.replaceChildren();
 }
 
+async function openDiagnostics() {
+  await renderDiagnosticsDialog();
+  diagnosticsDialog.showModal();
+  await appendDiagnosticLog("diagnostics_opened", "info", {
+    totalRules: rules.length
+  });
+}
+
+async function renderDiagnosticsDialog() {
+  const diagnostics = await buildDiagnosticsPayload({ includeLogs: true });
+  const errorLogs = diagnostics.logs.filter((log) => log.severity === "error");
+
+  diagnosticsStats.replaceChildren(...[
+    createImportStat(t("options.diagnostics.stat.rules"), diagnostics.summary.totalRules),
+    createImportStat(t("common.enabled"), diagnostics.summary.enabledRules),
+    createImportStat(t("common.disabled"), diagnostics.summary.disabledRules),
+    createImportStat(t("options.diagnostics.stat.dynamicRules"), diagnostics.summary.dynamicRuleCount),
+    createImportStat(t("options.diagnostics.stat.logs"), diagnostics.logs.length),
+    createImportStat(t("options.diagnostics.stat.errors"), errorLogs.length)
+  ]);
+
+  diagnosticsErrors.replaceChildren(...[
+    diagnostics.lastApplyError?.message
+      ? createDiagnosticsMessage(diagnostics.lastApplyError.message)
+      : createDiagnosticsMessage(t("options.diagnostics.noApplyError"))
+  ]);
+
+  diagnosticsLogs.replaceChildren(...diagnostics.logs.slice(-20).reverse().map(renderDiagnosticLog));
+  if (diagnostics.logs.length === 0) {
+    diagnosticsLogs.replaceChildren(createDiagnosticsMessage(t("options.diagnostics.noLogs")));
+  }
+}
+
+function createDiagnosticsMessage(message) {
+  const item = document.createElement("p");
+  item.textContent = message;
+  return item;
+}
+
+function renderDiagnosticLog(log) {
+  const item = document.createElement("div");
+  const title = document.createElement("strong");
+  const meta = document.createElement("span");
+  const detail = document.createElement("small");
+
+  item.className = "import-preview-rule";
+  item.dataset.issue = String(log.severity === "error");
+  title.textContent = log.event;
+  meta.textContent = `${log.severity} · ${new Date(log.occurredAt).toLocaleString()}`;
+  detail.textContent = JSON.stringify(log.details || {});
+  item.append(title, meta, detail);
+  return item;
+}
+
+async function buildDiagnosticsPayload(options = {}) {
+  updateSelectedRuleFromEditor();
+  const includeLogs = options.includeLogs !== false;
+  const [storageResult, dynamicRules, logs] = await Promise.all([
+    chrome.storage.local.get({ [STORAGE_KEYS.applyError]: null }),
+    chrome.declarativeNetRequest.getDynamicRules().catch(() => []),
+    includeLogs ? getDiagnosticLogs() : Promise.resolve([])
+  ]);
+  const manifest = chrome.runtime.getManifest();
+  const statusCounts = rules.reduce((counts, rule) => {
+    const status = getRuleStatus(rule).key;
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
+  const enabledRules = rules
+    .filter((rule) => rule.enabled)
+    .map((rule) => ({
+      id: rule.id,
+      name: rule.name || t("options.rules.unnamed"),
+      status: getRuleStatus(rule).key,
+      patternType: rule.patternType || PATTERN_TYPES.wildcard,
+      credentialMode: rule.credentialMode || CREDENTIAL_MODES.manual
+    }));
+
+  return {
+    app: manifest.name,
+    version: manifest.version,
+    generatedAt: new Date().toISOString(),
+    browser: navigator.userAgent,
+    permissions: manifest.permissions || [],
+    hostPermissions: manifest.host_permissions || [],
+    summary: {
+      totalRules: rules.length,
+      savedRules: rules.filter((rule) => savedRuleIds.has(rule.id)).length,
+      draftRules: rules.filter((rule) => !savedRuleIds.has(rule.id)).length,
+      selectedRules: selectedRuleIds.size,
+      enabledRules: rules.filter((rule) => rule.enabled).length,
+      disabledRules: rules.filter((rule) => !rule.enabled).length,
+      dynamicRuleCount: dynamicRules.length,
+      statusCounts
+    },
+    enabledRules,
+    lastApplyError: storageResult[STORAGE_KEYS.applyError] || null,
+    logs
+  };
+}
+
 async function copyDiagnostics() {
   try {
-    updateSelectedRuleFromEditor();
-    const result = await chrome.storage.local.get({ [STORAGE_KEYS.applyError]: null });
-    const manifest = chrome.runtime.getManifest();
-    const statusCounts = rules.reduce((counts, rule) => {
-      const status = getRuleStatus(rule).key;
-      counts[status] = (counts[status] || 0) + 1;
-      return counts;
-    }, {});
-    const enabledRules = rules
-      .filter((rule) => rule.enabled)
-      .map((rule) => ({
-        id: rule.id,
-        name: rule.name || t("options.rules.unnamed"),
-        status: getRuleStatus(rule).key,
-        patternType: rule.patternType || PATTERN_TYPES.wildcard,
-        credentialMode: rule.credentialMode || CREDENTIAL_MODES.manual
-      }));
-    const diagnostics = {
-      app: manifest.name,
-      version: manifest.version,
-      generatedAt: new Date().toISOString(),
-      ruleSummary: {
-        total: rules.length,
-        saved: rules.filter((rule) => savedRuleIds.has(rule.id)).length,
-        draft: rules.filter((rule) => !savedRuleIds.has(rule.id)).length,
-        selected: selectedRuleIds.size,
-        enabled: rules.filter((rule) => rule.enabled).length,
-        disabled: rules.filter((rule) => !rule.enabled).length,
-        statusCounts
-      },
-      enabledRules,
-      lastApplyError: result[STORAGE_KEYS.applyError] || null
-    };
-
+    const diagnostics = await buildDiagnosticsPayload({ includeLogs: true });
     await navigator.clipboard.writeText(JSON.stringify(diagnostics, null, 2));
+    await appendDiagnosticLog("diagnostics_copied", "info", {
+      logCount: diagnostics.logs.length
+    });
     notify(t("options.toast.diagnosticsCopied"), "success");
   } catch (error) {
     notify(error.message || t("options.toast.diagnosticsCopyFailed"), "error");
   }
+}
+
+async function copyDiagnosticLogs() {
+  try {
+    const logs = await getDiagnosticLogs();
+    await navigator.clipboard.writeText(JSON.stringify(logs, null, 2));
+    await appendDiagnosticLog("diagnostic_logs_copied", "info", { logCount: logs.length });
+    notify(t("options.diagnostics.logsCopied"), "success");
+  } catch (error) {
+    notify(error.message || t("options.diagnostics.logsCopyFailed"), "error");
+  }
+}
+
+async function clearLogsFromDiagnostics() {
+  await clearDiagnosticLogs();
+  await renderDiagnosticsDialog();
+  notify(t("options.diagnostics.logsCleared"), "success");
+}
+
+function closeDiagnosticsDialog() {
+  diagnosticsDialog.close();
+  diagnosticsStats.replaceChildren();
+  diagnosticsErrors.replaceChildren();
+  diagnosticsLogs.replaceChildren();
 }
 
 function hasExportableCredentials(rulesToExport = []) {
@@ -1756,6 +1876,13 @@ async function applyPendingImport() {
       skipped: result.skippedCount,
       noun: result.draftRules.length + result.savedImportIds.length === 1 ? t("common.rule") : t("common.rules")
     }), "success");
+    await appendDiagnosticLog("import_applied", "info", {
+      mode,
+      conflictMode,
+      draftCount: result.draftRules.length,
+      savedCount: result.savedImportIds.length,
+      skippedCount: result.skippedCount
+    });
     closeImportDialog();
   } catch (error) {
     notify(error.message || t("runtime.error.apply"), "error");
@@ -1889,7 +2016,7 @@ bulkMoveGroup.addEventListener("click", async () => {
 
 bulkDuplicate.addEventListener("click", duplicateSelectedRules);
 bulkExport.addEventListener("click", exportRules);
-copyDiagnosticsButton.addEventListener("click", copyDiagnostics);
+copyDiagnosticsButton.addEventListener("click", openDiagnostics);
 bulkRemove.addEventListener("click", removeSelectedRules);
 
 importRulesButton.addEventListener("click", () => {
@@ -1908,6 +2035,11 @@ exportDownload.addEventListener("click", downloadPendingExport);
 exportScope.addEventListener("change", renderExportDialog);
 exportCredentialMode.addEventListener("change", renderExportDialog);
 exportGroup.addEventListener("change", renderExportDialog);
+diagnosticsCloseTop.addEventListener("click", closeDiagnosticsDialog);
+diagnosticsClose.addEventListener("click", closeDiagnosticsDialog);
+diagnosticsCopy.addEventListener("click", copyDiagnostics);
+diagnosticsCopyLogs.addEventListener("click", copyDiagnosticLogs);
+diagnosticsClearLogs.addEventListener("click", clearLogsFromDiagnostics);
 
 importRulesFile.addEventListener("change", async () => {
   await importRules(importRulesFile.files[0]);

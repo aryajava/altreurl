@@ -1,5 +1,5 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
-import { getRedirectRules } from "../shared/storage.js";
+import { appendDiagnosticLog, getRedirectRules } from "../shared/storage.js";
 import { applyFavicons } from "../shared/favicon.js";
 import { getThemedIconPath } from "../shared/icon.js";
 import { initThemeControl } from "../shared/theme.js";
@@ -98,6 +98,10 @@ function renderPopup() {
         rules = nextRules;
         renderPopup();
         rules = await saveRules(nextRules);
+        await appendDiagnosticLog(isEnabled ? "rule_disabled" : "rule_enabled", "info", {
+          ruleId: rule.id,
+          ruleName: ruleName
+        });
         notify(t(isEnabled ? "popup.toast.disabled" : "popup.toast.enabled"), "success");
         renderPopup();
       } catch (error) {
