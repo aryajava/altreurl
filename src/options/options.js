@@ -13,7 +13,9 @@ import {
   isWaitingForSyncCapture
 } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules, STORAGE_KEYS } from "../shared/storage.js";
-import { applyThemedIcons, getThemedIconPath, initThemeControl } from "../shared/theme.js";
+import { applyFavicons } from "../shared/favicon.js";
+import { applyThemedIcons, getThemedIconPath } from "../shared/icon.js";
+import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
 import { applyTranslations, initI18n, t } from "../shared/i18n.js";
 
@@ -66,6 +68,7 @@ const BACKGROUND_SYNC_FIELDS = [
 ];
 
 applyTranslations();
+applyFavicons();
 await initThemeControl(themePreference, { controlType: "toggle" });
 
 function getSelectedRule() {

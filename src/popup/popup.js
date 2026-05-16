@@ -1,6 +1,8 @@
 import { buildDynamicRules, getRuleSetIssuesByRuleId, normalizePatternType, PATTERN_TYPES } from "../shared/rules.js";
 import { getRedirectRules, saveRedirectRules } from "../shared/storage.js";
-import { getThemedIconPath, initThemeControl } from "../shared/theme.js";
+import { applyFavicons } from "../shared/favicon.js";
+import { getThemedIconPath } from "../shared/icon.js";
+import { initThemeControl } from "../shared/theme.js";
 import { createNotifier } from "../shared/notifications.js";
 import { applyTranslations, initI18n, t } from "../shared/i18n.js";
 
@@ -16,6 +18,7 @@ let rules = await getRedirectRules();
 let activeTabContext = await getActiveTabContext();
 
 applyTranslations();
+applyFavicons();
 await initThemeControl();
 
 function renderPopup() {

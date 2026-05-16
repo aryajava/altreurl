@@ -1,11 +1,8 @@
 import { getThemePreference, saveThemePreference, STORAGE_KEYS } from "./storage.js";
 import { t } from "./i18n.js";
+import { applyThemedIcons } from "./icon.js";
 
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const ICON_FOLDERS = {
-  dark: "w",
-  light: "b"
-};
 
 function resolveTheme(themePreference) {
   if (themePreference === "light" || themePreference === "dark") {
@@ -81,17 +78,5 @@ export async function initThemeControl(themeControl, options = {}) {
     } else if (themeControl) {
       themeControl.value = nextThemePreference;
     }
-  });
-}
-
-export function getThemedIconPath(iconName, theme = document.documentElement.dataset.colorScheme || "light") {
-  const folder = ICON_FOLDERS[theme] || ICON_FOLDERS.light;
-
-  return `../shared/imgs/icons/${folder}/${iconName}`;
-}
-
-export function applyThemedIcons(root = document, theme = document.documentElement.dataset.colorScheme || "light") {
-  root.querySelectorAll("[data-icon]").forEach((icon) => {
-    icon.src = getThemedIconPath(icon.dataset.icon, theme);
   });
 }
