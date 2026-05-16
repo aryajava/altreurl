@@ -471,10 +471,6 @@ label select {
   margin-bottom: 10px;
 }
 
-.filter-toggle__icon::before {
-  content: "";
-}
-
 .filter-toggle__icon {
   transition: transform 0.16s ease;
 }
@@ -1004,10 +1000,6 @@ label select {
   .header-actions,
   .rule-actions {
     align-items: stretch;
-  }
-
-  .header-actions,
-  .rule-actions {
     flex-direction: column;
   }
 

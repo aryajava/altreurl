@@ -51,6 +51,7 @@ const notifications = document.querySelector("#notifications");
 const notify = createNotifier(notifications, { scope: "options" });
 const bulkExportLabel = bulkExport.querySelector('[data-role="bulkExportLabel"]');
 
+await initI18n();
 let rules = await getRedirectRules();
 let selectedRuleId = "";
 let isSavingRule = false;
@@ -64,7 +65,6 @@ const BACKGROUND_SYNC_FIELDS = [
   "lastSyncedAt"
 ];
 
-await initI18n();
 applyTranslations();
 await initThemeControl(themePreference, { controlType: "toggle" });
 
@@ -115,7 +115,7 @@ function timestampNow() {
   return new Date().toISOString();
 }
 
-function cloneRuleAsDraft(rule, suffix = "Copy") {
+function cloneRuleAsDraft(rule, suffix = t("options.rules.copySuffix")) {
   const now = timestampNow();
 
   return {
@@ -408,8 +408,7 @@ function renderRuleList() {
 }
 
 function renderBulkToolbar(visibleRules = getFilteredRules()) {
-  const visibleRuleIds = new Set(visibleRules.map((rule) => rule.id));
-  selectedRuleIds = new Set([...selectedRuleIds].filter((ruleId) => rules.some((rule) => rule.id === ruleId) || visibleRuleIds.has(ruleId)));
+  selectedRuleIds = new Set([...selectedRuleIds].filter((ruleId) => rules.some((rule) => rule.id === ruleId)));
   const selectedVisibleCount = visibleRules.filter((rule) => selectedRuleIds.has(rule.id)).length;
   const selectedCount = selectedRuleIds.size;
 
@@ -1202,6 +1201,7 @@ toggleRuleControls.addEventListener("click", () => {
   ruleListControls.hidden = !isHidden;
   toggleRuleControls.setAttribute("aria-expanded", String(isHidden));
   filterToggleLabel.textContent = t(isHidden ? "options.actions.hideFilters" : "options.actions.showFilters");
+  toggleRuleControls.title = t(isHidden ? "options.actions.hideFilters" : "options.actions.showFilters");
   filterToggleStateIcon.src = isHidden
     ? "../shared/imgs/icons/icons8-eye-close-32.png"
     : "../shared/imgs/icons/icons8-eye-32.png";
@@ -1216,8 +1216,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     notify(changes[STORAGE_KEYS.applyError].newValue.message, "error");
   }
 
-  if (changes.redirectRules) {
-    const persistedRules = Array.isArray(changes.redirectRules.newValue) ? changes.redirectRules.newValue : [];
+  if (changes[STORAGE_KEYS.rules]) {
+    const persistedRules = Array.isArray(changes[STORAGE_KEYS.rules].newValue)
+      ? changes[STORAGE_KEYS.rules].newValue
+      : [];
     savedRuleIds = new Set(persistedRules.map((rule) => rule.id));
     rules = mergePersistedRulesWithDrafts(persistedRules);
     selectedRuleId = rules.some((rule) => rule.id === selectedRuleId) ? selectedRuleId : "";

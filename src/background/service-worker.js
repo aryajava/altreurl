@@ -41,11 +41,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName !== "local" || !changes.redirectRules) {
+  if (areaName !== "local" || !changes[STORAGE_KEYS.rules]) {
     return;
   }
 
-  prepareAndApplyRules(changes.redirectRules.newValue || [])
+  prepareAndApplyRules(changes[STORAGE_KEYS.rules].newValue || [])
     .catch(async (error) => {
       console.warn(t("runtime.error.storedRules"), error);
       await chrome.storage.local.set({
@@ -96,7 +96,7 @@ async function captureSourceRequest(details) {
   await clearApplyError();
 
   try {
-    await chrome.storage.local.set({ redirectRules: nextRules });
+    await chrome.storage.local.set({ [STORAGE_KEYS.rules]: nextRules });
   } catch (error) {
     await applyDynamicRules(rules);
     throw error;
@@ -110,7 +110,7 @@ async function prepareAndApplyRules(rules, options = {}) {
   await clearApplyError();
 
   if (options.persistHydratedRules && JSON.stringify(hydratedRules) !== JSON.stringify(rules)) {
-    await chrome.storage.local.set({ redirectRules: hydratedRules });
+    await chrome.storage.local.set({ [STORAGE_KEYS.rules]: hydratedRules });
   }
 
   return hydratedRules;
@@ -120,7 +120,7 @@ async function clearApplyError() {
   try {
     await chrome.storage.local.remove(STORAGE_KEYS.applyError);
   } catch (error) {
-    console.warn("Unable to clear Altreurl apply error", error);
+    console.warn(t("runtime.error.clearApply"), error);
   }
 }
 

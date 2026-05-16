@@ -6,6 +6,7 @@
 }
 
 .popup-shell main {
+  display: grid;
   gap: 10px;
 }
 

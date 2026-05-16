@@ -88,6 +88,7 @@
   "options.actions.moveGroup.title": "Group name for selected rules",
   "options.actions.saveRule.title": "Save only this selected rule",
   "options.actions.removeRule.title": "Remove this rule. Draft rules are removed only from this page.",
+  "options.actions.removeHeader.title": "Remove this header row",
   "options.rules.title": "Rules",
   "options.rules.search.placeholder": "Search rules",
   "options.rules.search.title": "Search by rule name, group, source URL, or target URL",
@@ -110,6 +111,7 @@
   "options.rules.unnamed": "Unnamed rule",
   "options.rules.noSource": "No source pattern",
   "options.rules.noTarget": "No redirect target",
+  "options.rules.copySuffix": "Copy",
   "options.rules.itemTooltip": "Source: {source}\nTarget: {target}",
   "options.rules.dynamicCount": "{count} DNR {noun}",
   "options.rules.dynamicInvalid": "DNR invalid",
@@ -212,5 +214,6 @@
   "rules.error.wildcardMismatch": "Source URL pattern and redirect target URL must use the same number of wildcards.",
   "rules.error.targetWildcardWithoutSource": "Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.",
   "runtime.error.apply": "Unable to apply dynamic rules.",
+  "runtime.error.clearApply": "Unable to clear Altreurl apply error.",
   "runtime.error.storedRules": "Unable to apply stored Altreurl rules."
 }
