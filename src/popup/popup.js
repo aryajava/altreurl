@@ -63,19 +63,18 @@ function renderPopup() {
     const item = document.createElement("div");
     const detail = document.createElement("div");
     const name = document.createElement("strong");
-    const meta = document.createElement("small");
     const toggleButton = document.createElement("button");
     const toggleIcon = document.createElement("img");
-    const status = getRuleStatus(rule, attentionIds);
     const isEnabled = rule.enabled;
 
     item.className = "popup-rule";
     item.title = getRuleTooltip(rule);
+    item.dataset.enabled = String(isEnabled);
     name.textContent = rule.name || "Unnamed rule";
-    meta.textContent = status.label;
-    meta.dataset.status = status.key;
+    name.title = `${isEnabled ? "Enabled" : "Disabled"} · ${rule.name || "Unnamed rule"}`;
     toggleButton.type = "button";
     toggleButton.className = "icon-button";
+    toggleButton.setAttribute("aria-label", `${isEnabled ? "Disable" : "Enable"} ${rule.name || "Unnamed rule"}`);
     toggleButton.title = `${isEnabled ? "Disable" : "Enable"} ${rule.name || "Unnamed rule"}`;
     toggleIcon.src = isEnabled
       ? "../shared/imgs/icons/icons8-remove-32.png"
@@ -83,7 +82,7 @@ function renderPopup() {
     toggleIcon.alt = "";
     toggleIcon.width = 16;
     toggleIcon.height = 16;
-    toggleButton.append(toggleIcon, isEnabled ? "Disable" : "Enable");
+    toggleButton.append(toggleIcon);
     toggleButton.addEventListener("click", async () => {
       try {
         toggleButton.disabled = true;
@@ -100,7 +99,7 @@ function renderPopup() {
       }
     });
 
-    detail.append(name, meta);
+    detail.append(name);
     item.append(detail, toggleButton);
     return item;
   }));
@@ -226,24 +225,6 @@ function getUrlScope(value) {
     };
   } catch (_error) {
     return null;
-  }
-}
-
-function getRuleStatus(rule, attentionIds) {
-  if (!rule.enabled) {
-    return { key: "disabled", label: "Disabled" };
-  }
-
-  if (attentionIds.has(rule.id)) {
-    return { key: "invalid", label: "Needs attention" };
-  }
-
-  try {
-    return buildDynamicRules([rule]).length === 0
-      ? { key: "waiting", label: "Waiting sync" }
-      : { key: "ready", label: "Enabled" };
-  } catch (_error) {
-    return { key: "invalid", label: "Needs attention" };
   }
 }
 
