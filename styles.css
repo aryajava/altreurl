@@ -269,6 +269,11 @@ h3 {
   border-color: var(--accent);
 }
 
+.button[aria-disabled="true"],
+.footer-link[aria-disabled="true"] {
+  opacity: 0.72;
+}
+
 .home-main {
   display: grid;
   gap: 14px;

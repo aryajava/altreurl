@@ -1,6 +1,8 @@
 const THEME_KEY = "altreurlWebTheme";
 const APP_VERSION = "v1.13.0";
+const ORG_URL = "https://github.com/yavanara";
 const REPO_URL = "https://github.com/yavanara/altreurl";
+const DONATION_URL = "#";
 const CHROME_STORE_URL = "#";
 const EDGE_STORE_URL = "#";
 
@@ -56,13 +58,21 @@ function renderSiteChrome() {
       <footer class="app-footer">
         <div class="app-footer__meta">
           <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
-          <p>Built by the <strong>Altreurl</strong> team with the help of our contributors.</p>
+          <p><strong>Altreurl</strong> is maintained by <a href="${ORG_URL}" rel="noopener">Yavanara</a>.</p>
           <p>Version ${APP_VERSION}. Code licensed <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.</p>
         </div>
         <nav class="app-footer__links" aria-label="Altreurl resources">
           <a class="footer-link" href="${REPO_URL}" rel="noopener">
             <img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
             GitHub
+          </a>
+          <a class="footer-link" href="${ORG_URL}" rel="noopener">
+            <img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">
+            Yavanara
+          </a>
+          <a class="footer-link" href="${DONATION_URL}" aria-disabled="true">
+            <img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">
+            Support development
           </a>
           <a class="footer-link" href="${CHROME_STORE_URL}">
             <img data-themed-icon="icons8-chrome-32.png" alt="" width="16" height="16">
