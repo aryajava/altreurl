@@ -1,4 +1,78 @@
 const THEME_KEY = "altreurlWebTheme";
+const REPO_URL = "https://github.com/yavanara/altreurl";
+const CHROME_STORE_URL = "#";
+const EDGE_STORE_URL = "#";
+
+function getCurrentPage() {
+  return window.location.pathname.split("/").pop() || "index.html";
+}
+
+function getHomeHref(hash) {
+  return getCurrentPage() === "index.html" ? hash : `index.html${hash}`;
+}
+
+function getThemedIconPath(iconName, theme = document.documentElement.dataset.colorScheme || getPreferredTheme()) {
+  const folder = theme === "dark" ? "w" : "b";
+
+  return `assets/icons/${folder}/${iconName}`;
+}
+
+function renderSiteChrome() {
+  const currentPage = getCurrentPage();
+  const header = document.querySelector("[data-site-header]");
+  const footer = document.querySelector("[data-site-footer]");
+
+  if (header) {
+    header.innerHTML = `
+      <header class="site-header">
+        <a class="brand" href="index.html" aria-label="Altreurl home">
+          <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
+          <span>Altreurl</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="${getHomeHref("#features")}"><span class="material-symbols-rounded" aria-hidden="true">apps</span>Features</a>
+          <a href="${getHomeHref("#workflow")}"><span class="material-symbols-rounded" aria-hidden="true">route</span>Workflow</a>
+          <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}><span class="material-symbols-rounded" aria-hidden="true">shield_lock</span>Privacy</a>
+          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}><span class="material-symbols-rounded" aria-hidden="true">help</span>Support</a>
+        </nav>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
+          <span class="material-symbols-rounded" data-theme-icon aria-hidden="true">light_mode</span>
+          <span data-theme-label>Light</span>
+        </button>
+      </header>
+    `;
+  }
+
+  if (footer) {
+    footer.innerHTML = `
+      <footer class="app-footer">
+        <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
+        <nav class="app-footer__links" aria-label="Altreurl resources">
+          <a class="footer-link" href="${REPO_URL}" rel="noopener">
+            <img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
+            GitHub
+          </a>
+          <a class="footer-link" href="${CHROME_STORE_URL}">
+            <img data-themed-icon="icons8-chrome-32.png" alt="" width="16" height="16">
+            Chrome
+          </a>
+          <a class="footer-link" href="${EDGE_STORE_URL}">
+            <img data-themed-icon="icons8-microsoft-edge-32.png" alt="" width="16" height="16">
+            Edge
+          </a>
+          <a class="footer-link" href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>
+            <span class="material-symbols-rounded" aria-hidden="true">shield_lock</span>
+            Privacy
+          </a>
+          <a class="footer-link" href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>
+            <span class="material-symbols-rounded" aria-hidden="true">help</span>
+            Support
+          </a>
+        </nav>
+      </footer>
+    `;
+  }
+}
 
 function getPreferredTheme() {
   const savedTheme = localStorage.getItem(THEME_KEY);
@@ -29,6 +103,10 @@ function applyTheme(theme) {
 
     button.setAttribute("aria-label", `Switch to ${nextTheme.toLowerCase()} mode`);
   });
+
+  document.querySelectorAll("[data-themed-icon]").forEach((icon) => {
+    icon.src = getThemedIconPath(icon.dataset.themedIcon, theme);
+  });
 }
 
 function initTheme() {
@@ -55,10 +133,16 @@ function initCarousel() {
   const track = carousel.querySelector("[data-carousel-track]");
   const previousButton = carousel.querySelector("[data-carousel-prev]");
   const nextButton = carousel.querySelector("[data-carousel-next]");
-  const dots = carousel.querySelector("[data-carousel-dots]");
+  const progress = carousel.querySelector("[data-carousel-progress]");
+  const progressFill = carousel.querySelector("[data-carousel-progress-fill]");
+
+  if (!track) {
+    return;
+  }
+
   const cards = [...track.querySelectorAll(".screenshot-card")];
 
-  if (!track || cards.length === 0) {
+  if (cards.length === 0) {
     return;
   }
 
@@ -75,11 +159,17 @@ function initCarousel() {
     return firstCard?.offsetWidth || track.clientWidth;
   }
 
-  function setActiveDot(index) {
-    [...dots.children].forEach((dot, dotIndex) => {
-      dot.classList.toggle("is-active", dotIndex === index);
-      dot.setAttribute("aria-current", dotIndex === index ? "true" : "false");
-    });
+  function setProgress(index) {
+    const percent = ((index + 1) / cards.length) * 100;
+
+    if (progress) {
+      progress.setAttribute("aria-valuenow", String(index + 1));
+      progress.setAttribute("aria-valuetext", `Screenshot ${index + 1} of ${cards.length}`);
+    }
+
+    if (progressFill) {
+      progressFill.style.width = `${percent}%`;
+    }
   }
 
   function goTo(index, behavior = "smooth") {
@@ -88,7 +178,7 @@ function initCarousel() {
       left: cards[activeIndex].offsetLeft,
       behavior
     });
-    setActiveDot(activeIndex);
+    setProgress(activeIndex);
   }
 
   function goNext() {
@@ -98,19 +188,6 @@ function initCarousel() {
   function goPrevious() {
     goTo(activeIndex === 0 ? cards.length - 1 : activeIndex - 1);
   }
-
-  cards.forEach((_card, index) => {
-    const dot = document.createElement("button");
-
-    dot.className = "carousel-dot";
-    dot.type = "button";
-    dot.setAttribute("aria-label", `Show screenshot ${index + 1}`);
-    dot.addEventListener("click", () => {
-      goTo(index);
-      restartAutoAdvance();
-    });
-    dots.append(dot);
-  });
 
   previousButton?.addEventListener("click", () => {
     goPrevious();
@@ -127,9 +204,18 @@ function initCarousel() {
 
     if (nextIndex !== activeIndex && nextIndex >= 0 && nextIndex < cards.length) {
       activeIndex = nextIndex;
-      setActiveDot(activeIndex);
+      setProgress(activeIndex);
     }
   }, { passive: true });
+
+  progress?.addEventListener("click", (event) => {
+    const rect = progress.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const index = Math.min(cards.length - 1, Math.max(0, Math.floor(ratio * cards.length)));
+
+    goTo(index);
+    restartAutoAdvance();
+  });
 
   function startAutoAdvance() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -149,9 +235,10 @@ function initCarousel() {
   carousel.addEventListener("focusin", () => window.clearInterval(autoAdvanceTimer));
   carousel.addEventListener("focusout", restartAutoAdvance);
 
-  setActiveDot(0);
+  setProgress(0);
   startAutoAdvance();
 }
 
+renderSiteChrome();
 initTheme();
 initCarousel();

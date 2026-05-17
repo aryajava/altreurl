@@ -377,8 +377,7 @@ h3 {
   align-items: center;
 }
 
-.carousel-button,
-.carousel-dot {
+.carousel-button {
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--text);
@@ -397,25 +396,28 @@ h3 {
   font-weight: 700;
 }
 
-.carousel-button:hover,
-.carousel-dot:hover,
-.carousel-dot.is-active {
+.carousel-button:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
 
-.carousel-dots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
+.carousel-progress {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  cursor: pointer;
 }
 
-.carousel-dot {
-  width: 10px;
-  height: 10px;
-  padding: 0;
+.carousel-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
   border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.2s ease;
 }
 
 .code-panel {
@@ -482,6 +484,16 @@ h3 {
 
 .footer-link:hover {
   border-color: var(--accent);
+}
+
+.footer-link[aria-current="page"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.footer-link img {
+  display: block;
+  flex: 0 0 auto;
 }
 
 .document {
