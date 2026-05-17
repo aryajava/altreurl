@@ -260,6 +260,173 @@ h3 {
   border-color: var(--accent);
 }
 
+.home-main {
+  display: grid;
+  gap: 14px;
+  width: min(1328px, 100%);
+  margin: 0 auto;
+  padding: clamp(14px, 2.2vw, 24px);
+}
+
+.home-hero,
+.home-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.9fr) minmax(420px, 1.1fr);
+  gap: clamp(14px, 2vw, 22px);
+  align-items: center;
+  padding: clamp(14px, 2vw, 20px);
+}
+
+.home-hero__copy {
+  min-width: 0;
+}
+
+.home-hero h1 {
+  font-size: clamp(2.05rem, 4vw, 3.55rem);
+}
+
+.home-lead {
+  width: min(620px, 100%);
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+}
+
+.home-hero__media {
+  display: block;
+  width: 100%;
+  max-height: 430px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+}
+
+.home-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.home-metrics span {
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.home-panel {
+  padding: clamp(14px, 2vw, 20px);
+}
+
+.home-panel__heading {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.home-panel__heading h2,
+.home-panel--details h2 {
+  font-size: clamp(1.25rem, 2.3vw, 1.9rem);
+}
+
+.home-panel--features .feature-grid {
+  gap: 10px;
+}
+
+.home-panel--features .feature {
+  min-height: 118px;
+  padding: 12px;
+  box-shadow: none;
+}
+
+.home-panel--features .feature p,
+.home-panel--details p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.home-panel--gallery .screenshot-gallery {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: start;
+  width: 100%;
+}
+
+.home-panel--gallery .screenshot-stage {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.home-panel--gallery .screenshot-stage > img {
+  height: clamp(260px, 34vw, 430px);
+}
+
+.home-panel--gallery .screenshot-controls {
+  grid-column: 2;
+  grid-row: 1;
+  grid-template-areas:
+    "status status"
+    "prev next";
+  grid-template-columns: 1fr 1fr;
+}
+
+.home-panel--gallery [data-gallery-prev] {
+  grid-area: prev;
+}
+
+.home-panel--gallery [data-gallery-next] {
+  grid-area: next;
+}
+
+.home-panel--gallery .screenshot-status {
+  grid-area: status;
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.home-panel--gallery .screenshot-thumbs {
+  grid-column: 2;
+  grid-row: 2;
+  grid-auto-columns: unset;
+  grid-auto-flow: row;
+  grid-template-columns: 1fr;
+  max-height: 376px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 2px 4px;
+}
+
+.home-panel--details {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(280px, 1fr) minmax(220px, 0.85fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.home-panel--details > article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.home-privacy .button {
+  width: fit-content;
+  margin-top: 4px;
+}
+
 .section {
   padding: clamp(24px, 4.5vw, 48px) clamp(14px, 2.4vw, 32px);
 }
@@ -535,6 +702,11 @@ h3 {
   margin-top: 2px;
 }
 
+.app-footer__meta a {
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
 .app-footer__links {
   display: flex;
   flex-wrap: wrap;
@@ -774,10 +946,33 @@ h3 {
 
 @media (max-width: 960px) {
   .hero__content,
+  .home-hero,
+  .home-panel--details,
   .intro-grid,
   .split,
   .privacy-band {
     grid-template-columns: 1fr;
+  }
+
+  .home-panel--gallery .screenshot-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .home-panel--gallery .screenshot-stage,
+  .home-panel--gallery .screenshot-controls,
+  .home-panel--gallery .screenshot-thumbs {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .home-panel--gallery .screenshot-thumbs {
+    grid-auto-columns: minmax(152px, 188px);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 8px;
   }
 
   .docs-shell {
@@ -819,6 +1014,16 @@ h3 {
   }
 
   .hero__content {
+    padding: 14px;
+  }
+
+  .home-main {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .home-hero,
+  .home-panel {
     padding: 14px;
   }
 

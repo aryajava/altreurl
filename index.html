@@ -17,87 +17,74 @@
   <body>
     <div data-site-header></div>
 
-    <main>
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero__content">
-          <div>
-            <p class="eyebrow">Chromium Extension MV3</p>
-            <h1 id="hero-title">Altreurl</h1>
-            <p class="hero__lead">
-              A compact request redirector for local backend debugging, with rules, credential sync,
-              safe import/export, diagnostics, and contextual popup controls.
-            </p>
-            <div class="hero__actions">
-              <a class="button button--primary" href="https://github.com/yavanara/altreurl" rel="noopener"><img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">View extension repo</a>
-              <a class="button" href="docs.html"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">Read docs</a>
-              <a class="button" href="store-listing.html"><img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">Browser store copy</a>
-            </div>
-          </div>
-          <img class="hero__media" src="assets/screenshots/preview_menu_options_add-rule_sync.png" alt="Altreurl options page showing a sync rule">
-        </div>
-      </section>
-
-      <section class="section section--intro" aria-labelledby="intro-title">
-        <div class="section__inner intro-grid">
-          <div>
-            <p class="eyebrow">Built for backend developers</p>
-            <h2 id="intro-title">Switch app traffic to localhost without changing application code.</h2>
-          </div>
-          <p>
-            Altreurl keeps the workflow close to the extension UI: searchable rules, grouped
-            editor sections, import/export previews, privacy-safe diagnostics, and light/dark icon sets.
+    <main class="home-main">
+      <section class="home-hero" aria-labelledby="hero-title">
+        <div class="home-hero__copy">
+          <p class="eyebrow">Chromium Extension MV3</p>
+          <h1 id="hero-title">Route app requests to local backends faster.</h1>
+          <p class="home-lead">
+            Altreurl helps backend developers redirect API calls, forward debugging credentials,
+            and switch rules from the browser without changing application code.
           </p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="https://github.com/yavanara/altreurl" rel="noopener"><img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">View repo</a>
+            <a class="button" href="docs.html"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">Read docs</a>
+            <a class="button" href="store-listing.html"><img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">Store copy</a>
+          </div>
+          <div class="home-metrics" aria-label="Altreurl highlights">
+            <span>Wildcard + regex rules</span>
+            <span>Credential sync</span>
+            <span>Local diagnostics</span>
+          </div>
+        </div>
+        <img class="home-hero__media" src="assets/screenshots/preview_menu_options_add-rule_sync.png" alt="Altreurl options page showing a sync rule">
+      </section>
+
+      <section id="features" class="home-panel home-panel--features" aria-labelledby="features-title">
+        <div class="home-panel__heading">
+          <p class="eyebrow">Core workflow</p>
+          <h2 id="features-title">Everything needed to debug request routing in one place.</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <span class="feature__mark"><img data-themed-icon="icons8-url-32.png" alt="" width="16" height="16">URL</span>
+            <h3>Redirect by pattern</h3>
+            <p>Use wildcard rules for simple paths or regex rules for capture groups.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__mark"><img data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">AUTH</span>
+            <h3>Set headers manually</h3>
+            <p>Add Authorization and custom headers when local services need explicit context.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__mark"><img data-themed-icon="icons8-route-32.png" alt="" width="16" height="16">SYNC</span>
+            <h3>Learn credentials</h3>
+            <p>Sync selected headers, bearer tokens, cookies, or storage values from source requests.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__mark"><img data-themed-icon="icons8-list-32.png" alt="" width="16" height="16">POPUP</span>
+            <h3>Toggle relevant rules</h3>
+            <p>The popup shows rules for the current tab and lets you enable or disable them quickly.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__mark"><img data-themed-icon="icons8-import-32.png" alt="" width="16" height="16">I/O</span>
+            <h3>Import and export safely</h3>
+            <p>Preview changes, handle conflicts, and redact credentials before sharing rule files.</p>
+          </article>
+          <article class="feature">
+            <span class="feature__mark"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">LOGS</span>
+            <h3>Copy diagnostics</h3>
+            <p>Review dynamic rule state and local logs when a setup behaves unexpectedly.</p>
+          </article>
         </div>
       </section>
 
-      <section id="features" class="section" aria-labelledby="features-title">
-        <div class="section__inner">
-          <div class="section-heading">
-            <p class="eyebrow">Core features</p>
-            <h2 id="features-title">Redirects, credentials, and rule control in one extension.</h2>
-          </div>
-          <div class="feature-grid">
-            <article class="feature">
-              <span class="feature__mark"><img data-themed-icon="icons8-url-32.png" alt="" width="16" height="16">URL</span>
-              <h3>Wildcard and regex redirects</h3>
-              <p>Match source requests with simple wildcards or precise regex capture groups, then redirect to localhost or another endpoint.</p>
-            </article>
-            <article class="feature">
-              <span class="feature__mark"><img data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">AUTH</span>
-              <h3>Manual credentials</h3>
-              <p>Set Authorization values and custom request headers by rule when a local backend needs explicit debugging context.</p>
-            </article>
-            <article class="feature">
-              <span class="feature__mark"><img data-themed-icon="icons8-route-32.png" alt="" width="16" height="16">SYNC</span>
-              <h3>Credential sync</h3>
-              <p>Learn headers, Authorization values, and session cookies from source requests, browser storage, or Chrome cookies.</p>
-            </article>
-            <article class="feature">
-              <span class="feature__mark"><img data-themed-icon="icons8-list-32.png" alt="" width="16" height="16">TAB</span>
-              <h3>Contextual popup</h3>
-              <p>See only the rules relevant to the active tab domain and enable or disable matching rules from the popup.</p>
-            </article>
-            <article class="feature">
-              <span class="feature__mark"><img data-themed-icon="icons8-import-32.png" alt="" width="16" height="16">I/O</span>
-              <h3>Mature import and export</h3>
-              <p>Preview imported rules, handle conflicts, choose export scope, and redact or remove credentials before sharing JSON.</p>
-            </article>
-            <article class="feature">
-              <span class="feature__mark"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">LOGS</span>
-              <h3>Diagnostics and logs</h3>
-              <p>Review privacy-safe extension state, dynamic rule counts, apply errors, and recent local events when debugging setup issues.</p>
-            </article>
-          </div>
+      <section class="home-panel home-panel--gallery" aria-labelledby="gallery-title">
+        <div class="home-panel__heading">
+          <p class="eyebrow">Interface preview</p>
+          <h2 id="gallery-title">Options page, popup, import, export, and diagnostics.</h2>
         </div>
-      </section>
-
-      <section class="section section--gallery" aria-labelledby="gallery-title">
-        <div class="section__inner">
-          <div class="section-heading">
-            <p class="eyebrow">Interface preview</p>
-            <h2 id="gallery-title">See the options page and popup in action.</h2>
-          </div>
-          <div class="screenshot-gallery" data-gallery aria-label="Altreurl release screenshots">
+        <div class="screenshot-gallery" data-gallery aria-label="Altreurl release screenshots">
             <figure class="screenshot-stage">
               <img data-gallery-image src="assets/screenshots/preview_menu_options_add-rule_manual.png" alt="Altreurl options page with a manual credential rule">
               <figcaption>
@@ -163,20 +150,18 @@
               </button>
             </div>
           </div>
-        </div>
       </section>
 
-      <section id="workflow" class="section section--split" aria-labelledby="workflow-title">
-        <div class="section__inner split">
-          <div>
-            <p class="eyebrow">Example workflow</p>
-            <h2 id="workflow-title">Point a remote API route at localhost.</h2>
-            <p>
-              Create a rule for the source API path, choose the localhost target, and decide whether
-              credentials should be typed manually, learned from a request, read from storage, or read from cookies.
-            </p>
-          </div>
-          <div class="code-panel" aria-label="Example redirect configuration">
+      <section id="workflow" class="home-panel home-panel--details" aria-labelledby="workflow-title">
+        <article>
+          <p class="eyebrow">Example rule</p>
+          <h2 id="workflow-title">Point a remote API route at localhost.</h2>
+          <p>
+            Create a source pattern, choose the local target, then decide whether credentials
+            should be manual or synced from the source request.
+          </p>
+        </article>
+        <div class="code-panel" aria-label="Example redirect configuration">
             <span>Source URL pattern</span>
             <code>https://api.example.com/users/*</code>
             <span>Redirect target URL</span>
@@ -185,22 +170,15 @@
             <code>Sync from source</code>
             <span>Export safety</span>
             <code>Redact credentials before sharing</code>
-          </div>
         </div>
-      </section>
-
-      <section class="section" aria-labelledby="privacy-title">
-        <div class="section__inner privacy-band">
-          <div>
-            <p class="eyebrow">Privacy stance</p>
-            <h2 id="privacy-title">No Altreurl server receives your rules or credentials.</h2>
-            <p>
-              Altreurl handles sensitive debugging data only for configured rules. It does not sell data,
-              send browsing activity to an Altreurl server, or transfer rule exports unless you create the export file yourself.
-            </p>
-          </div>
+        <article class="home-privacy" aria-labelledby="privacy-title">
+          <p class="eyebrow">Privacy stance</p>
+          <h2 id="privacy-title">Your rules stay in the browser.</h2>
+          <p>
+            Altreurl stores rules, synced values, and diagnostics locally. Exports happen only when you create them.
+          </p>
           <a class="button button--primary" href="privacy.html">Read privacy policy</a>
-        </div>
+        </article>
       </section>
     </main>
 

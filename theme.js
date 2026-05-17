@@ -56,7 +56,7 @@ function renderSiteChrome() {
         <div class="app-footer__meta">
           <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
           <p>Built by the Altreurl team with the help of our contributors.</p>
-          <p>Version ${APP_VERSION}. Code licensed MIT, docs CC BY 3.0.</p>
+          <p>Version ${APP_VERSION}. Code licensed <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.</p>
         </div>
         <nav class="app-footer__links" aria-label="Altreurl resources">
           <a class="footer-link" href="${REPO_URL}" rel="noopener">
