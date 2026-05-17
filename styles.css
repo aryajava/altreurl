@@ -723,11 +723,11 @@ h3 {
 .app-footer__groups {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 12px;
 }
 
 .footer-group {
-  align-items: start;
+  align-items: center;
   display: flex;
   flex-direction: column;
   min-width: 120px;
@@ -742,6 +742,7 @@ h3 {
 .footer-group a {
   width: fit-content;
   text-decoration: none;
+  font-weight: normal;
 }
 
 .footer-group a:hover,
@@ -771,6 +772,7 @@ h3 {
 
 .document h2 {
   margin-top: 26px;
+  margin-bottom: 12px;
   font-size: clamp(1.2rem, 2.2vw, 1.55rem);
 }
 
@@ -985,6 +987,7 @@ h3 {
 
 .support-card-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 26px;
 }
 
 .support-card,
@@ -1005,7 +1008,8 @@ h3 {
 
 .support-card .button,
 .support-note .button {
-  margin-top: auto;
+    margin-top: auto;
+    align-self: flex-end;
 }
 
 .support-card h2,
