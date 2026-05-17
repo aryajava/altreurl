@@ -1,7 +1,6 @@
-plans/
-release_plan.md
-dist/
 build/
+dist/
+node_modules/
 release/
 *.zip
 *.crx
@@ -9,4 +8,3 @@ release/
 *.log
 .env
 .env.*
-node_modules/
