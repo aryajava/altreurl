@@ -1,2 +1,12 @@
 plans/
-
+release_plan.md
+dist/
+build/
+release/
+*.zip
+*.crx
+*.pem
+*.log
+.env
+.env.*
+node_modules/
