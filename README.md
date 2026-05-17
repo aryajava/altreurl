@@ -1,6 +1,6 @@
 # Altreurl Web
 
-Static website for Altreurl, intended for GitHub Pages at:
+Static website for Altreurl v1.13.0, intended for GitHub Pages at:
 
 ```text
 https://aryajava.github.io/altreurl-web/
@@ -12,6 +12,8 @@ https://aryajava.github.io/altreurl-web/
 - `privacy.html`: public Chrome Web Store privacy policy URL.
 - `support.html`: support and known limitations.
 - `store-listing.html`: Chrome Web Store listing copy, permission justification, and reviewer test instructions.
+- `assets/screenshots/`: release screenshots mirrored from the extension repo.
+- `assets/favicons/v2/`: v1.13.0 favicon set used by the extension.
 
 ## Publish to GitHub Pages
 

@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Altreurl - Request Redirector for Local Backend Debugging</title>
+    <title>Altreurl v1.13.0 - Request Redirector for Local Backend Debugging</title>
     <meta name="description" content="Altreurl is a Chromium extension for routing requests, headers, Authorization values, and cookies to local or alternate backend endpoints while debugging.">
     <meta property="og:title" content="Altreurl">
     <meta property="og:description" content="Debug backend requests locally with configurable redirects and credential forwarding.">
     <meta property="og:image" content="assets/promo-440x280.png">
     <meta property="og:type" content="website">
-    <link rel="icon" href="assets/icons/Altreurl-32.png" sizes="32x32">
-    <link rel="apple-touch-icon" href="assets/icons/Altreurl-128.png">
+    <link rel="icon" href="assets/favicons/v2/Altreurl_V2_32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="assets/favicons/v2/Altreurl_V2_128.png">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="site-header">
       <a class="brand" href="index.html" aria-label="Altreurl home">
-        <img src="assets/icons/Altreurl-48.png" alt="" width="40" height="40">
+        <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
         <span>Altreurl</span>
       </a>
       <nav aria-label="Primary navigation">
@@ -31,18 +31,18 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero__content">
           <div>
-            <p class="eyebrow">Chromium Extension MV3</p>
+            <p class="eyebrow">Version 1.13.0 · Chromium Extension MV3</p>
             <h1 id="hero-title">Altreurl</h1>
             <p class="hero__lead">
-              Route app requests to local or alternate backend endpoints, then forward the exact headers,
-              Authorization values, or cookies you need for debugging.
+              A compact request redirector for local backend debugging, with rules, credential sync,
+              safe import/export, diagnostics, and contextual popup controls.
             </p>
             <div class="hero__actions">
               <a class="button button--primary" href="https://github.com/aryajava/altreurl" rel="noopener">View extension repo</a>
               <a class="button" href="store-listing.html">Chrome Web Store copy</a>
             </div>
           </div>
-          <img class="hero__media" src="assets/promo-440x280.png" alt="Altreurl request redirect preview">
+          <img class="hero__media" src="assets/screenshots/preview_menu_options_add-rule_sync.png" alt="Altreurl options page showing a sync rule">
         </div>
       </section>
 
@@ -50,12 +50,11 @@
         <div class="section__inner intro-grid">
           <div>
             <p class="eyebrow">Built for backend developers</p>
-            <h2 id="intro-title">Switch a production-shaped app flow to a local backend without editing app code.</h2>
+            <h2 id="intro-title">Switch app traffic to localhost without changing application code.</h2>
           </div>
           <p>
-            Altreurl uses Chrome's Declarative Net Request APIs to match configured URLs, redirect them,
-            and apply request header overrides. It is designed for local debugging sessions where the
-            browser profile keeps rule data on your machine.
+            Altreurl v1.13.0 keeps the workflow close to the extension UI: searchable rules, grouped
+            editor sections, import/export previews, privacy-safe diagnostics, and light/dark icon sets.
           </p>
         </div>
       </section>
@@ -88,15 +87,38 @@
               <p>See only the rules relevant to the active tab domain and enable or disable matching rules from the popup.</p>
             </article>
             <article class="feature">
-              <span class="feature__mark">BULK</span>
-              <h3>Rule management</h3>
-              <p>Search, filter, group, duplicate, import, export, and bulk edit rules from the options page.</p>
+              <span class="feature__mark">I/O</span>
+              <h3>Mature import and export</h3>
+              <p>Preview imported rules, handle conflicts, choose export scope, and redact or remove credentials before sharing JSON.</p>
             </article>
             <article class="feature">
-              <span class="feature__mark">LOCAL</span>
-              <h3>Local-first storage</h3>
-              <p>Rule configuration and synced credentials stay in the browser profile through chrome.storage.local.</p>
+              <span class="feature__mark">LOGS</span>
+              <h3>Diagnostics and logs</h3>
+              <p>Review privacy-safe extension state, dynamic rule counts, apply errors, and recent local events when debugging setup issues.</p>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--gallery" aria-labelledby="gallery-title">
+        <div class="section__inner">
+          <div class="section-heading">
+            <p class="eyebrow">Current interface</p>
+            <h2 id="gallery-title">Screenshots from the v1.13.0 release.</h2>
+          </div>
+          <div class="screenshot-grid">
+            <figure class="screenshot-card screenshot-card--wide">
+              <img src="assets/screenshots/preview_menu_options_add-rule_manual.png" alt="Altreurl options page with a manual credential rule">
+              <figcaption>Options editor with grouped rule sections.</figcaption>
+            </figure>
+            <figure class="screenshot-card">
+              <img src="assets/screenshots/preview_menu_options_export.png" alt="Altreurl export preview dialog">
+              <figcaption>Export preview with credential handling.</figcaption>
+            </figure>
+            <figure class="screenshot-card">
+              <img src="assets/screenshots/preview_popup_have_enable.png" alt="Altreurl popup with a matching rule enabled">
+              <figcaption>Contextual popup for the active tab.</figcaption>
+            </figure>
           </div>
         </div>
       </section>
@@ -108,7 +130,7 @@
             <h2 id="workflow-title">Point a remote API route at localhost.</h2>
             <p>
               Create a rule for the source API path, choose the localhost target, and decide whether
-              credentials should be typed manually or learned from the source app flow.
+              credentials should be typed manually, learned from a request, read from storage, or read from cookies.
             </p>
           </div>
           <div class="code-panel" aria-label="Example redirect configuration">
@@ -118,6 +140,8 @@
             <code>http://localhost:3000/users/*</code>
             <span>Credential mode</span>
             <code>Sync from source</code>
+            <span>Export safety</span>
+            <code>Redact credentials before sharing</code>
           </div>
         </div>
       </section>
