@@ -279,6 +279,10 @@ h3 {
   margin: 0 auto;
 }
 
+.section--gallery .section__inner {
+  width: min(960px, 100%);
+}
+
 .intro-grid,
 .split,
 .privacy-band {
@@ -298,6 +302,11 @@ h3 {
 .section-heading {
   width: min(720px, 100%);
   margin-bottom: 16px;
+}
+
+.section--gallery .section-heading {
+  width: min(760px, 100%);
+  margin-inline: auto;
 }
 
 .feature-grid {
@@ -340,7 +349,7 @@ h3 {
 .screenshot-gallery {
   display: grid;
   gap: 12px;
-  width: min(840px, 100%);
+  width: min(760px, 100%);
   margin: 0 auto;
 }
 
@@ -353,7 +362,7 @@ h3 {
 .screenshot-stage > img {
   display: block;
   width: 100%;
-  height: clamp(210px, 38vw, 390px);
+  height: clamp(200px, 34vw, 340px);
   object-fit: contain;
   object-position: center top;
   background: var(--panel-soft);
@@ -785,7 +794,7 @@ h3 {
   }
 
   .screenshot-stage > img {
-    height: clamp(200px, 50vw, 360px);
+    height: clamp(190px, 50vw, 320px);
   }
 }
 
