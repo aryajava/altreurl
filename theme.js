@@ -56,45 +56,33 @@ function renderSiteChrome() {
   if (footer) {
     footer.innerHTML = `
       <footer class="app-footer">
-        <div class="app-footer__meta">
-          <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
-          <p><strong>Altreurl</strong> is maintained by <a href="${ORG_URL}" rel="noopener">Yavanara</a>.</p>
-          <p>Version ${APP_VERSION}. Code licensed <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.</p>
+        <div class="app-footer__brand">
+          <a class="brand" href="index.html" aria-label="Altreurl home">
+            <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
+            <strong>Altreurl</strong>
+          </a>
+          <p>Local backend debugging without fighting the network tab.</p>
+          <p>Maintained by <a href="${ORG_URL}" rel="noopener">Yavanara</a>. Version ${APP_VERSION}. Licensed <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.</p>
         </div>
-        <nav class="app-footer__links" aria-label="Altreurl resources">
-          <a class="footer-link" href="${REPO_URL}" rel="noopener">
-            <img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
-            GitHub
-          </a>
-          <a class="footer-link" href="${ORG_URL}" rel="noopener">
-            <img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">
-            Yavanara
-          </a>
-          <a class="footer-link" href="${DONATION_URL}" aria-disabled="true">
-            <img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">
-            Support development
-          </a>
-          <a class="footer-link" href="${CHROME_STORE_URL}">
-            <img data-themed-icon="icons8-chrome-32.png" alt="" width="16" height="16">
-            Chrome
-          </a>
-          <a class="footer-link" href="${EDGE_STORE_URL}">
-            <img data-themed-icon="icons8-microsoft-edge-32.png" alt="" width="16" height="16">
-            Edge
-          </a>
-          <a class="footer-link" href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>
-            <img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">
-            Docs
-          </a>
-          <a class="footer-link" href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>
-            <img data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">
-            Privacy
-          </a>
-          <a class="footer-link" href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>
-            <img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">
-            Support
-          </a>
-        </nav>
+        <div class="app-footer__groups">
+          <nav class="footer-group" aria-label="Project links">
+            <strong>Project</strong>
+            <a href="${REPO_URL}" rel="noopener">GitHub</a>
+            <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>Docs</a>
+            <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>Support</a>
+          </nav>
+          <nav class="footer-group" aria-label="Store links">
+            <strong>Stores</strong>
+            <a href="${CHROME_STORE_URL}">Chrome</a>
+            <a href="${EDGE_STORE_URL}">Edge</a>
+            <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>Privacy</a>
+          </nav>
+          <nav class="footer-group" aria-label="Community links">
+            <strong>Community</strong>
+            <a href="${ORG_URL}" rel="noopener">Yavanara</a>
+            <a href="${DONATION_URL}" aria-disabled="true" tabindex="-1">Support development</a>
+          </nav>
+        </div>
       </footer>
     `;
   }

@@ -12,56 +12,73 @@
   <body>
     <div data-site-header></div>
 
-    <main class="document">
+    <main class="document support-page">
       <article class="document__inner">
-        <p class="eyebrow">Support</p>
-        <h1>Help and issue reporting</h1>
-        <p>
-          <strong>Altreurl</strong> is built for local backend debugging workflows. If a redirect, header override,
-          cookie sync, or browser storage sync flow does not behave as expected, send the details by email
-          or open an issue in GitHub.
-        </p>
+        <header class="support-hero">
+          <p class="eyebrow">Support</p>
+          <h1>Get help with <strong>Altreurl</strong>.</h1>
+          <p>
+            If a redirect, header override, cookie sync, or browser storage sync flow behaves unexpectedly,
+            send a short report with the rule shape and browser version. Keep private hosts, tokens, and
+            credentials out of public issues.
+          </p>
+        </header>
 
-        <div class="support-actions">
-          <a class="button button--primary" href="mailto:yavanara.dev@gmail.com"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">Email support</a>
-          <a class="button button--primary" href="https://github.com/yavanara/altreurl/issues" rel="noopener"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">Open an issue</a>
-          <a class="button" href="https://github.com/yavanara/altreurl" rel="noopener"><img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">View source</a>
-          <a class="button" href="https://github.com/yavanara" rel="noopener"><img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">Yavanara</a>
-        </div>
+        <section class="support-card-grid" aria-label="Support channels">
+          <article class="support-card">
+            <span class="feature__mark"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">EMAIL</span>
+            <h2>Email support</h2>
+            <p>Use email for privacy questions, sensitive diagnostics, or reports that should not be public.</p>
+            <a class="button button--primary" href="mailto:yavanara.dev@gmail.com">yavanara.dev@gmail.com</a>
+          </article>
+          <article class="support-card">
+            <span class="feature__mark"><img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">ISSUES</span>
+            <h2>GitHub issues</h2>
+            <p>Use GitHub for reproducible bugs, feature requests, or documentation fixes.</p>
+            <a class="button" href="https://github.com/yavanara/altreurl/issues" rel="noopener">Open an issue</a>
+          </article>
+          <article class="support-card">
+            <span class="feature__mark"><img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">MAINTAINER</span>
+            <h2>Yavanara</h2>
+            <p><strong>Altreurl</strong> is maintained by Yavanara, a GitHub organization for developer tools.</p>
+            <a class="button" href="https://github.com/yavanara" rel="noopener">View organization</a>
+          </article>
+        </section>
 
-        <h2>Maintainer</h2>
-        <p>
-          <strong>Altreurl</strong> is maintained by <a href="https://github.com/yavanara" rel="noopener">Yavanara</a>,
-          a GitHub organization for this project and related developer tools.
-        </p>
+        <section class="support-split">
+          <div>
+            <h2>Useful details for reports</h2>
+            <ul>
+              <li>Chrome or Chromium version.</li>
+              <li><strong>Altreurl</strong> extension version.</li>
+              <li>Pattern format: wildcard or regex.</li>
+              <li>Source URL pattern and redirect target URL with private hosts or tokens removed.</li>
+              <li>Credential mode and credential source.</li>
+              <li>Rule state: waiting for sync, invalid, disabled, ready, or conflict.</li>
+              <li>Privacy-safe diagnostics copied from the Diagnostics dialog.</li>
+            </ul>
+          </div>
+          <div class="support-note">
+            <h2>Support development</h2>
+            <p>
+              A donation link will be added after the account is ready. Donations are optional and are never
+              required to use <strong>Altreurl</strong>.
+            </p>
+            <a class="button" href="#" aria-disabled="true" tabindex="-1"><img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">Donation link coming soon</a>
+          </div>
+        </section>
 
-        <h2>Support development</h2>
-        <p>
-          A donation link will be added here after the account is ready. Donations are optional and are not required
-          to use <strong>Altreurl</strong>.
-        </p>
-        <a class="button" href="#" aria-disabled="true"><img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">Donation link coming soon</a>
-
-        <h2>Useful details for reports</h2>
-        <ul>
-          <li>Chrome or Chromium version.</li>
-          <li><strong>Altreurl</strong> extension version.</li>
-          <li>Pattern format: wildcard or regex.</li>
-          <li>Source URL pattern and redirect target URL with private hosts or tokens removed.</li>
-          <li>Credential mode and credential source.</li>
-          <li>Whether the rule is waiting for credential sync, invalid, disabled, or ready.</li>
-          <li>Privacy-safe diagnostics or logs copied from the Diagnostics dialog.</li>
-        </ul>
-
-        <h2>Known limitations</h2>
-        <ul>
-          <li>Chrome Web Store handles automatic updates after installation. Load unpacked development builds still need manual reloads.</li>
-          <li>Request learning needs one matching source request before redirected requests can use captured credentials.</li>
-          <li>The cookie credential source cannot sync request headers. Use request learning or browser storage for headers.</li>
-          <li>Some protected headers cannot be copied because of Chrome extension API limits.</li>
-          <li>Browser storage sync requires an already-open source-origin tab.</li>
-          <li>The popup matches contextual rules by source domain or origin, not by full request path.</li>
-        </ul>
+        <section>
+          <h2>Known limitations</h2>
+          <div class="support-limits">
+            <p>Chrome Web Store handles automatic updates after installation. Load unpacked development builds still need manual reloads.</p>
+            <p>Request learning needs one matching source request before redirected requests can use captured credentials.</p>
+            <p>The cookie credential source cannot sync request headers. Use request learning or browser storage for headers.</p>
+            <p>Some protected headers cannot be copied because of Chrome extension API limits.</p>
+            <p>Browser storage sync requires an already-open source-origin tab.</p>
+            <p>The popup matches contextual rules by source domain or origin, not by full request path.</p>
+          </div>
+        </section>
       </article>
     </main>
 
