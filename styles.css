@@ -362,7 +362,6 @@ h3 {
 
 .home-panel--features .feature p,
 .home-panel--details p {
-  margin: 0;
   color: var(--muted);
 }
 
@@ -402,6 +401,10 @@ h3 {
   grid-area: status;
   grid-column: 1 / -1;
   grid-row: 1;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 
 .home-panel--gallery .screenshot-thumbs {
@@ -431,7 +434,8 @@ h3 {
 
 .home-privacy .button {
   width: fit-content;
-  margin-top: 4px;
+  align-items: flex-end;
+  margin: auto;
 }
 
 .section {
@@ -1018,9 +1022,12 @@ h3 {
 }
 
 .support-card p,
-.support-note p,
 .support-limits p {
   margin: 0;
+}
+
+.support-note p {
+  margin: 0 0 12px 0;
 }
 
 .support-split {
