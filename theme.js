@@ -17,6 +17,10 @@ function getThemedIconPath(iconName, theme = document.documentElement.dataset.co
   return `assets/icons/${folder}/${iconName}`;
 }
 
+function iconMarkup(iconName, size = 16) {
+  return `<img data-themed-icon="${iconName}" alt="" width="${size}" height="${size}">`;
+}
+
 function renderSiteChrome() {
   const currentPage = getCurrentPage();
   const header = document.querySelector("[data-site-header]");
@@ -30,13 +34,13 @@ function renderSiteChrome() {
           <span>Altreurl</span>
         </a>
         <nav aria-label="Primary navigation">
-          <a href="${getHomeHref("#features")}"><span class="material-symbols-rounded" aria-hidden="true">apps</span>Features</a>
-          <a href="${getHomeHref("#workflow")}"><span class="material-symbols-rounded" aria-hidden="true">route</span>Workflow</a>
-          <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}><span class="material-symbols-rounded" aria-hidden="true">shield_lock</span>Privacy</a>
-          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}><span class="material-symbols-rounded" aria-hidden="true">help</span>Support</a>
+          <a href="${getHomeHref("#features")}">${iconMarkup("icons8-list-32.png")}Features</a>
+          <a href="${getHomeHref("#workflow")}">${iconMarkup("icons8-route-32.png")}Workflow</a>
+          <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-diploma-32.png")}Privacy</a>
+          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-coffee-32.png")}Support</a>
         </nav>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
-          <span class="material-symbols-rounded" data-theme-icon aria-hidden="true">light_mode</span>
+          <img data-theme-icon data-themed-icon="icons8-moon-and-stars-32.png" alt="" width="16" height="16">
           <span data-theme-label>Light</span>
         </button>
       </header>
@@ -61,11 +65,11 @@ function renderSiteChrome() {
             Edge
           </a>
           <a class="footer-link" href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>
-            <span class="material-symbols-rounded" aria-hidden="true">shield_lock</span>
+            <img data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">
             Privacy
           </a>
           <a class="footer-link" href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>
-            <span class="material-symbols-rounded" aria-hidden="true">help</span>
+            <img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">
             Support
           </a>
         </nav>
@@ -98,7 +102,8 @@ function applyTheme(theme) {
     }
 
     if (icon) {
-      icon.textContent = theme === "dark" ? "light_mode" : "dark_mode";
+      icon.dataset.themedIcon = theme === "dark" ? "icons8-sun-32.png" : "icons8-moon-and-stars-32.png";
+      icon.src = getThemedIconPath(icon.dataset.themedIcon, theme);
     }
 
     button.setAttribute("aria-label", `Switch to ${nextTheme.toLowerCase()} mode`);
@@ -123,70 +128,73 @@ function initTheme() {
   });
 }
 
-function initCarousel() {
-  const carousel = document.querySelector("[data-carousel]");
+function initGallery() {
+  const gallery = document.querySelector("[data-gallery]");
 
-  if (!carousel) {
+  if (!gallery) {
     return;
   }
 
-  const track = carousel.querySelector("[data-carousel-track]");
-  const previousButton = carousel.querySelector("[data-carousel-prev]");
-  const nextButton = carousel.querySelector("[data-carousel-next]");
-  const progress = carousel.querySelector("[data-carousel-progress]");
-  const progressFill = carousel.querySelector("[data-carousel-progress-fill]");
+  const image = gallery.querySelector("[data-gallery-image]");
+  const title = gallery.querySelector("[data-gallery-title]");
+  const count = gallery.querySelector("[data-gallery-count]");
+  const status = gallery.querySelector("[data-gallery-status]");
+  const previousButton = gallery.querySelector("[data-gallery-prev]");
+  const nextButton = gallery.querySelector("[data-gallery-next]");
+  const thumbs = [...gallery.querySelectorAll("[data-gallery-thumb]")];
 
-  if (!track) {
+  if (!image || thumbs.length === 0) {
     return;
   }
 
-  const cards = [...track.querySelectorAll(".screenshot-card")];
-
-  if (cards.length === 0) {
-    return;
-  }
+  const items = thumbs.map((thumb) => ({
+    alt: thumb.dataset.galleryAlt || "",
+    src: thumb.dataset.gallerySrc || "",
+    title: thumb.dataset.galleryTitle || ""
+  }));
 
   let activeIndex = 0;
   let autoAdvanceTimer = null;
 
-  function getCardStep() {
-    const [firstCard, secondCard] = cards;
+  function setActive(index, behavior = "smooth") {
+    activeIndex = (index + items.length) % items.length;
+    const item = items[activeIndex];
 
-    if (firstCard && secondCard) {
-      return secondCard.offsetLeft - firstCard.offsetLeft;
+    image.src = item.src;
+    image.alt = item.alt;
+
+    if (title) {
+      title.textContent = item.title;
     }
 
-    return firstCard?.offsetWidth || track.clientWidth;
-  }
-
-  function setProgress(index) {
-    const percent = ((index + 1) / cards.length) * 100;
-
-    if (progress) {
-      progress.setAttribute("aria-valuenow", String(index + 1));
-      progress.setAttribute("aria-valuetext", `Screenshot ${index + 1} of ${cards.length}`);
+    if (count) {
+      count.textContent = `${activeIndex + 1} / ${items.length}`;
     }
 
-    if (progressFill) {
-      progressFill.style.width = `${percent}%`;
+    if (status) {
+      status.textContent = item.title;
     }
-  }
 
-  function goTo(index, behavior = "smooth") {
-    activeIndex = (index + cards.length) % cards.length;
-    track.scrollTo({
-      left: cards[activeIndex].offsetLeft,
-      behavior
+    thumbs.forEach((thumb, thumbIndex) => {
+      const isActive = thumbIndex === activeIndex;
+
+      thumb.classList.toggle("is-active", isActive);
+      thumb.setAttribute("aria-current", isActive ? "true" : "false");
     });
-    setProgress(activeIndex);
+
+    thumbs[activeIndex].scrollIntoView({
+      behavior,
+      block: "nearest",
+      inline: "center"
+    });
   }
 
   function goNext() {
-    goTo(activeIndex === cards.length - 1 ? 0 : activeIndex + 1);
+    setActive(activeIndex + 1);
   }
 
   function goPrevious() {
-    goTo(activeIndex === 0 ? cards.length - 1 : activeIndex - 1);
+    setActive(activeIndex - 1);
   }
 
   previousButton?.addEventListener("click", () => {
@@ -198,23 +206,11 @@ function initCarousel() {
     restartAutoAdvance();
   });
 
-  track.addEventListener("scroll", () => {
-    const step = getCardStep();
-    const nextIndex = Math.round(track.scrollLeft / step);
-
-    if (nextIndex !== activeIndex && nextIndex >= 0 && nextIndex < cards.length) {
-      activeIndex = nextIndex;
-      setProgress(activeIndex);
-    }
-  }, { passive: true });
-
-  progress?.addEventListener("click", (event) => {
-    const rect = progress.getBoundingClientRect();
-    const ratio = (event.clientX - rect.left) / rect.width;
-    const index = Math.min(cards.length - 1, Math.max(0, Math.floor(ratio * cards.length)));
-
-    goTo(index);
-    restartAutoAdvance();
+  thumbs.forEach((thumb, index) => {
+    thumb.addEventListener("click", () => {
+      setActive(index);
+      restartAutoAdvance();
+    });
   });
 
   function startAutoAdvance() {
@@ -230,15 +226,15 @@ function initCarousel() {
     startAutoAdvance();
   }
 
-  carousel.addEventListener("mouseenter", () => window.clearInterval(autoAdvanceTimer));
-  carousel.addEventListener("mouseleave", restartAutoAdvance);
-  carousel.addEventListener("focusin", () => window.clearInterval(autoAdvanceTimer));
-  carousel.addEventListener("focusout", restartAutoAdvance);
+  gallery.addEventListener("mouseenter", () => window.clearInterval(autoAdvanceTimer));
+  gallery.addEventListener("mouseleave", restartAutoAdvance);
+  gallery.addEventListener("focusin", () => window.clearInterval(autoAdvanceTimer));
+  gallery.addEventListener("focusout", restartAutoAdvance);
 
-  setProgress(0);
+  setActive(0, "auto");
   startAutoAdvance();
 }
 
 renderSiteChrome();
 initTheme();
-initCarousel();
+initGallery();
