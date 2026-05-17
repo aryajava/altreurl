@@ -14,7 +14,19 @@ function applyTheme(theme) {
   document.documentElement.dataset.colorScheme = theme;
   document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
     const nextTheme = theme === "dark" ? "Light" : "Dark";
-    button.textContent = nextTheme;
+    const label = button.querySelector("[data-theme-label]");
+    const icon = button.querySelector("[data-theme-icon]");
+
+    if (label) {
+      label.textContent = nextTheme;
+    } else {
+      button.textContent = nextTheme;
+    }
+
+    if (icon) {
+      icon.textContent = theme === "dark" ? "light_mode" : "dark_mode";
+    }
+
     button.setAttribute("aria-label", `Switch to ${nextTheme.toLowerCase()} mode`);
   });
 }

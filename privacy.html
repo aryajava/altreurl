@@ -6,6 +6,9 @@
     <title>Privacy Policy - Altreurl</title>
     <meta name="description" content="Privacy policy for the Altreurl Chromium extension.">
     <link rel="icon" href="assets/favicons/v2/Altreurl_V2_32.png" sizes="32x32">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js" defer></script>
   </head>
@@ -16,11 +19,14 @@
         <span>Altreurl</span>
       </a>
       <nav aria-label="Primary navigation">
-        <a href="index.html#features">Features</a>
-        <a href="privacy.html" aria-current="page">Privacy</a>
-        <a href="support.html">Support</a>
+        <a href="index.html#features"><span class="material-symbols-rounded" aria-hidden="true">apps</span>Features</a>
+        <a href="privacy.html" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">shield_lock</span>Privacy</a>
+        <a href="support.html"><span class="material-symbols-rounded" aria-hidden="true">help</span>Support</a>
       </nav>
-      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">Light</button>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
+        <span class="material-symbols-rounded" data-theme-icon aria-hidden="true">light_mode</span>
+        <span data-theme-label>Light</span>
+      </button>
     </header>
 
     <main class="document">
@@ -95,10 +101,11 @@
     <footer class="app-footer">
       <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
       <nav class="app-footer__links" aria-label="Altreurl resources">
-        <a class="footer-link" href="index.html">Web</a>
-        <a class="footer-link" href="https://github.com/yavanara/altreurl" rel="noopener">Repo</a>
-        <a class="footer-link" href="privacy.html">Privacy</a>
-        <a class="footer-link" href="support.html">Support</a>
+        <a class="footer-link" href="index.html"><span class="material-symbols-rounded" aria-hidden="true">language</span>Web</a>
+        <a class="footer-link" href="https://github.com/yavanara/altreurl" rel="noopener"><span class="material-symbols-rounded" aria-hidden="true">code</span>Repo</a>
+        <a class="footer-link" href="#"><span class="material-symbols-rounded" aria-hidden="true">storefront</span>Chrome</a>
+        <a class="footer-link" href="#"><span class="material-symbols-rounded" aria-hidden="true">extension</span>Edge</a>
+        <a class="footer-link" href="support.html"><span class="material-symbols-rounded" aria-hidden="true">help</span>Support</a>
       </nav>
     </footer>
   </body>
