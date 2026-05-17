@@ -41,7 +41,7 @@ function renderSiteChrome() {
           <a href="index.html" ${currentPage === "index.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-globe-32.png")}Home</a>
           <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-log-32.png")}Docs</a>
           <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-diploma-32.png")}Privacy</a>
-          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-list-32.png")}Support</a>
+          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-group-32.png")}Support</a>
         </nav>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
           <img data-theme-icon data-themed-icon="icons8-moon-and-stars-32.png" alt="" width="16" height="16">
@@ -78,7 +78,7 @@ function renderSiteChrome() {
           <nav class="footer-group" aria-label="Community links">
             <strong>Community</strong>
             <a href="${ORG_URL}" rel="noopener">Yavanara</a>
-            <a href="${DONATION_URL}" aria-disabled="true" tabindex="-1">Support development</a>
+            <a href="${DONATION_URL}" aria-disabled="true" tabindex="-1">Support Dev</a>
           </nav>
         </div>
       </footer>
