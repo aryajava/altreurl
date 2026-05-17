@@ -96,6 +96,17 @@ img {
   border-radius: 8px;
 }
 
+.version-badge {
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
 nav {
   display: flex;
   align-items: center;
@@ -329,6 +340,8 @@ h3 {
 .screenshot-gallery {
   display: grid;
   gap: 12px;
+  width: min(840px, 100%);
+  margin: 0 auto;
 }
 
 .screenshot-stage {
@@ -340,7 +353,7 @@ h3 {
 .screenshot-stage > img {
   display: block;
   width: 100%;
-  height: clamp(260px, 58vw, 680px);
+  height: clamp(210px, 38vw, 390px);
   object-fit: contain;
   object-position: center top;
   background: var(--panel-soft);
@@ -772,7 +785,7 @@ h3 {
   }
 
   .screenshot-stage > img {
-    height: clamp(240px, 62vw, 520px);
+    height: clamp(200px, 50vw, 360px);
   }
 }
 
@@ -844,5 +857,9 @@ h3 {
 
   .document__inner {
     padding: 18px;
+  }
+
+  .screenshot-stage > img {
+    height: clamp(190px, 62vw, 280px);
   }
 }

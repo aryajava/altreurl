@@ -1,4 +1,5 @@
 const THEME_KEY = "altreurlWebTheme";
+const APP_VERSION = "v1.13.0";
 const REPO_URL = "https://github.com/yavanara/altreurl";
 const CHROME_STORE_URL = "#";
 const EDGE_STORE_URL = "#";
@@ -32,6 +33,7 @@ function renderSiteChrome() {
         <a class="brand" href="index.html" aria-label="Altreurl home">
           <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
           <span>Altreurl</span>
+          <span class="version-badge">${APP_VERSION}</span>
         </a>
         <nav aria-label="Primary navigation">
           <a href="${getHomeHref("#features")}">${iconMarkup("icons8-list-32.png")}Features</a>
@@ -54,7 +56,7 @@ function renderSiteChrome() {
         <div class="app-footer__meta">
           <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
           <p>Built by the Altreurl team with the help of our contributors.</p>
-          <p>Code licensed MIT, docs CC BY 3.0. Currently v1.13.0.</p>
+          <p>Version ${APP_VERSION}. Code licensed MIT, docs CC BY 3.0.</p>
         </div>
         <nav class="app-footer__links" aria-label="Altreurl resources">
           <a class="footer-link" href="${REPO_URL}" rel="noopener">
