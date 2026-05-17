@@ -309,22 +309,19 @@ h3 {
 }
 
 .screenshot-carousel {
-  overflow: hidden;
-  padding-bottom: 8px;
+  display: grid;
+  gap: 12px;
 }
 
 .screenshot-track {
   display: flex;
   gap: 12px;
-  width: max-content;
-}
-
-.screenshot-track.is-animated {
-  animation: gallery-scroll 70s linear infinite;
-}
-
-.screenshot-track.is-animated:hover {
-  animation-play-state: paused;
+  overflow-x: auto;
+  padding: 2px 2px 10px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--accent) transparent;
+  scrollbar-width: thin;
 }
 
 .screenshot-card {
@@ -332,16 +329,7 @@ h3 {
   margin: 0;
   overflow: hidden;
   background: var(--panel);
-}
-
-@keyframes gallery-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(calc(-50% - 6px));
-  }
+  scroll-snap-align: start;
 }
 
 .screenshot-card img {
@@ -357,6 +345,50 @@ h3 {
   padding: 10px 12px;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.screenshot-controls {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.carousel-button,
+.carousel-dot {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.carousel-button {
+  min-height: 34px;
+  padding: 6px 11px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.carousel-button:hover,
+.carousel-dot:hover,
+.carousel-dot.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.carousel-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border-radius: 999px;
 }
 
 .code-panel {
