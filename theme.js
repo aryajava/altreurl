@@ -38,10 +38,10 @@ function renderSiteChrome() {
           <span class="version-badge">${APP_VERSION}</span>
         </a>
         <nav aria-label="Primary navigation">
-          <a href="index.html" ${currentPage === "index.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-globe-32.png")}Home</a>
-          <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-log-32.png")}Docs</a>
-          <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-diploma-32.png")}Privacy</a>
-          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-group-32.png")}Support</a>
+          <a href="index.html" ${currentPage === "index.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-home-32.png")}Home</a>
+          <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-document-32.png")}Docs</a>
+          <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-privacy-policy-32.png")}Privacy</a>
+          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-support-32.png")}Support</a>
         </nav>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
           <img data-theme-icon data-themed-icon="icons8-moon-and-stars-32.png" alt="" width="16" height="16">
