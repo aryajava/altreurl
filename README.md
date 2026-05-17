@@ -4,7 +4,7 @@ Altreurl is a Chromium Extension for backend developers who need to route applic
 
 The extension can redirect request URLs, modify request headers, and handle `Authorization` or session cookie forwarding through configurable rules.
 
-Current version: `1.6.9`
+Current version: `1.13.0`
 
 ## Features
 
@@ -17,9 +17,32 @@ Current version: `1.6.9`
   - request headers
   - `Authorization`
   - session cookies
+- Prime synced credentials from browser storage or cookies before redirect rules run.
 - Enable or disable rules individually.
-- Search active rules from the popup.
+- Show contextual popup rules for the active tab domain.
+- Enable or disable matching rules from the popup.
 - Search and filter rules from the options page.
+- Organize rules by group and filter the options list by group.
+- Show rule status indicators for draft, waiting sync, ready, disabled, and invalid states.
+- Show status tooltips and readonly synced credential previews in tabbed sections.
+- Use a wider responsive options layout with quieter rule list bulk actions and grouped editor sections.
+- Keep the editor empty until a rule is selected and show synced credential previews as structured readonly rows.
+- Improve empty editor, rule list rows, and search/filter toggle affordance.
+- Use bundled UI icons, compact rule list rows with source/target tooltips, and a Dark/Light theme slider.
+- Add the save icon, refine the search/filter toggle layout, and improve button text contrast.
+- Turn the empty-state add mark into a clickable icon button and apply the new UI icons.
+- Keep the options header, rule list panel, and editor panel sticky with internal scrolling.
+- Stabilize the options workspace layout so both panels keep safe internal scroll areas.
+- Give the rule list its own fixed panel row and independent scroll area.
+- Fix rule list scrolling when many rules exist and center the empty editor state.
+- Clean up selected rule row styling so the list does not show broken selection strips.
+- Remove duplicate editor header badges and apply the duplicate action icon.
+- Select multiple rules and run bulk enable, disable, move, duplicate, export, or remove actions.
+- Import rules from JSON as drafts and export saved or selected rules to JSON.
+- Warn before exporting rules that include Authorization, custom headers, synced headers, or session cookies.
+- Show hover tooltips on rule controls to explain how each helper behaves.
+- Switch between system, light, and dark theme preferences.
+- Show bounded top-right notifications for save and rule actions.
 - Manage rules with Chrome `declarativeNetRequest` dynamic rules.
 
 ## Installation
@@ -37,13 +60,14 @@ After editing source files, reload the extension from `chrome://extensions`.
 Open the options page, then create a rule with:
 
 - `Name`: a readable name for the rule.
+- `Group`: optional grouping label for organizing related rules.
 - `Pattern format`: `Wildcard` or `Regex`.
 - `Source URL pattern`: the request URL to match.
 - `Redirect target URL`: the destination URL.
 - `Credential mode`: `Manual` or `Sync from source`.
 - `Enabled`: controls whether the rule is active.
 
-Click `Save rules` after making changes.
+Click `Save Rule` after making changes to persist the selected rule.
 
 ## Wildcard Example
 
@@ -79,19 +103,43 @@ Use manual mode when you want to type the `Authorization` value and custom heade
 
 Use sync mode when you want Altreurl to learn credential values from a matching source request.
 
-Recommended flow:
+Request learning flow:
 
 1. Set `Credential mode` to `Sync from source`.
-2. Choose which values to sync: headers, `Authorization`, or session cookies.
-3. Save rules.
-4. Trigger one matching source request from the original app.
-5. Reload or retry the app flow so the redirected request can use the captured values.
+2. Choose `Request learning` as the credential source.
+3. Choose which values to sync: headers, `Authorization`, or session cookies.
+4. Click `Save Rule`.
+5. Trigger one matching source request from the original app.
+6. Reload or retry the app flow so the redirected request can use the captured values.
 
 When a rule is waiting for captured values, the options page shows a learning status.
 
+If credentials are not available from browser storage or cookies, the first matching request must be used for learning. In that case, the first run captures credentials and the next run applies the redirect with those captured values.
+
+Two-step flow is only possible when the required credential values can be primed before the first redirected request, such as from `localStorage`, `sessionStorage`, or cookies.
+
+Credential source options:
+
+- `Request learning`: capture headers, `Authorization`, and cookies from the first matching source request.
+- `Browser storage`: read values from `localStorage` or `sessionStorage` in an already-open source-origin tab.
+- `Cookies`: read selected cookies directly through the Chrome cookies API.
+
+For browser storage, set:
+
+- `Authorization key/name`: storage key that contains the token.
+- `Authorization prefix`: optional prefix such as `Bearer`.
+- `Headers storage key`: optional storage key containing headers as JSON, either an object or an array of `{ "name": "...", "value": "..." }`.
+
+For cookies, set:
+
+- `Authorization key/name`: optional cookie name to use as the authorization value.
+- `Cookie names`: optional comma-separated cookie names. Leave empty to sync all cookies available for the source URL.
+
 ## Popup
 
-The popup shows active rules, supports search, and lets you disable an active rule quickly without opening the full options page.
+The popup shows rules that match the active tab domain, supports search within those matching rules, and lets you enable or disable a matching rule quickly without opening the full options page.
+
+Rule rows are compact: the rule name color indicates enabled or disabled state, while the source and target URLs are available from the row tooltip.
 
 ## Permissions
 
@@ -101,10 +149,18 @@ Altreurl uses these permissions:
 - `declarativeNetRequestWithHostAccess`
 - `webRequest`
 - `cookies`
+- `scripting`
+- `tabs`
 - `storage`
 - `<all_urls>` host access
 
-These permissions are required so the extension can match requests, redirect them, modify request headers, and sync cookies or credential headers for local debugging.
+These permissions are required so the extension can match requests, redirect them, modify request headers, read configured browser storage from matching source tabs, and sync cookies or credential headers for local debugging.
+
+## Privacy
+
+Altreurl stores rule configuration and synced credential values locally in the browser profile. It does not send rule data, headers, cookies, authorization values, or browsing activity to an Altreurl server.
+
+See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for details. For Chrome Web Store publication, publish this policy at a public URL and provide that URL in the Developer Dashboard.
 
 ## Development
 

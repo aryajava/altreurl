@@ -1,2 +1,10 @@
-plans/
-
+build/
+dist/
+node_modules/
+release/
+*.zip
+*.crx
+*.pem
+*.log
+.env
+.env.*

@@ -1,5 +1,8 @@
+import { t } from "./i18n.js";
+
 const RULE_ID_BASE = 1000;
 const WILDCARD = "*";
+let dynamicRuleApplyQueue = Promise.resolve();
 export const PATTERN_TYPES = {
   wildcard: "wildcard",
   regex: "regex"
@@ -7,6 +10,15 @@ export const PATTERN_TYPES = {
 export const CREDENTIAL_MODES = {
   manual: "manual",
   sync: "sync"
+};
+export const CREDENTIAL_SOURCES = {
+  request: "request",
+  storage: "storage",
+  cookie: "cookie"
+};
+export const STORAGE_AREAS = {
+  localStorage: "localStorage",
+  sessionStorage: "sessionStorage"
 };
 const UNSYNCED_HEADER_NAMES = new Set([
   "connection",
@@ -45,9 +57,25 @@ export function normalizeCredentialMode(rule) {
     : CREDENTIAL_MODES.manual;
 }
 
+export function normalizeCredentialSource(rule) {
+  if (Object.values(CREDENTIAL_SOURCES).includes(rule?.credentialSource)) {
+    return rule.credentialSource;
+  }
+
+  return CREDENTIAL_SOURCES.request;
+}
+
+export function normalizeStorageArea(storageArea) {
+  return Object.values(STORAGE_AREAS).includes(storageArea) ? storageArea : STORAGE_AREAS.localStorage;
+}
+
 export function isSyncableHeaderName(headerName) {
   const normalizedName = String(headerName || "").trim().toLowerCase();
   return normalizedName && !UNSYNCED_HEADER_NAMES.has(normalizedName) && normalizedName !== "authorization";
+}
+
+function canSyncHeaders(rule) {
+  return normalizeCredentialSource(rule) !== CREDENTIAL_SOURCES.cookie;
 }
 
 export function normalizeSyncedHeaders(headers = []) {
@@ -56,7 +84,7 @@ export function normalizeSyncedHeaders(headers = []) {
 
 export function hasSyncEnabled(rule) {
   return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
-    Boolean(rule.syncHeaders || rule.syncAuthorization || rule.syncCookies);
+    Boolean((canSyncHeaders(rule) && rule.syncHeaders) || rule.syncAuthorization || rule.syncCookies);
 }
 
 export function isWaitingForSyncCapture(rule) {
@@ -65,7 +93,7 @@ export function isWaitingForSyncCapture(rule) {
   }
 
   return Boolean(
-    (rule.syncHeaders && normalizeSyncedHeaders(rule.syncedHeaders).length === 0) ||
+    (canSyncHeaders(rule) && rule.syncHeaders && normalizeSyncedHeaders(rule.syncedHeaders).length === 0) ||
     (rule.syncAuthorization && !rule.syncedAuthorization) ||
     (rule.syncCookies && !rule.syncedCookieHeader)
   );
@@ -75,6 +103,8 @@ export function buildSourceMatcher(sourcePattern, patternType = PATTERN_TYPES.wi
   const normalizedPatternType = normalizePatternType(patternType);
   const regexSource = normalizedPatternType === PATTERN_TYPES.regex
     ? sourcePattern
+    : !sourcePattern.includes(WILDCARD)
+      ? buildRegexFilterFromLiteralUrl(sourcePattern)
     : buildRegexFilterFromWildcard(sourcePattern);
   const regex = new RegExp(regexSource);
 
@@ -95,6 +125,24 @@ function buildRegexFilterFromWildcard(sourcePattern) {
   }
 
   return `^${sourcePattern.split(WILDCARD).map(escapeRegex).join("(.*)")}$`;
+}
+
+function buildRegexFilterFromLiteralUrl(url, options = {}) {
+  const escapedUrl = escapeRegex(url);
+  const canPreserveUrlSuffix = /^https?:\/\//i.test(url) && !/[?#]/.test(url);
+  const canAppendQuerySuffix = /^https?:\/\//i.test(url) && url.includes("?") && !url.includes("#");
+  const suffixPattern = options.captureSuffix ? "([?#].*)?" : "(?:[?#].*)?";
+  const querySuffixPattern = options.captureSuffix ? "([&#].*)?" : "(?:[&#].*)?";
+
+  if (canPreserveUrlSuffix) {
+    return `^${escapedUrl}${suffixPattern}$`;
+  }
+
+  if (canAppendQuerySuffix) {
+    return `^${escapedUrl}${querySuffixPattern}$`;
+  }
+
+  return `^${escapedUrl}$`;
 }
 
 function buildRegexSubstitutionFromWildcard(targetUrl) {
@@ -139,8 +187,86 @@ function buildWildcardFromRegexSubstitution(targetUrl) {
 
 function buildRegexFilterFromRegexSubstitution(targetUrl) {
   return `^${targetUrl
-    .replace(/\\[1-9]\d*/g, "(.*)")
-    .replace(/\$[1-9]\d*/g, "(.*)")}$`;
+    .split(/(\\[1-9]\d*|\$[1-9]\d*)/g)
+    .map((part) => (/^(\\[1-9]\d*|\$[1-9]\d*)$/.test(part) ? "(.*)" : escapeRegex(part)))
+    .join("")}$`;
+}
+
+function countRegexCaptureGroups(regexPattern = "") {
+  let count = 0;
+  let inCharacterClass = false;
+
+  for (let index = 0; index < regexPattern.length; index += 1) {
+    const character = regexPattern[index];
+    const previousCharacter = regexPattern[index - 1];
+    const isEscaped = previousCharacter === "\\";
+
+    if (character === "[" && !isEscaped) {
+      inCharacterClass = true;
+      continue;
+    }
+
+    if (character === "]" && !isEscaped) {
+      inCharacterClass = false;
+      continue;
+    }
+
+    if (character !== "(" || isEscaped || inCharacterClass) {
+      continue;
+    }
+
+    if (regexPattern[index + 1] === "?" && regexPattern[index + 2] !== "<") {
+      continue;
+    }
+
+    if (regexPattern[index + 1] === "?" && regexPattern[index + 2] === "<" && ["=", "!"].includes(regexPattern[index + 3])) {
+      continue;
+    }
+
+    count += 1;
+  }
+
+  return count;
+}
+
+function getRegexSubstitutionRefs(targetUrl = "") {
+  return [...String(targetUrl).matchAll(/\\([1-9]\d*)|\$([1-9]\d*)/g)]
+    .map((match) => Number(match[1] || match[2]))
+    .filter((groupIndex) => Number.isInteger(groupIndex));
+}
+
+export function validateRegexSubstitutionRefs(sourcePattern, targetUrl) {
+  const captureGroupCount = countRegexCaptureGroups(sourcePattern);
+  const invalidRef = getRegexSubstitutionRefs(targetUrl)
+    .find((groupIndex) => groupIndex > captureGroupCount);
+
+  if (invalidRef) {
+    throw new Error(t("rules.error.captureRef", { group: invalidRef, count: captureGroupCount }));
+  }
+}
+
+export function isRegexPatternValid(sourcePattern) {
+  try {
+    new RegExp(sourcePattern);
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
+function validateRegexPattern(sourcePattern) {
+  if (!isRegexPatternValid(sourcePattern)) {
+    throw new Error(t("rules.error.regexInvalid"));
+  }
+}
+
+export function isRegexSubstitutionValid(sourcePattern, targetUrl) {
+  try {
+    validateRegexSubstitutionRefs(sourcePattern, targetUrl);
+    return true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 export function convertPatternFormat(value, fromPatternType, toPatternType, fieldType) {
@@ -164,6 +290,8 @@ export function convertPatternFormat(value, fromPatternType, toPatternType, fiel
 
 export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexPattern(sourcePattern);
+
     return {
       regexFilter: sourcePattern,
       resourceTypes: getResourceTypes()
@@ -172,7 +300,7 @@ export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPE
 
   if (!sourcePattern.includes(WILDCARD)) {
     return {
-      urlFilter: sourcePattern,
+      regexFilter: buildRegexFilterFromLiteralUrl(sourcePattern, { captureSuffix: true }),
       resourceTypes: getResourceTypes()
     };
   }
@@ -185,6 +313,8 @@ export function buildRedirectCondition(sourcePattern, patternType = PATTERN_TYPE
 
 export function buildHeaderCondition(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexPattern(sourcePattern);
+
     return {
       regexFilter: buildRegexFilterFromRegexSubstitution(targetUrl),
       resourceTypes: getResourceTypes()
@@ -199,13 +329,281 @@ export function buildHeaderCondition(sourcePattern, targetUrl, patternType = PAT
   }
 
   return {
-    urlFilter: targetUrl,
+    regexFilter: buildRegexFilterFromLiteralUrl(targetUrl),
     resourceTypes: getResourceTypes()
   };
 }
 
+function buildExactRedirectRules(sourcePattern, targetUrl, baseId) {
+  const escapedSource = escapeRegex(sourcePattern);
+  const queryJoiner = targetUrl.includes("?") ? "&" : "?";
+  const sourceHasQuery = sourcePattern.includes("?") && !sourcePattern.includes("#");
+  return [
+    {
+      id: baseId,
+      priority: 1,
+      action: {
+        type: "redirect",
+        redirect: {
+          url: targetUrl
+        }
+      },
+      condition: {
+        regexFilter: `^${escapedSource}$`,
+        resourceTypes: getResourceTypes()
+      }
+    },
+    {
+      id: baseId + 1,
+      priority: 1,
+      action: {
+        type: "redirect",
+        redirect: {
+          regexSubstitution: `${targetUrl}${queryJoiner}\\1`
+        }
+      },
+      condition: {
+        regexFilter: sourceHasQuery ? `^${escapedSource}&(.*)$` : `^${escapedSource}\\?(.*)$`,
+        resourceTypes: getResourceTypes()
+      }
+    }
+  ];
+}
+
+function shouldUseExactRedirectRules(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  return normalizePatternType(patternType) === PATTERN_TYPES.wildcard &&
+    countWildcards(sourcePattern) === 0 &&
+    countWildcards(targetUrl) === 0 &&
+    /^https?:\/\//i.test(sourcePattern) &&
+    !sourcePattern.includes("#");
+}
+
+function getConditionSignature(condition) {
+  return condition.regexFilter ? `regex:${condition.regexFilter}` : `url:${condition.urlFilter || ""}`;
+}
+
+function getTargetConflictScope(targetUrl, patternType = PATTERN_TYPES.wildcard) {
+  const normalizedTargetUrl = String(targetUrl || "")
+    .replace(/^\^/, "")
+    .replace(/\$$/, "")
+    .replace(/\\\./g, ".");
+  const boundaryPattern = normalizePatternType(patternType) === PATTERN_TYPES.regex
+    ? /(\\[1-9]\d*|\$[1-9]\d*|\(\.\*\)|\.\*)/
+    : /\*/;
+  const literalPrefix = normalizedTargetUrl.split(boundaryPattern)[0];
+
+  try {
+    const parsedUrl = new URL(literalPrefix || normalizedTargetUrl);
+    const pathPrefix = parsedUrl.pathname || "/";
+
+    return {
+      origin: parsedUrl.origin,
+      pathPrefix: pathPrefix.endsWith("/") ? pathPrefix : pathPrefix,
+      raw: normalizedTargetUrl
+    };
+  } catch (_error) {
+    return {
+      origin: "",
+      pathPrefix: "",
+      raw: normalizedTargetUrl
+    };
+  }
+}
+
+function doTargetScopesOverlap(leftScope, rightScope) {
+  if (!leftScope.origin || !rightScope.origin || leftScope.origin !== rightScope.origin) {
+    return false;
+  }
+
+  return isSameOrNestedPath(leftScope.pathPrefix, rightScope.pathPrefix) ||
+    isSameOrNestedPath(rightScope.pathPrefix, leftScope.pathPrefix);
+}
+
+function isSameOrNestedPath(candidatePath, prefixPath) {
+  if (candidatePath === prefixPath) {
+    return true;
+  }
+
+  const normalizedPrefix = prefixPath.endsWith("/") ? prefixPath : `${prefixPath}/`;
+  return candidatePath.startsWith(normalizedPrefix);
+}
+
+function getTargetConflictScopes(rule) {
+  return {
+    rule,
+    hasCredentialHeaders: hasPotentialCredentialHeaders(rule),
+    scope: getTargetConflictScope(rule.targetUrl, rule.patternType),
+    signature: getConditionSignature(buildHeaderCondition(rule.sourcePattern, rule.targetUrl, normalizePatternType(rule.patternType)))
+  };
+}
+
+function getRuleTargetConflict(activeRule, activeRuleScopes) {
+  if (!activeRule.hasCredentialHeaders) {
+    return null;
+  }
+
+  return activeRuleScopes.find((candidateRule) => (
+    candidateRule.rule.id !== activeRule.rule.id &&
+    (
+      candidateRule.signature === activeRule.signature ||
+      doTargetScopesOverlap(candidateRule.scope, activeRule.scope)
+    )
+  )) || null;
+}
+
+export function getRuleSetIssuesByRuleId(configRules = []) {
+  const activeRules = configRules
+    .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl);
+  const issuesByRuleId = new Map();
+  const rulesEligibleForConflictCheck = activeRules.filter((rule) => {
+    if (String(rule.sourcePattern || "").includes("#") || String(rule.targetUrl || "").includes("#")) {
+      issuesByRuleId.set(
+        rule.id,
+        t("rules.error.fragment", { name: rule.name || t("options.rules.unnamed") })
+      );
+      return false;
+    }
+
+    return true;
+  });
+
+  addDuplicatePatternIssues(rulesEligibleForConflictCheck, issuesByRuleId);
+
+  const activeRuleScopes = rulesEligibleForConflictCheck.map(getTargetConflictScopes);
+
+  activeRuleScopes.forEach((activeRule) => {
+    const conflictRule = getRuleTargetConflict(activeRule, activeRuleScopes);
+
+    if (!conflictRule) {
+      return;
+    }
+
+    issuesByRuleId.set(
+      activeRule.rule.id,
+      t("rules.error.credentialOverlap", {
+        name: activeRule.rule.name || t("options.rules.unnamed"),
+        otherName: conflictRule.rule.name || t("options.rules.unnamed")
+      })
+    );
+    issuesByRuleId.set(
+      conflictRule.rule.id,
+      t("rules.error.credentialOverlapReverse", {
+        name: conflictRule.rule.name || t("options.rules.unnamed"),
+        otherName: activeRule.rule.name || t("options.rules.unnamed")
+      })
+    );
+  });
+
+  return issuesByRuleId;
+}
+
+function addDuplicatePatternIssues(activeRules, issuesByRuleId) {
+  addDuplicateRuleIssue(
+    activeRules,
+    issuesByRuleId,
+    getRuleRouteSignature,
+    "rules.error.duplicateRoute"
+  );
+  addDuplicateRuleIssue(
+    activeRules,
+    issuesByRuleId,
+    getRuleSourceSignature,
+    "rules.error.duplicateSource"
+  );
+  addDuplicateRuleIssue(
+    activeRules,
+    issuesByRuleId,
+    getRuleTargetSignature,
+    "rules.error.duplicateTarget"
+  );
+}
+
+function addDuplicateRuleIssue(activeRules, issuesByRuleId, getSignature, messageKey) {
+  const firstRuleBySignature = new Map();
+
+  activeRules.forEach((rule) => {
+    const signature = getSignature(rule);
+
+    if (!signature) {
+      return;
+    }
+
+    const existingRule = firstRuleBySignature.get(signature);
+
+    if (!existingRule) {
+      firstRuleBySignature.set(signature, rule);
+      return;
+    }
+
+    markDuplicateRuleIssue(existingRule, rule, issuesByRuleId, messageKey);
+  });
+}
+
+function markDuplicateRuleIssue(leftRule, rightRule, issuesByRuleId, messageKey) {
+  if (!issuesByRuleId.has(leftRule.id)) {
+    issuesByRuleId.set(leftRule.id, t(messageKey, {
+      name: leftRule.name || t("options.rules.unnamed"),
+      otherName: rightRule.name || t("options.rules.unnamed")
+    }));
+  }
+
+  if (!issuesByRuleId.has(rightRule.id)) {
+    issuesByRuleId.set(rightRule.id, t(messageKey, {
+      name: rightRule.name || t("options.rules.unnamed"),
+      otherName: leftRule.name || t("options.rules.unnamed")
+    }));
+  }
+}
+
+function getRuleRouteSignature(rule) {
+  return `${getRuleSourceSignature(rule)} -> ${getRuleTargetSignature(rule)}`;
+}
+
+function getRuleSourceSignature(rule) {
+  return `${normalizePatternType(rule.patternType)}:${normalizePatternValue(rule.sourcePattern)}`;
+}
+
+function getRuleTargetSignature(rule) {
+  return `${normalizePatternType(rule.patternType)}:${normalizePatternValue(rule.targetUrl)}`;
+}
+
+function normalizePatternValue(value) {
+  return String(value || "").trim().replace(/\/+$/, "").toLowerCase();
+}
+
+export function validateRuleSet(configRules = []) {
+  const issues = [...getRuleSetIssuesByRuleId(configRules).values()];
+
+  if (issues.length > 0) {
+    throw new Error(issues[0]);
+  }
+}
+
+function validateHeaderConditionUniqueness(headerCondition, rule, seenHeaderConditions) {
+  const signature = getConditionSignature(headerCondition);
+  const currentScope = getTargetConflictScope(rule.targetUrl, rule.patternType);
+  const previousRule = [...seenHeaderConditions.values()].find((entry) => (
+    entry.signature === signature ||
+    doTargetScopesOverlap(entry.scope, currentScope)
+  ))?.rule;
+
+  if (previousRule) {
+    throw new Error(
+      t("rules.error.headerOverlap", {
+        leftName: previousRule.name || t("options.rules.unnamed"),
+        rightName: rule.name || t("options.rules.unnamed")
+      })
+    );
+  }
+
+  seenHeaderConditions.set(signature, { rule, scope: currentScope, signature });
+}
+
 export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATTERN_TYPES.wildcard) {
   if (normalizePatternType(patternType) === PATTERN_TYPES.regex) {
+    validateRegexPattern(sourcePattern);
+    validateRegexSubstitutionRefs(sourcePattern, targetUrl);
+
     return {
       type: "redirect",
       redirect: {
@@ -219,7 +617,7 @@ export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATT
 
   if (sourceWildcardCount > 0 && targetWildcardCount > 0) {
     if (sourceWildcardCount !== targetWildcardCount) {
-      throw new Error("Source URL pattern and redirect target URL must use the same number of wildcards.");
+      throw new Error(t("rules.error.wildcardMismatch"));
     }
 
     return {
@@ -231,7 +629,7 @@ export function buildRedirectAction(sourcePattern, targetUrl, patternType = PATT
   }
 
   if (targetWildcardCount > 0) {
-    throw new Error("Redirect target URL cannot use wildcards unless source URL pattern also uses wildcards.");
+    throw new Error(t("rules.error.targetWildcardWithoutSource"));
   }
 
   return {
@@ -275,81 +673,211 @@ function mergeRequestHeaders(...headerGroups) {
   return [...headersByName.values()];
 }
 
+function getRequestHeadersForRule(rule) {
+  const syncedHeaders = canSyncHeaders(rule) && rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
+  const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
+    ? [{ name: "Authorization", value: rule.syncedAuthorization }]
+    : [];
+  const syncedCookieHeader = rule.syncCookies && rule.syncedCookieHeader
+    ? [{ name: "Cookie", value: rule.syncedCookieHeader }]
+    : [];
+  const manualAuthorization = rule.authorization
+    ? [{ name: "Authorization", value: rule.authorization }]
+    : [];
+
+  return mergeRequestHeaders(
+    syncedHeaders,
+    syncedAuthorization,
+    syncedCookieHeader,
+    normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? manualAuthorization : [],
+    normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? normalizeHeaderRows(rule.headers) : []
+  );
+}
+
+function hasPotentialCredentialHeaders(rule) {
+  if (getRequestHeadersForRule(rule).length > 0) {
+    return true;
+  }
+
+  return normalizeCredentialMode(rule) === CREDENTIAL_MODES.sync &&
+    Boolean((canSyncHeaders(rule) && rule.syncHeaders) || rule.syncAuthorization || rule.syncCookies);
+}
+
+export function getGeneratedDynamicRuleCount(configRules = []) {
+  return buildDynamicRules(configRules).length;
+}
+
 export function buildDynamicRules(configRules = []) {
-  return configRules
+  validateRuleSet(configRules);
+  const seenHeaderConditions = new Map();
+  let nextRuleId = RULE_ID_BASE;
+  const dynamicRules = [];
+
+  configRules
     .filter((rule) => rule.enabled && rule.sourcePattern && rule.targetUrl)
     .filter((rule) => !isWaitingForSyncCapture(rule))
-    .flatMap((rule, index) => {
-      const syncedHeaders = rule.syncHeaders ? normalizeSyncedHeaders(rule.syncedHeaders) : [];
-      const syncedAuthorization = rule.syncAuthorization && rule.syncedAuthorization
-        ? [{ name: "Authorization", value: rule.syncedAuthorization }]
-        : [];
-      const syncedCookieHeader = rule.syncCookies && rule.syncedCookieHeader
-        ? [{ name: "Cookie", value: rule.syncedCookieHeader }]
-        : [];
-      const manualAuthorization = rule.authorization
-        ? [{ name: "Authorization", value: rule.authorization }]
-        : [];
-      const requestHeaders = mergeRequestHeaders(
-        syncedHeaders,
-        syncedAuthorization,
-        syncedCookieHeader,
-        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? manualAuthorization : [],
-        normalizeCredentialMode(rule) === CREDENTIAL_MODES.manual ? normalizeHeaderRows(rule.headers) : []
-      );
+    .forEach((rule) => {
+      const requestHeaders = getRequestHeadersForRule(rule);
 
       const patternType = normalizePatternType(rule.patternType);
       const redirectCondition = buildRedirectCondition(rule.sourcePattern, patternType);
       const headerCondition = buildHeaderCondition(rule.sourcePattern, rule.targetUrl, patternType);
+      const redirectRules = shouldUseExactRedirectRules(rule.sourcePattern, rule.targetUrl, patternType)
+        ? buildExactRedirectRules(rule.sourcePattern, rule.targetUrl, nextRuleId)
+        : [{
+            id: nextRuleId,
+            priority: 1,
+            action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
+            condition: redirectCondition
+          }];
 
-      const redirectRule = {
-        id: RULE_ID_BASE + index * 2,
-        priority: 1,
-        action: buildRedirectAction(rule.sourcePattern, rule.targetUrl, patternType),
-        condition: redirectCondition
-      };
+      nextRuleId += redirectRules.length;
+      dynamicRules.push(...redirectRules);
 
       if (requestHeaders.length === 0) {
-        return [redirectRule];
+        return;
       }
 
-      return [
-        redirectRule,
-        {
-          id: RULE_ID_BASE + index * 2 + 1,
-          priority: 2,
-          action: {
-            type: "modifyHeaders",
-            requestHeaders
-          },
-          condition: headerCondition
-        }
-      ];
+      validateHeaderConditionUniqueness(headerCondition, rule, seenHeaderConditions);
+
+      dynamicRules.push({
+        id: nextRuleId,
+        priority: 2,
+        action: {
+          type: "modifyHeaders",
+          requestHeaders
+        },
+        condition: headerCondition
+      });
+      nextRuleId += 1;
     });
+
+  return assignUniqueDynamicRuleIds(dynamicRules);
 }
 
-export async function applyDynamicRules(configRules = []) {
+function assignUniqueDynamicRuleIds(dynamicRules) {
+  return dynamicRules.map((rule, index) => ({
+    ...rule,
+    id: RULE_ID_BASE + index
+  }));
+}
+
+export function applyDynamicRules(configRules = []) {
+  dynamicRuleApplyQueue = dynamicRuleApplyQueue
+    .catch(() => {})
+    .then(() => applyDynamicRulesNow(configRules));
+
+  return dynamicRuleApplyQueue;
+}
+
+async function applyDynamicRulesNow(configRules = []) {
   const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
   const removeRuleIds = existingRules
-    .filter((rule) => rule.id >= RULE_ID_BASE)
     .map((rule) => rule.id);
+  const addRules = buildDynamicRules(configRules);
+  const dynamicRuleLimit = getDynamicRuleLimit();
 
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds,
-    addRules: buildDynamicRules(configRules)
+  if (addRules.length > dynamicRuleLimit) {
+    throw new Error(t("rules.error.dynamicLimit", { count: addRules.length, limit: dynamicRuleLimit }));
+  }
+
+  await validateDynamicRuleRegexFilters(addRules);
+  assertUniqueDynamicRuleIds(addRules);
+
+  if (removeRuleIds.length === 0 && addRules.length === 0) {
+    return;
+  }
+
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds,
+      addRules
+    });
+  } catch (error) {
+    throw new Error(getDynamicRuleApplyErrorMessage(error, addRules));
+  }
+}
+
+function assertUniqueDynamicRuleIds(dynamicRules) {
+  const seenIds = new Set();
+  const duplicateIds = [];
+
+  dynamicRules.forEach((rule) => {
+    if (seenIds.has(rule.id)) {
+      duplicateIds.push(rule.id);
+      return;
+    }
+
+    seenIds.add(rule.id);
+  });
+
+  if (duplicateIds.length > 0) {
+    throw new Error(t("rules.error.duplicateDynamicIds", {
+      ids: [...new Set(duplicateIds)].join(", ")
+    }));
+  }
+}
+
+function getDynamicRuleLimit() {
+  return chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_RULES ||
+    chrome.declarativeNetRequest.MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES ||
+    5000;
+}
+
+async function validateDynamicRuleRegexFilters(dynamicRules) {
+  if (!chrome.declarativeNetRequest.isRegexSupported) {
+    return;
+  }
+
+  const regexFilters = [...new Set(dynamicRules
+    .map((rule) => rule.condition?.regexFilter)
+    .filter(Boolean))];
+
+  for (const regex of regexFilters) {
+    const result = await chrome.declarativeNetRequest.isRegexSupported({ regex });
+
+    if (!result.isSupported) {
+      throw new Error(t("rules.error.unsupportedRegex", {
+        reason: result.reason || t("common.unknown"),
+        regex
+      }));
+    }
+  }
+}
+
+function getDynamicRuleApplyErrorMessage(error, dynamicRules) {
+  const detail = error?.message || chrome.runtime?.lastError?.message || "";
+  const ruleSummary = dynamicRules.length === 0
+    ? t("rules.error.applyNoRules")
+    : t("rules.error.applyRuleCount", { count: dynamicRules.length });
+
+  return t("rules.error.applyDetail", {
+    detail: detail || t("runtime.error.apply"),
+    ruleSummary
   });
 }
 
 export function createBlankRule() {
+  const now = new Date().toISOString();
+
   return {
     id: crypto.randomUUID(),
-    name: "Local backend",
+    createdAt: now,
+    modifiedAt: now,
+    name: t("options.editor.name.placeholder"),
+    group: "",
     enabled: true,
     patternType: PATTERN_TYPES.wildcard,
     credentialMode: CREDENTIAL_MODES.manual,
     syncHeaders: false,
     syncAuthorization: false,
     syncCookies: false,
+    credentialSource: CREDENTIAL_SOURCES.request,
+    storageArea: STORAGE_AREAS.localStorage,
+    authorizationKey: "",
+    authorizationPrefix: "",
+    headersKey: "",
+    cookieNames: "",
     sourcePattern: "",
     targetUrl: "",
     authorization: "",

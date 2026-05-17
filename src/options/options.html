@@ -3,40 +3,252 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Altreurl Options</title>
+    <title data-i18n="options.title"></title>
     <link rel="stylesheet" href="../shared/styles.css">
   </head>
   <body>
+    <div id="notifications" class="toast-stack toast-stack--options" aria-live="polite" aria-atomic="true"></div>
     <main class="options-shell">
-      <header class="page-header">
-        <div>
-          <h1>Altreurl</h1>
-          <p>Manage local debugging redirects and request header overrides.</p>
+      <header class="page-header app-header">
+        <div class="brand">
+          <img data-favicon="64" src="../shared/imgs/favicons/v2/Altreurl_64.png" alt="" width="48" height="48">
+          <div>
+            <h1 data-i18n="app.name"></h1>
+            <p data-i18n="app.description"></p>
+          </div>
         </div>
-        <button id="addRule" type="button">Add rule</button>
+        <div class="header-actions">
+          <button id="themePreference" class="theme-toggle" type="button" aria-pressed="false" data-i18n-title="theme.toggle.title">
+            <span class="theme-toggle__option theme-toggle__option--dark">
+              <img data-icon="icons8-moon-and-stars-32.png" src="../shared/imgs/icons/b/icons8-moon-and-stars-32.png" alt="" width="16" height="16">
+              <span data-i18n="common.dark"></span>
+            </span>
+            <span class="theme-toggle__thumb" aria-hidden="true"></span>
+            <span class="theme-toggle__option theme-toggle__option--light">
+              <img data-icon="icons8-sun-32.png" src="../shared/imgs/icons/b/icons8-sun-32.png" alt="" width="16" height="16">
+              <span data-i18n="common.light"></span>
+            </span>
+          </button>
+          <button id="importRules" class="icon-button" type="button" data-i18n-title="options.actions.import.title">
+            <img data-icon="icons8-import-32.png" src="../shared/imgs/icons/b/icons8-import-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.actions.import"></span>
+          </button>
+          <button id="copyDiagnostics" class="icon-button" type="button" data-i18n-title="options.actions.copyDiagnostics.title">
+            <img data-icon="icons8-log-32.png" src="../shared/imgs/icons/b/icons8-log-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.actions.diagnostics"></span>
+          </button>
+          <button id="addRule" class="icon-button" type="button" data-i18n-title="options.actions.createDraft.title">
+            <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.actions.addRule"></span>
+          </button>
+          <input id="importRulesFile" type="file" accept="application/json,.json" hidden>
+        </div>
       </header>
+
+      <dialog id="importDialog" class="import-dialog" aria-labelledby="importDialogTitle">
+        <form method="dialog" class="import-dialog__panel">
+          <header class="import-dialog__header">
+            <div>
+              <h2 id="importDialogTitle" data-i18n="options.import.title"></h2>
+              <p data-i18n="options.import.detail"></p>
+            </div>
+            <button id="importCancel" class="icon-button" type="button" data-i18n-title="options.import.cancel.title">
+              <img data-icon="icons8-close-32.png" src="../shared/imgs/icons/b/icons8-close-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.import.cancel"></span>
+            </button>
+          </header>
+          <div id="importStats" class="import-stats"></div>
+          <div id="importWarnings" class="import-warnings"></div>
+          <div class="import-options">
+            <label>
+              <span data-i18n="options.import.mode.label"></span>
+              <select id="importMode" data-i18n-title="options.import.mode.title">
+                <option value="draft" data-i18n="options.import.mode.draft"></option>
+                <option value="saveValid" data-i18n="options.import.mode.saveValid"></option>
+                <option value="merge" data-i18n="options.import.mode.merge"></option>
+                <option value="replace" data-i18n="options.import.mode.replace"></option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="options.import.conflict.label"></span>
+              <select id="importConflictMode" data-i18n-title="options.import.conflict.title">
+                <option value="draft" data-i18n="options.import.conflict.draft"></option>
+                <option value="skip" data-i18n="options.import.conflict.skip"></option>
+                <option value="disable" data-i18n="options.import.conflict.disable"></option>
+                <option value="replace" data-i18n="options.import.conflict.replace"></option>
+              </select>
+            </label>
+          </div>
+          <div id="importRulePreview" class="import-rule-preview"></div>
+          <footer class="import-dialog__actions">
+            <button id="importClose" class="icon-button" type="button" data-i18n="options.import.cancel"></button>
+            <button id="importApply" class="icon-button" type="button">
+              <img data-icon="icons8-import-32.png" src="../shared/imgs/icons/b/icons8-import-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.import.apply"></span>
+            </button>
+          </footer>
+        </form>
+      </dialog>
+
+      <dialog id="exportDialog" class="import-dialog" aria-labelledby="exportDialogTitle">
+        <form method="dialog" class="import-dialog__panel">
+          <header class="import-dialog__header">
+            <div>
+              <h2 id="exportDialogTitle" data-i18n="options.export.title"></h2>
+              <p data-i18n="options.export.detail"></p>
+            </div>
+            <button id="exportCancel" class="icon-button" type="button" data-i18n-title="options.export.cancel.title">
+              <img data-icon="icons8-close-32.png" src="../shared/imgs/icons/b/icons8-close-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.export.cancel"></span>
+            </button>
+          </header>
+          <div id="exportStats" class="import-stats"></div>
+          <div id="exportWarnings" class="import-warnings"></div>
+          <div class="import-options">
+            <label>
+              <span data-i18n="options.export.scope.label"></span>
+              <select id="exportScope" data-i18n-title="options.export.scope.title">
+                <option value="selected" data-i18n="options.export.scope.selected"></option>
+                <option value="all" data-i18n="options.export.scope.all"></option>
+                <option value="enabled" data-i18n="options.export.scope.enabled"></option>
+                <option value="group" data-i18n="options.export.scope.group"></option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="options.export.credentials.label"></span>
+              <select id="exportCredentialMode" data-i18n-title="options.export.credentials.title">
+                <option value="redact" data-i18n="options.export.credentials.redact"></option>
+                <option value="remove" data-i18n="options.export.credentials.remove"></option>
+                <option value="include" data-i18n="options.export.credentials.include"></option>
+              </select>
+            </label>
+            <label id="exportGroupField">
+              <span data-i18n="common.group"></span>
+              <select id="exportGroup" data-i18n-title="options.export.group.title"></select>
+            </label>
+          </div>
+          <div id="exportRulePreview" class="import-rule-preview"></div>
+          <footer class="import-dialog__actions">
+            <button id="exportClose" class="icon-button" type="button" data-i18n="options.export.cancel"></button>
+            <button id="exportCopy" class="icon-button" type="button">
+              <img data-icon="icons8-url-32.png" src="../shared/imgs/icons/b/icons8-url-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.export.copyJson"></span>
+            </button>
+            <button id="exportDownload" class="icon-button" type="button">
+              <img data-icon="icons8-export-32.png" src="../shared/imgs/icons/b/icons8-export-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.export.download"></span>
+            </button>
+          </footer>
+        </form>
+      </dialog>
+
+      <dialog id="diagnosticsDialog" class="import-dialog" aria-labelledby="diagnosticsDialogTitle">
+        <form method="dialog" class="import-dialog__panel">
+          <header class="import-dialog__header">
+            <div>
+              <h2 id="diagnosticsDialogTitle" data-i18n="options.diagnostics.title"></h2>
+              <p data-i18n="options.diagnostics.detail"></p>
+            </div>
+            <button id="diagnosticsCloseTop" class="icon-button" type="button" data-i18n-title="options.diagnostics.close.title">
+              <img data-icon="icons8-close-32.png" src="../shared/imgs/icons/b/icons8-close-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.close"></span>
+            </button>
+          </header>
+          <div id="diagnosticsStats" class="import-stats"></div>
+          <div id="diagnosticsErrors" class="import-warnings"></div>
+          <div id="diagnosticsLogs" class="import-rule-preview"></div>
+          <footer class="import-dialog__actions">
+            <button id="diagnosticsClose" class="icon-button" type="button" data-i18n="options.diagnostics.close"></button>
+            <button id="diagnosticsCopy" class="icon-button" type="button">
+              <img data-icon="icons8-log-32.png" src="../shared/imgs/icons/b/icons8-log-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.copy"></span>
+            </button>
+            <button id="diagnosticsCopyLogs" class="icon-button" type="button">
+              <img data-icon="icons8-log-32.png" src="../shared/imgs/icons/b/icons8-log-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.copyLogs"></span>
+            </button>
+            <button id="diagnosticsClearLogs" class="icon-button" type="button">
+              <img data-icon="icons8-close-32.png" src="../shared/imgs/icons/b/icons8-close-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.diagnostics.clearLogs"></span>
+            </button>
+          </footer>
+        </form>
+      </dialog>
 
       <section class="options-layout">
         <aside class="rule-list-panel">
           <div class="panel-title">
-            <strong>Rules</strong>
+            <strong class="panel-title__label">
+              <img data-icon="icons8-route-32.png" src="../shared/imgs/icons/b/icons8-route-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.rules.title"></span>
+            </strong>
             <span id="ruleCount"></span>
           </div>
-          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false">
-            Show search and filters
+          <button id="toggleRuleControls" class="filter-toggle" type="button" aria-expanded="false" data-i18n-title="options.actions.showFilters">
+            <span class="filter-toggle__label">
+              <img data-role="filterToggleStateIcon" data-icon="icons8-eye-32.png" src="../shared/imgs/icons/b/icons8-eye-32.png" alt="" width="16" height="16">
+              <span data-role="filterToggleLabel" data-i18n="options.actions.showFilters"></span>
+            </span>
+            <img class="filter-toggle__icon" data-icon="icons8-arrow-down-32.png" src="../shared/imgs/icons/b/icons8-arrow-down-32.png" alt="" width="16" height="16" aria-hidden="true">
           </button>
           <div id="ruleListControls" class="rule-list-controls" hidden>
-            <input id="ruleSearch" type="search" placeholder="Search rules">
-            <select id="statusFilter" aria-label="Status filter">
-              <option value="all">All statuses</option>
-              <option value="enabled">Enabled</option>
-              <option value="disabled">Disabled</option>
+            <label class="search-field">
+              <img data-icon="icons8-search-32.png" src="../shared/imgs/icons/b/icons8-search-32.png" alt="" width="16" height="16">
+              <input id="ruleSearch" type="search" data-i18n-placeholder="options.rules.search.placeholder" data-i18n-title="options.rules.search.title">
+            </label>
+            <select id="statusFilter" data-i18n-aria-label="options.rules.filter.status.label" data-i18n-title="options.rules.filter.status.title">
+              <option value="all" data-i18n="options.rules.filter.allStatuses"></option>
+              <option value="draft" data-i18n="common.draft"></option>
+              <option value="waiting" data-i18n="options.status.waiting"></option>
+              <option value="ready" data-i18n="common.ready"></option>
+              <option value="enabled" data-i18n="common.enabled"></option>
+              <option value="disabled" data-i18n="common.disabled"></option>
+              <option value="invalid" data-i18n="common.invalid"></option>
+              <option value="conflict" data-i18n="common.conflict"></option>
             </select>
-            <select id="credentialFilter" aria-label="Credential filter">
-              <option value="all">All credentials</option>
-              <option value="manual">Manual</option>
-              <option value="sync">Sync from source</option>
+            <select id="groupFilter" data-i18n-aria-label="options.rules.filter.group.label" data-i18n-title="options.rules.filter.group.title">
+              <option value="all" data-i18n="options.rules.filter.allGroups"></option>
             </select>
+            <select id="credentialFilter" data-i18n-aria-label="options.rules.filter.credential.label" data-i18n-title="options.rules.filter.credential.title">
+              <option value="all" data-i18n="options.rules.filter.allCredentials"></option>
+              <option value="manual" data-i18n="common.manual"></option>
+              <option value="sync" data-i18n="options.editor.syncFromSource"></option>
+            </select>
+          </div>
+          <div id="bulkToolbar" class="bulk-toolbar" hidden>
+            <div class="bulk-toolbar__summary">
+              <label data-i18n-title="options.rules.selectVisible.title">
+                <input id="selectVisibleRules" type="checkbox">
+                <span id="selectedRuleCount"></span>
+              </label>
+              <button id="bulkExport" class="icon-button" type="button" data-i18n-title="options.actions.export.title">
+                <img data-icon="icons8-export-32.png" src="../shared/imgs/icons/b/icons8-export-32.png" alt="" width="16" height="16">
+                <span data-role="bulkExportLabel" data-i18n="options.actions.exportAll"></span>
+              </button>
+            </div>
+            <div class="bulk-actions" data-role="bulkActions" hidden>
+              <button id="bulkEnable" class="icon-button" type="button" data-i18n-title="options.actions.enable.title">
+                <img data-icon="icons8-checkbox-checked-32.png" src="../shared/imgs/icons/b/icons8-checkbox-checked-32.png" alt="" width="16" height="16">
+                <span data-i18n="options.actions.enable"></span>
+              </button>
+              <button id="bulkDisable" class="icon-button" type="button" data-i18n-title="options.actions.disable.title">
+                <img data-icon="icons8-checkbox-32.png" src="../shared/imgs/icons/b/icons8-checkbox-32.png" alt="" width="16" height="16">
+                <span data-i18n="options.actions.disable"></span>
+              </button>
+              <button id="bulkDuplicate" class="icon-button" type="button" data-i18n-title="options.actions.duplicate.title">
+                <img data-icon="icons8-duplicate-32.png" src="../shared/imgs/icons/b/icons8-duplicate-32.png" alt="" width="16" height="16">
+                <span data-i18n="common.duplicate"></span>
+              </button>
+              <button id="bulkRemove" class="icon-button" type="button" data-i18n-title="options.actions.remove.title">
+                <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+                <span data-i18n="common.remove"></span>
+              </button>
+              <input id="bulkGroupName" type="text" data-i18n-placeholder="options.actions.moveToGroup.placeholder" data-i18n-title="options.actions.moveGroup.title">
+              <button id="bulkMoveGroup" class="icon-button" type="button" data-i18n-title="options.actions.move.title">
+                <img data-icon="icons8-group-32.png" src="../shared/imgs/icons/b/icons8-group-32.png" alt="" width="16" height="16">
+                <span data-i18n="common.move"></span>
+              </button>
+            </div>
           </div>
           <div id="rulesList" class="rule-list" aria-live="polite"></div>
         </aside>
@@ -44,97 +256,220 @@
         <section id="editorPanel" class="editor-panel" aria-live="polite"></section>
       </section>
 
-      <footer class="actions">
-        <span id="status" role="status"></span>
-        <button id="saveRules" type="button">Save rules</button>
+      <footer class="app-footer">
+        <p data-i18n="options.footer.tagline"></p>
+        <nav class="app-footer__links" data-i18n-aria-label="options.footer.links.label">
+          <a class="footer-link" href="#" target="_blank" rel="noreferrer" data-i18n-title="options.footer.web.title">
+            <img data-icon="icons8-globe-32.png" src="../shared/imgs/icons/b/icons8-globe-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.footer.web"></span>
+          </a>
+          <a class="footer-link" href="https://github.com/yavanara/altreurl" target="_blank" rel="noreferrer" data-i18n-title="options.footer.repo.title">
+            <img data-icon="icons8-github-32.png" src="../shared/imgs/icons/b/icons8-github-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.footer.repo"></span>
+          </a>
+          <a class="footer-link" href="#" target="_blank" rel="noreferrer" data-i18n-title="options.footer.chrome.title">
+            <img data-icon="icons8-chrome-32.png" src="../shared/imgs/icons/b/icons8-chrome-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.footer.chrome"></span>
+          </a>
+          <a class="footer-link" href="#" target="_blank" rel="noreferrer" data-i18n-title="options.footer.edge.title">
+            <img data-icon="icons8-microsoft-edge-32.png" src="../shared/imgs/icons/b/icons8-microsoft-edge-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.footer.edge"></span>
+          </a>
+        </nav>
       </footer>
+
     </main>
 
     <template id="ruleListItemTemplate">
-      <button class="rule-list-item" type="button">
-        <span data-role="ruleName"></span>
-        <small data-role="ruleMeta"></small>
-      </button>
+      <div class="rule-list-row">
+        <input class="rule-select" data-role="ruleSelect" type="checkbox" data-i18n-title="options.rules.selectRule.title">
+        <button class="rule-list-item" type="button">
+          <span class="rule-list-item__title">
+            <span data-role="ruleName"></span>
+            <span class="rule-badge" data-role="statusBadge"></span>
+          </span>
+          <span class="rule-list-item__meta">
+            <small data-role="ruleGroup"></small>
+            <small data-role="ruleMeta"></small>
+          </span>
+        </button>
+      </div>
     </template>
 
     <template id="emptyEditorTemplate">
       <div class="empty-editor">
-        <h2>No rule selected</h2>
-        <p>Add or select a rule.</p>
+        <div class="empty-editor__content">
+          <button data-action="addEmptyRule" class="empty-editor__quick-add" type="button" data-i18n-title="options.actions.createDraft.title">
+            <img data-icon="icons8-add-64.png" src="../shared/imgs/icons/b/icons8-add-64.png" alt="" width="24" height="24">
+          </button>
+          <h2 data-i18n="options.empty.title"></h2>
+          <p data-i18n="options.empty.detail"></p>
+          <button data-action="addEmptyRule" class="icon-button" type="button" data-i18n-title="options.actions.createDraft.title">
+            <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
+            <span data-i18n="options.actions.addRule"></span>
+          </button>
+        </div>
       </div>
     </template>
 
     <template id="ruleTemplate">
       <article class="rule-editor">
         <div class="rule-editor__header">
-          <label>
-            <input data-field="enabled" type="checkbox">
-            Enabled
-          </label>
-          <button data-action="removeRule" type="button">Remove</button>
+          <div class="rule-state">
+            <label>
+              <input data-field="enabled" type="checkbox">
+              <span data-i18n="common.enabled"></span>
+            </label>
+            <span class="rule-badge" data-role="editorStatusBadge"></span>
+          </div>
+          <div class="rule-actions">
+            <button data-action="saveRule" class="icon-button" type="button" data-i18n-title="options.actions.saveRule.title">
+              <img data-icon="icons8-save-32.png" src="../shared/imgs/icons/b/icons8-save-32.png" alt="" width="16" height="16">
+              <span data-role="saveRuleLabel" data-i18n="options.actions.saveRule"></span>
+            </button>
+            <button data-action="removeRule" class="icon-button" type="button" data-i18n-title="options.actions.removeRule.title">
+              <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+              <span data-i18n="common.remove"></span>
+            </button>
+          </div>
         </div>
 
-        <div class="editor-grid">
-          <label>
-            Name
-            <input data-field="name" type="text" placeholder="Local backend">
-          </label>
+        <section class="editor-section">
+          <div class="editor-section__title">
+            <strong class="section-title-with-icon">
+              <img data-icon="icons8-pen-squared-32.png" src="../shared/imgs/icons/b/icons8-pen-squared-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.editor.ruleDetails"></span>
+            </strong>
+          </div>
+          <div class="editor-grid editor-grid--meta">
+            <label>
+              <span data-i18n="common.name"></span>
+              <input data-field="name" type="text" data-i18n-placeholder="options.editor.name.placeholder" data-i18n-title="options.editor.name.title">
+            </label>
 
-          <label>
-            Pattern format
-            <select data-field="patternType">
-              <option value="wildcard">Wildcard</option>
-              <option value="regex">Regex</option>
-            </select>
-          </label>
+            <label>
+              <span data-i18n="common.group"></span>
+              <input data-field="group" type="text" data-i18n-placeholder="options.editor.group.placeholder" data-i18n-title="options.editor.group.title">
+            </label>
 
-          <label class="span-2">
-            Source URL pattern
-            <input data-field="sourcePattern" type="text" placeholder="https://api.example.test/*">
-          </label>
+            <label>
+              <span data-i18n="options.editor.patternFormat"></span>
+              <select data-field="patternType" data-i18n-title="options.editor.pattern.title">
+                <option value="wildcard" data-i18n="common.wildcard"></option>
+                <option value="regex" data-i18n="common.regex"></option>
+              </select>
+            </label>
+          </div>
+        </section>
 
-          <label class="span-2">
-            Redirect target URL
-            <input data-field="targetUrl" type="text" placeholder="http://localhost:3000/users/*">
-          </label>
+        <section class="editor-section">
+          <div class="editor-section__title">
+            <strong data-i18n="options.editor.routing"></strong>
+          </div>
+          <div class="editor-grid">
+            <label class="span-2">
+              <span data-i18n="options.editor.sourcePattern"></span>
+              <input data-field="sourcePattern" type="text" data-i18n-placeholder="options.editor.source.placeholder" data-i18n-title="options.editor.source.title">
+              <small class="field-feedback" data-feedback-for="sourcePattern"></small>
+            </label>
 
-          <label>
-            Credential mode
-            <select data-field="credentialMode">
-              <option value="manual">Manual</option>
-              <option value="sync">Sync from source</option>
-            </select>
-          </label>
+            <label class="span-2">
+              <span data-i18n="options.editor.targetUrl"></span>
+              <input data-field="targetUrl" type="text" data-i18n-placeholder="options.editor.target.placeholder" data-i18n-title="options.editor.target.title">
+              <small class="field-feedback" data-feedback-for="targetUrl"></small>
+            </label>
+          </div>
+        </section>
 
-          <label data-role="manualAuthorization">
-            Authorization
-            <input data-field="authorization" type="text" placeholder="Bearer local-token">
-          </label>
-        </div>
+        <section class="editor-section">
+          <div class="editor-section__title">
+            <strong data-i18n="options.editor.credentials"></strong>
+          </div>
+          <div class="editor-grid editor-grid--credentials">
+            <label>
+              <span data-i18n="options.editor.credentialMode"></span>
+              <select data-field="credentialMode" data-i18n-title="options.editor.credentialMode.title">
+                <option value="manual" data-i18n="common.manual"></option>
+                <option value="sync" data-i18n="options.editor.syncFromSource"></option>
+              </select>
+            </label>
+
+            <label data-role="manualAuthorization">
+              <span data-i18n="common.authorization"></span>
+              <input data-field="authorization" type="text" data-i18n-placeholder="options.editor.authorization.placeholder" data-i18n-title="options.editor.authorization.title">
+            </label>
+          </div>
+        </section>
 
         <fieldset class="sync-block" data-role="syncOptions">
-          <legend>Sync from source request</legend>
+          <legend data-i18n="options.editor.syncLegend"></legend>
+          <p class="sync-note" data-i18n="options.editor.syncNote"></p>
           <div class="sync-options">
             <label>
               <input data-field="syncHeaders" type="checkbox">
-              Headers
+              <span data-i18n="common.headers"></span>
             </label>
             <label>
               <input data-field="syncAuthorization" type="checkbox">
-              Authorization
+              <span data-i18n="common.authorization"></span>
             </label>
             <label>
               <input data-field="syncCookies" type="checkbox">
-              Session cookies
+              <span data-i18n="options.editor.sessionCookies"></span>
+            </label>
+          </div>
+          <div class="source-grid">
+            <label>
+              <span data-i18n="options.editor.credentialSource"></span>
+              <select data-field="credentialSource">
+                <option value="request" data-i18n="options.editor.requestLearning"></option>
+                <option value="storage" data-i18n="options.editor.browserStorage"></option>
+                <option value="cookie" data-i18n="common.cookies"></option>
+              </select>
+            </label>
+
+            <label data-role="storageAreaField">
+              <span data-i18n="options.editor.storageArea"></span>
+              <select data-field="storageArea">
+                <option value="localStorage" data-i18n="common.localStorage"></option>
+                <option value="sessionStorage" data-i18n="common.sessionStorage"></option>
+              </select>
+            </label>
+
+            <label data-role="authorizationKeyField">
+              <span data-i18n="options.editor.authorizationKey"></span>
+              <input data-field="authorizationKey" type="text" data-i18n-placeholder="options.editor.authorizationKey.placeholder">
+            </label>
+
+            <label data-role="authorizationPrefixField">
+              <span data-i18n="options.editor.authorizationPrefix"></span>
+              <input data-field="authorizationPrefix" type="text" data-i18n-placeholder="options.editor.authorizationPrefix.placeholder">
+            </label>
+
+            <label data-role="headersKeyField">
+              <span data-i18n="options.editor.headersStorageKey"></span>
+              <input data-field="headersKey" type="text" data-i18n-placeholder="options.editor.headersKey.placeholder">
+            </label>
+
+            <label class="span-2" data-role="cookieNamesField">
+              <span data-i18n="options.editor.cookieNames"></span>
+              <input data-field="cookieNames" type="text" data-i18n-placeholder="options.editor.cookieNames.placeholder">
             </label>
           </div>
           <span data-role="syncStatus" class="sync-status"></span>
+          <div class="sync-preview" data-role="syncPreview" hidden>
+            <div class="sync-tabs" data-role="syncTabs" role="tablist" data-i18n-aria-label="options.editor.syncedPreview.label"></div>
+            <div class="sync-preview-content" data-role="syncPreviewContent"></div>
+          </div>
         </fieldset>
 
         <div class="headers-block" data-role="manualHeaders">
           <div class="headers-block__title">
-            <strong>Headers</strong>
-            <button data-action="addHeader" type="button">Add header</button>
+            <strong data-i18n="common.headers"></strong>
+            <button data-action="addHeader" class="icon-button" type="button">
+              <img data-icon="icons8-add-32.png" src="../shared/imgs/icons/b/icons8-add-32.png" alt="" width="16" height="16">
+              <span data-i18n="options.actions.addHeader"></span>
+            </button>
           </div>
           <div data-role="headers"></div>
         </div>
@@ -143,9 +478,12 @@
 
     <template id="headerTemplate">
       <div class="header-row">
-        <input data-field="headerName" type="text" placeholder="X-Debug-User">
-        <input data-field="headerValue" type="text" placeholder="local">
-        <button data-action="removeHeader" type="button">Remove</button>
+        <input data-field="headerName" type="text" data-i18n-placeholder="options.editor.headerName.placeholder">
+        <input data-field="headerValue" type="text" data-i18n-placeholder="options.editor.headerValue.placeholder">
+        <button data-action="removeHeader" class="icon-button" type="button" data-i18n-title="options.actions.removeHeader.title">
+          <img data-icon="icons8-remove-32.png" src="../shared/imgs/icons/b/icons8-remove-32.png" alt="" width="16" height="16">
+          <span data-i18n="common.remove"></span>
+        </button>
       </div>
     </template>
 
