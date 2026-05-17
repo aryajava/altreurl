@@ -447,8 +447,8 @@ h3 {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
-  object-position: top center;
+  object-fit: contain;
+  object-position: center;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--panel-soft);
@@ -781,12 +781,19 @@ h3 {
     position: static;
     align-items: flex-start;
     flex-direction: column;
+    gap: 10px;
   }
 
-  nav {
+  .site-header nav {
     width: 100%;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    max-width: 100%;
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: 12px;
+  }
+
+  .site-header nav a {
+    flex: 0 0 auto;
   }
 
   .hero__content {

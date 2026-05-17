@@ -30,6 +30,7 @@
           <li>Session cookie values when cookie sync is enabled.</li>
           <li>Browser localStorage or sessionStorage values from matching source-origin tabs when browser storage sync is enabled.</li>
           <li>The active tab URL, used by the popup to show rules relevant to the current page.</li>
+          <li>Privacy-safe diagnostics logs, including local event names, rule counts, and dynamic rule apply errors.</li>
         </ul>
 
         <h2>How data is used</h2>
@@ -43,10 +44,26 @@
           <li>Modify configured request headers.</li>
           <li>Sync selected credentials from the configured source request, browser storage, or cookies.</li>
           <li>Display relevant rules in the popup and options page.</li>
+          <li>Show privacy-safe diagnostics and local logs for troubleshooting extension setup.</li>
+        </ul>
+
+        <h2>Chrome permissions</h2>
+        <p>Altreurl requests Chrome permissions only to provide local request routing and debugging features:</p>
+        <ul>
+          <li>cookies: read configured source-origin session cookies when cookie sync is enabled.</li>
+          <li>declarativeNetRequest and declarativeNetRequestWithHostAccess: redirect matching requests and modify configured request headers.</li>
+          <li>host permissions: allow matching and routing only on URLs covered by your configured rules.</li>
+          <li>scripting: read browser storage values from matching source-origin tabs when storage sync is enabled.</li>
+          <li>storage: save rules, preferences, diagnostics logs, and local apply state.</li>
+          <li>tabs: read the active tab URL so the popup can show rules relevant to the current page.</li>
+          <li>webRequest: observe matching source requests so credential sync can learn selected headers.</li>
         </ul>
 
         <h2>Storage and sharing</h2>
-        <p>Rule configuration and synced credential values are stored locally in chrome.storage.local in your browser profile.</p>
+        <p>
+          Rule configuration, synced credential values, theme preference, diagnostics logs, and apply error state
+          are stored locally in chrome.storage.local in your browser profile.
+        </p>
         <p>Altreurl does not:</p>
         <ul>
           <li>Sell user data.</li>
@@ -64,8 +81,23 @@
           rule data, so Altreurl shows a warning before exporting rules that include credentials.
         </p>
 
+        <h2>Remote code</h2>
+        <p>
+          Altreurl does not load or execute remote code. All executable code is packaged with the extension
+          and runs locally in the browser.
+        </p>
+
+        <h2>Retention</h2>
+        <p>
+          Rule configuration, diagnostics logs, synced credential values, and extension preferences remain in
+          your browser profile until you delete rules, clear extension data, or uninstall the extension.
+        </p>
+
         <h2>User control</h2>
-        <p>You can remove stored data by deleting rules in the options page or uninstalling the extension from Chrome.</p>
+        <p>
+          You can remove stored data by deleting rules, clearing diagnostics logs in the options page,
+          clearing extension site data, or uninstalling the extension from Chrome.
+        </p>
 
         <h2>Limited Use statement</h2>
         <p>
