@@ -32,15 +32,16 @@ function renderSiteChrome() {
       <header class="site-header">
         <a class="brand" href="index.html" aria-label="Altreurl home">
           <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
-          <span>Altreurl</span>
+          <strong>Altreurl</strong>
           <span class="version-badge">${APP_VERSION}</span>
         </a>
         <nav aria-label="Primary navigation">
+          <a href="${getHomeHref("#overview")}">${iconMarkup("icons8-globe-32.png")}Overview</a>
           <a href="${getHomeHref("#features")}">${iconMarkup("icons8-list-32.png")}Features</a>
-          <a href="${getHomeHref("#workflow")}">${iconMarkup("icons8-route-32.png")}Workflow</a>
+          <a href="${getHomeHref("#preview")}">${iconMarkup("icons8-route-32.png")}Preview</a>
+          <a href="${getHomeHref("#workflow")}">${iconMarkup("icons8-url-32.png")}Example</a>
           <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-log-32.png")}Docs</a>
           <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-diploma-32.png")}Privacy</a>
-          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-coffee-32.png")}Support</a>
         </nav>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
           <img data-theme-icon data-themed-icon="icons8-moon-and-stars-32.png" alt="" width="16" height="16">
@@ -55,7 +56,7 @@ function renderSiteChrome() {
       <footer class="app-footer">
         <div class="app-footer__meta">
           <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
-          <p>Built by the Altreurl team with the help of our contributors.</p>
+          <p>Built by the <strong>Altreurl</strong> team with the help of our contributors.</p>
           <p>Version ${APP_VERSION}. Code licensed <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.</p>
         </div>
         <nav class="app-footer__links" aria-label="Altreurl resources">
