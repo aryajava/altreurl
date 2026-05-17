@@ -50,7 +50,11 @@ function renderSiteChrome() {
   if (footer) {
     footer.innerHTML = `
       <footer class="app-footer">
-        <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
+        <div class="app-footer__meta">
+          <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
+          <p>Built by the Altreurl team with the help of our contributors.</p>
+          <p>Code licensed MIT, docs CC BY 3.0. Currently v1.13.0.</p>
+        </div>
         <nav class="app-footer__links" aria-label="Altreurl resources">
           <a class="footer-link" href="${REPO_URL}" rel="noopener">
             <img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
@@ -156,7 +160,9 @@ function initGallery() {
   let activeIndex = 0;
   let autoAdvanceTimer = null;
 
-  function setActive(index, behavior = "smooth") {
+  function setActive(index, options = {}) {
+    const { behavior = "smooth", revealThumb = false } = options;
+
     activeIndex = (index + items.length) % items.length;
     const item = items[activeIndex];
 
@@ -182,11 +188,13 @@ function initGallery() {
       thumb.setAttribute("aria-current", isActive ? "true" : "false");
     });
 
-    thumbs[activeIndex].scrollIntoView({
-      behavior,
-      block: "nearest",
-      inline: "center"
-    });
+    if (revealThumb) {
+      thumbs[activeIndex].scrollIntoView({
+        behavior,
+        block: "nearest",
+        inline: "nearest"
+      });
+    }
   }
 
   function goNext() {
@@ -208,7 +216,7 @@ function initGallery() {
 
   thumbs.forEach((thumb, index) => {
     thumb.addEventListener("click", () => {
-      setActive(index);
+      setActive(index, { revealThumb: true });
       restartAutoAdvance();
     });
   });
@@ -231,7 +239,7 @@ function initGallery() {
   gallery.addEventListener("focusin", () => window.clearInterval(autoAdvanceTimer));
   gallery.addEventListener("focusout", restartAutoAdvance);
 
-  setActive(0, "auto");
+  setActive(0, { behavior: "auto" });
   startAutoAdvance();
 }
 
