@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Documentation - Altreurl</title>
+    <meta name="description" content="Altreurl documentation for install, rules, credential sync, import/export, permissions, and troubleshooting.">
+    <link rel="icon" href="assets/favicons/v2/Altreurl_V2_32.png" sizes="32x32">
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js" defer></script>
+  </head>
+  <body>
+    <div data-site-header></div>
+
+    <main class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation">
+        <div class="docs-version">
+          <label for="docs-version">Version</label>
+          <select id="docs-version" data-doc-version>
+            <option value="v1.13.0">v1.13.0 latest</option>
+            <option value="v1.12.x">v1.12.x</option>
+          </select>
+        </div>
+        <nav>
+          <a href="#introduction">Introduction</a>
+          <a href="#quick-start">Quick start</a>
+          <a href="#rules">Rules</a>
+          <a href="#credentials">Credentials</a>
+          <a href="#popup">Popup</a>
+          <a href="#import-export">Import/export</a>
+          <a href="#permissions">Permissions</a>
+          <a href="#troubleshooting">Troubleshooting</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <header class="docs-hero" id="introduction">
+          <p class="eyebrow">Documentation <span data-doc-version-label>v1.13.0</span></p>
+          <h1>Get started with Altreurl</h1>
+          <p>
+            Altreurl is a Chromium MV3 extension for redirecting configured request URLs,
+            forwarding selected headers, Authorization values, and cookies, and keeping local
+            backend debugging close to the browser.
+          </p>
+          <div class="docs-actions">
+            <a class="button button--primary" href="https://github.com/yavanara/altreurl" rel="noopener">
+              <img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
+              View source
+            </a>
+            <a class="button" href="store-listing.html">
+              <img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">
+              Store copy
+            </a>
+          </div>
+        </header>
+
+        <section class="docs-panel" data-doc-panel="v1.13.0">
+          <section id="quick-start" class="docs-section">
+            <h2>Quick start</h2>
+            <ol>
+              <li>Install Altreurl from a browser store or load the packaged extension in Chromium developer mode.</li>
+              <li>Open the options page and create a rule with a source URL pattern and redirect target URL.</li>
+              <li>Choose wildcard for simple path forwarding or regex when you need capture groups.</li>
+              <li>Select a credential mode, save the rule, then trigger a matching request from your web app.</li>
+              <li>Use the popup on matching tabs to enable or disable contextual rules quickly.</li>
+            </ol>
+            <pre><code>Source:  https://api.example.com/users/*
+Target:  http://localhost:3000/users/*
+Mode:    Sync from source request</code></pre>
+          </section>
+
+          <section id="rules" class="docs-section">
+            <h2>Rules</h2>
+            <p>
+              A rule describes what request should be matched, where it should be redirected,
+              and which request data may be added or replaced. Rules can be enabled, disabled,
+              grouped, searched, imported, exported, and inspected from diagnostics.
+            </p>
+            <div class="docs-grid">
+              <div>
+                <h3>Wildcard patterns</h3>
+                <p>Use <code>*</code> for straightforward path forwarding, such as mirroring one API path to localhost.</p>
+              </div>
+              <div>
+                <h3>Regex patterns</h3>
+                <p>Use regex when the target URL needs capture groups or stricter matching.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="credentials" class="docs-section">
+            <h2>Credentials</h2>
+            <p>
+              Credential handling is explicit per rule. Use manual mode for fixed debug values, request
+              learning for headers from source traffic, browser storage sync for app-owned storage, or
+              cookie sync when the local backend needs a selected session cookie.
+            </p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Mode</th>
+                  <th>Use when</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Manual</td>
+                  <td>You already know the Authorization value or custom headers.</td>
+                </tr>
+                <tr>
+                  <td>Request learning</td>
+                  <td>The source request should teach Altreurl which headers to reuse.</td>
+                </tr>
+                <tr>
+                  <td>Browser storage</td>
+                  <td>Tokens live in localStorage or sessionStorage on the source origin.</td>
+                </tr>
+                <tr>
+                  <td>Cookies</td>
+                  <td>A selected Chrome cookie should be forwarded to the target request.</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section id="popup" class="docs-section">
+            <h2>Popup</h2>
+            <p>
+              The popup shows rules that match the active tab domain or origin. It is built for quick
+              toggles while testing a page, not for full rule editing. Use the options page for detailed
+              rule setup, import/export, and diagnostics.
+            </p>
+          </section>
+
+          <section id="import-export" class="docs-section">
+            <h2>Import and export</h2>
+            <p>
+              Exports can include all rules or a selected scope. Before sharing JSON, choose whether
+              credentials should be included, redacted, or removed. Imports show a preview so you can
+              review conflicts before writing changes.
+            </p>
+          </section>
+
+          <section id="permissions" class="docs-section">
+            <h2>Permissions</h2>
+            <p>
+              Altreurl uses Chromium extension APIs only for its debugging purpose: dynamic request
+              rules, request header learning, cookie reading for selected sync rules, scripting for
+              browser storage reads, tabs for contextual popup matching, and local extension storage.
+            </p>
+          </section>
+
+          <section id="troubleshooting" class="docs-section">
+            <h2>Troubleshooting</h2>
+            <ul>
+              <li>If a rule is not ready, check the source pattern, target URL, enabled state, and credential mode.</li>
+              <li>If sync mode waits forever, trigger one matching source request before testing the redirect again.</li>
+              <li>If browser storage sync fails, keep a source-origin tab open and reload the options page.</li>
+              <li>If cookies are missing, confirm the cookie domain and browser profile match the source origin.</li>
+              <li>Use Diagnostics for dynamic rule counts, apply errors, and privacy-safe local logs.</li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="docs-panel" data-doc-panel="v1.12.x" hidden>
+          <section class="docs-section">
+            <h2>v1.12.x notes</h2>
+            <p>
+              This archived documentation slot is reserved for the previous public release. Keep
+              stable workflows here when v1.13.0 changes rule editing, diagnostics, or credential sync.
+            </p>
+            <ul>
+              <li>Use the same source and target URL rule model.</li>
+              <li>Prefer manual or request-learned credentials for repeatable local debugging.</li>
+              <li>Review release notes before importing rules created by newer versions.</li>
+            </ul>
+          </section>
+        </section>
+      </article>
+    </main>
+
+    <div data-site-footer></div>
+  </body>
+</html>

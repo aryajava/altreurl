@@ -9,6 +9,7 @@ https://aryajava.github.io/altreurl-web/
 ## Pages
 
 - `index.html`: public product page.
+- `docs.html`: public documentation with a version switcher.
 - `privacy.html`: public browser store privacy policy URL.
 - `support.html`: support and known limitations.
 - `store-listing.html`: browser store listing copy, permission justification, and reviewer test instructions.

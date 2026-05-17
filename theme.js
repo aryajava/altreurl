@@ -36,6 +36,7 @@ function renderSiteChrome() {
         <nav aria-label="Primary navigation">
           <a href="${getHomeHref("#features")}">${iconMarkup("icons8-list-32.png")}Features</a>
           <a href="${getHomeHref("#workflow")}">${iconMarkup("icons8-route-32.png")}Workflow</a>
+          <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-log-32.png")}Docs</a>
           <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-diploma-32.png")}Privacy</a>
           <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-coffee-32.png")}Support</a>
         </nav>
@@ -67,6 +68,10 @@ function renderSiteChrome() {
           <a class="footer-link" href="${EDGE_STORE_URL}">
             <img data-themed-icon="icons8-microsoft-edge-32.png" alt="" width="16" height="16">
             Edge
+          </a>
+          <a class="footer-link" href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>
+            <img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">
+            Docs
           </a>
           <a class="footer-link" href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>
             <img data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">
@@ -243,6 +248,31 @@ function initGallery() {
   startAutoAdvance();
 }
 
+function initDocsVersion() {
+  const switcher = document.querySelector("[data-doc-version]");
+
+  if (!switcher) {
+    return;
+  }
+
+  const panels = [...document.querySelectorAll("[data-doc-panel]")];
+  const labels = [...document.querySelectorAll("[data-doc-version-label]")];
+
+  function showVersion(version) {
+    panels.forEach((panel) => {
+      panel.hidden = panel.dataset.docPanel !== version;
+    });
+
+    labels.forEach((label) => {
+      label.textContent = version;
+    });
+  }
+
+  switcher.addEventListener("change", () => showVersion(switcher.value));
+  showVersion(switcher.value);
+}
+
 renderSiteChrome();
 initTheme();
 initGallery();
+initDocsVersion();
