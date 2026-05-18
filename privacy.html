@@ -12,18 +12,18 @@
   <body>
     <div data-site-header></div>
 
-    <main class="document">
-      <article class="document__inner">
-        <p class="eyebrow">Effective date: 2026-05-16</p>
-        <h1>Privacy Policy</h1>
-        <p>
+    <main class="p-[clamp(24px,4vw,44px)_clamp(14px,2.4vw,32px)]">
+      <article class="w-[min(900px,100%)] mx-auto p-[clamp(18px,3vw,30px)] bg-panel border border-line rounded-lg shadow-soft">
+        <p class="m-0 mb-[7px] text-accent-strong text-[0.76rem] font-extrabold tracking-normal uppercase">Effective date: 2026-05-16</p>
+        <h1 class="m-0 mb-3 text-[clamp(2rem,4.6vw,3.4rem)] break-words">Privacy Policy</h1>
+        <p class="text-muted m-0 break-words">
           <strong>Altreurl</strong> is a Chromium extension for backend developers who need to route configured request URLs
           to local or alternate backend endpoints while debugging.
         </p>
 
-        <h2>Data handled by the extension</h2>
-        <p><strong>Altreurl</strong> may handle the following data only when you configure rules that need it:</p>
-        <ul>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Data handled by the extension</h2>
+        <p class="text-muted m-0 break-words"><strong>Altreurl</strong> may handle the following data only when you configure rules that need it:</p>
+        <ul class="text-muted">
           <li>Rule configuration, including source URL patterns, redirect target URLs, groups, pattern format, and enabled state.</li>
           <li>Request headers from matching source requests when credential sync is enabled.</li>
           <li>Authorization header values when manual mode or sync mode is enabled.</li>
@@ -33,12 +33,12 @@
           <li>Privacy-safe diagnostics logs, including local event names, rule counts, and dynamic rule apply errors.</li>
         </ul>
 
-        <h2>How data is used</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">How data is used</h2>
+        <p class="text-muted m-0 break-words">
           <strong>Altreurl</strong> uses this data only to provide its single purpose: configurable local debugging redirects
           with optional request header, authorization, and cookie forwarding.
         </p>
-        <ul>
+        <ul class="text-muted">
           <li>Match configured request URLs.</li>
           <li>Redirect matched requests to configured targets.</li>
           <li>Modify configured request headers.</li>
@@ -47,9 +47,9 @@
           <li>Show privacy-safe diagnostics and local logs for troubleshooting extension setup.</li>
         </ul>
 
-        <h2>Chrome permissions</h2>
-        <p><strong>Altreurl</strong> requests Chrome permissions only to provide local request routing and debugging features:</p>
-        <ul>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Chrome permissions</h2>
+        <p class="text-muted m-0 break-words"><strong>Altreurl</strong> requests Chrome permissions only to provide local request routing and debugging features:</p>
+        <ul class="text-muted">
           <li>cookies: read configured source-origin session cookies when cookie sync is enabled.</li>
           <li>declarativeNetRequest and declarativeNetRequestWithHostAccess: redirect matching requests and modify configured request headers.</li>
           <li>host permissions: allow matching and routing only on URLs covered by your configured rules.</li>
@@ -59,56 +59,56 @@
           <li>webRequest: observe matching source requests so credential sync can learn selected headers.</li>
         </ul>
 
-        <h2>Storage and sharing</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Storage and sharing</h2>
+        <p class="text-muted m-0 break-words">
           Rule configuration, synced credential values, theme preference, diagnostics logs, and apply error state
           are stored locally in chrome.storage.local in your browser profile.
         </p>
-        <p><strong>Altreurl</strong> does not:</p>
-        <ul>
+        <p class="text-muted m-0 break-words"><strong>Altreurl</strong> does not:</p>
+        <ul class="text-muted">
           <li>Sell user data.</li>
           <li>Transfer user data to advertising platforms or data brokers.</li>
           <li>Send rule configuration, headers, cookies, authorization values, or browsing activity to a remote server controlled by <strong>Altreurl</strong>.</li>
           <li>Use user data for advertising, credit-worthiness, or unrelated purposes.</li>
         </ul>
-        <p>
+        <p class="text-muted m-0 break-words">
           When you enable a redirect rule, the browser sends the resulting request to the target URL you configured.
           That target may receive the headers, authorization value, or cookies you chose to set or sync as part
           of the debugging workflow.
         </p>
-        <p>
+        <p class="text-muted m-0 break-words">
           Exported rule JSON files are created only when you click export. These files may contain sensitive
           rule data, so <strong>Altreurl</strong> shows a warning before exporting rules that include credentials.
         </p>
 
-        <h2>Remote code</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Remote code</h2>
+        <p class="text-muted m-0 break-words">
           <strong>Altreurl</strong> does not load or execute remote code. All executable code is packaged with the extension
           and runs locally in the browser.
         </p>
 
-        <h2>Retention</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Retention</h2>
+        <p class="text-muted m-0 break-words">
           Rule configuration, diagnostics logs, synced credential values, and extension preferences remain in
           your browser profile until you delete rules, clear extension data, or uninstall the extension.
         </p>
 
-        <h2>User control</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">User control</h2>
+        <p class="text-muted m-0 break-words">
           You can remove stored data by deleting rules, clearing diagnostics logs in the options page,
           clearing extension site data, or uninstalling the extension from Chrome.
         </p>
 
-        <h2>Limited Use statement</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Limited Use statement</h2>
+        <p class="text-muted m-0 break-words">
           <strong>Altreurl</strong>'s use of information received from Chrome APIs adheres to the Chrome Web Store User Data Policy,
           including the Limited Use requirements.
         </p>
 
-        <h2>Contact</h2>
-        <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Contact</h2>
+        <p class="text-muted m-0 break-words">
           For privacy questions or data-related requests, email
-          <a href="mailto:yavanara.dev@gmail.com">yavanara.dev@gmail.com</a>.
+          <a class="text-accent-strong font-extrabold no-underline hover:underline" href="mailto:yavanara.dev@gmail.com">yavanara.dev@gmail.com</a>.
         </p>
       </article>
     </main>

@@ -21,7 +21,7 @@ function getThemedIconPath(iconName, theme = document.documentElement.dataset.co
 }
 
 function iconMarkup(iconName, size = 16) {
-  return `<img data-themed-icon="${iconName}" alt="" width="${size}" height="${size}">`;
+  return `<img class="block flex-none" data-themed-icon="${iconName}" alt="" width="${size}" height="${size}">`;
 }
 
 function renderSiteChrome() {
@@ -31,55 +31,73 @@ function renderSiteChrome() {
 
   if (header) {
     header.innerHTML = `
-      <header class="site-header">
-        <a class="brand" href="index.html" aria-label="Altreurl home">
-          <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
-          <strong>Altreurl</strong>
-          <span class="version-badge">${APP_VERSION}</span>
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="index.html" ${currentPage === "index.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-home-32.png")}Home</a>
-          <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-document-32.png")}Docs</a>
-          <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-privacy-policy-32.png")}Privacy</a>
-          <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>${iconMarkup("icons8-support-32.png")}Support</a>
-        </nav>
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">
-          <img data-theme-icon data-themed-icon="icons8-moon-and-stars-32.png" alt="" width="16" height="16">
-          <span data-theme-label>Light</span>
-        </button>
+      <header class="sticky top-0 z-50 border-b border-line/50 bg-bg/80 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+          <a class="flex items-center gap-3 transition-transform hover:scale-105" href="index.html" aria-label="Altreurl home">
+            <img class="w-8 h-8 rounded-xl shadow-sm border border-line bg-panel" src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="32" height="32">
+            <span class="text-text font-extrabold text-lg tracking-tight">Altreurl</span>
+            <span class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-strong text-xs font-bold border border-accent/20">${APP_VERSION}</span>
+          </a>
+          
+          <nav class="hidden md:flex items-center gap-6" aria-label="Primary navigation">
+            <a class="text-sm font-semibold text-muted hover:text-text transition-colors aria-[current=page]:text-accent-strong" href="index.html" ${currentPage === "index.html" ? 'aria-current="page"' : ""}>Home</a>
+            <a class="text-sm font-semibold text-muted hover:text-text transition-colors aria-[current=page]:text-accent-strong" href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>Docs</a>
+            <a class="text-sm font-semibold text-muted hover:text-text transition-colors aria-[current=page]:text-accent-strong" href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>Privacy</a>
+            <a class="text-sm font-semibold text-muted hover:text-text transition-colors aria-[current=page]:text-accent-strong" href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>Support</a>
+          </nav>
+
+          <div class="flex items-center gap-4">
+            <button class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-panel border border-line text-muted hover:text-text hover:border-accent hover:bg-accent-soft transition-all" type="button" data-theme-toggle aria-label="Switch color theme">
+              <img class="block w-4 h-4 opacity-70" data-theme-icon data-themed-icon="icons8-moon-and-stars-32.png" alt="">
+              <span data-theme-label class="hidden">Light</span>
+            </button>
+          </div>
+        </div>
       </header>
     `;
   }
 
   if (footer) {
     footer.innerHTML = `
-      <footer class="app-footer">
-        <div class="app-footer__brand">
-          <a class="brand" href="index.html" aria-label="Altreurl home">
-            <img src="assets/favicons/v2/Altreurl_V2_48.png" alt="" width="40" height="40">
-            <strong>Altreurl</strong>
-          </a>
-          <p>Built for developers who would rather debug the backend than wrestle the network tab.</p>
-          <p>Maintained by <a href="${ORG_URL}" rel="noopener">Yavanara</a>. Version ${APP_VERSION}. Licensed <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.</p>
-        </div>
-        <div class="app-footer__groups">
-          <nav class="footer-group" aria-label="Project links">
-            <strong>Project</strong>
-            <a href="${REPO_URL}" rel="noopener">GitHub</a>
-            <a href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>Docs</a>
-            <a href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>Support</a>
-          </nav>
-          <nav class="footer-group" aria-label="Store links">
-            <strong>Stores</strong>
-            <a href="${CHROME_STORE_URL}">Chrome</a>
-            <a href="${EDGE_STORE_URL}">Edge</a>
-            <a href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>Privacy</a>
-          </nav>
-          <nav class="footer-group" aria-label="Community links">
-            <strong>Community</strong>
-            <a href="${ORG_URL}" rel="noopener">Yavanara</a>
-            <a href="${DONATION_URL}" aria-disabled="true" tabindex="-1">Support Dev</a>
-          </nav>
+      <footer class="mt-20 border-t border-line/50 bg-panel-soft/30 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+            <div class="col-span-1 md:col-span-2">
+              <a class="flex items-center gap-3 mb-4 w-fit transition-opacity hover:opacity-80" href="index.html" aria-label="Altreurl home">
+                <img class="w-8 h-8 rounded-xl shadow-sm border border-line bg-panel" src="assets/favicons/v2/Altreurl_V2_48.png" alt="">
+                <strong class="text-text font-extrabold text-lg tracking-tight">Altreurl</strong>
+              </a>
+              <p class="text-muted text-sm leading-relaxed max-w-sm mb-6">
+                Built for developers who would rather debug the backend than wrestle the network tab.
+              </p>
+              <p class="text-muted text-xs">
+                Maintained by <a class="text-text font-bold hover:text-accent-strong transition-colors" href="${ORG_URL}" rel="noopener">Yavanara</a>.<br/>
+                Version ${APP_VERSION}. Licensed <a class="text-text font-bold hover:text-accent-strong transition-colors" href="${REPO_URL}/blob/main/LICENSE" rel="noopener">MIT</a>.
+              </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-8 col-span-1 md:col-span-2">
+              <nav class="flex flex-col gap-3" aria-label="Project links">
+                <strong class="text-text text-sm font-bold tracking-wide uppercase">Project</strong>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors aria-[current=page]:text-text" href="${REPO_URL}" rel="noopener">GitHub</a>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors aria-[current=page]:text-text" href="docs.html" ${currentPage === "docs.html" ? 'aria-current="page"' : ""}>Docs</a>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors aria-[current=page]:text-text" href="support.html" ${currentPage === "support.html" ? 'aria-current="page"' : ""}>Support</a>
+              </nav>
+              
+              <nav class="flex flex-col gap-3" aria-label="Store links">
+                <strong class="text-text text-sm font-bold tracking-wide uppercase">Stores</strong>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors" href="${CHROME_STORE_URL}">Chrome</a>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors" href="${EDGE_STORE_URL}">Edge</a>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors aria-[current=page]:text-text" href="privacy.html" ${currentPage === "privacy.html" ? 'aria-current="page"' : ""}>Privacy</a>
+              </nav>
+              
+              <nav class="flex flex-col gap-3" aria-label="Community links">
+                <strong class="text-text text-sm font-bold tracking-wide uppercase">Community</strong>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors" href="${ORG_URL}" rel="noopener">Yavanara</a>
+                <a class="text-muted text-sm hover:text-accent-strong transition-colors" href="${DONATION_URL}">Support Dev</a>
+              </nav>
+            </div>
+          </div>
         </div>
       </footer>
     `;

@@ -12,43 +12,43 @@
   <body>
     <div data-site-header></div>
 
-    <main class="document support-page">
-      <article class="document__inner">
-        <header class="support-hero">
-          <p class="eyebrow">Support</p>
-          <h1>Get help with <strong>Altreurl</strong>.</h1>
-          <p>
+    <main class="p-[clamp(24px,4vw,44px)_clamp(14px,2.4vw,32px)]">
+      <article class="w-[min(1080px,100%)] mx-auto p-[clamp(18px,3vw,30px)] bg-panel border border-line rounded-lg shadow-soft">
+        <header class="mb-4">
+          <p class="m-0 mb-[7px] text-accent-strong text-[0.76rem] font-extrabold tracking-normal uppercase">Support</p>
+          <h1 class="m-0 mb-3 text-[clamp(2rem,4.6vw,3.4rem)] break-words">Get help with <strong>Altreurl</strong>.</h1>
+          <p class="w-[min(760px,100%)] text-muted m-0 break-words">
             If a redirect, header override, cookie sync, or browser storage sync flow behaves unexpectedly,
             send a short report with the rule shape and browser version. Keep private hosts, tokens, and
             credentials out of public issues.
           </p>
         </header>
 
-        <section class="support-card-grid" aria-label="Support channels">
-          <article class="support-card">
-            <span class="feature__mark"><img data-themed-icon="icons8-mail-32.png" alt="" width="16" height="16">EMAIL</span>
-            <h2>Email support</h2>
-            <p>Use email for privacy questions, sensitive diagnostics, or reports that should not be public.</p>
-            <a class="button" href="mailto:yavanara.dev@gmail.com">yavanara.dev@gmail.com</a>
+        <section class="grid grid-cols-[repeat(3,minmax(0,1fr))] max-[960px]:grid-cols-1 gap-3 mb-[26px]" aria-label="Support channels">
+          <article class="flex flex-col items-start p-4 border border-line rounded-lg bg-accent-soft">
+            <span class="inline-flex items-center gap-[6px] mb-2 text-muted text-[0.7rem] font-extrabold tracking-[0.04em] uppercase"><img class="block flex-none" data-themed-icon="icons8-mail-32.png" alt="" width="16" height="16">EMAIL</span>
+            <h2 class="m-0 mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Email support</h2>
+            <p class="m-0 mb-4 text-muted break-words">Use email for privacy questions, sensitive diagnostics, or reports that should not be public.</p>
+            <a class="inline-flex items-center justify-center min-h-[36px] py-2 px-3 border border-line rounded-md bg-panel text-text font-bold gap-[7px] no-underline hover:border-accent mt-auto self-end" href="mailto:yavanara.dev@gmail.com">yavanara.dev@gmail.com</a>
           </article>
-          <article class="support-card">
-            <span class="feature__mark"><img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">ISSUES</span>
-            <h2>GitHub issues</h2>
-            <p>Use GitHub for reproducible bugs, feature requests, or documentation fixes.</p>
-            <a class="button" href="https://github.com/yavanara/altreurl/issues" rel="noopener">Open an issue</a>
+          <article class="flex flex-col items-start p-4 border border-line rounded-lg bg-accent-soft">
+            <span class="inline-flex items-center gap-[6px] mb-2 text-muted text-[0.7rem] font-extrabold tracking-[0.04em] uppercase"><img class="block flex-none" data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">ISSUES</span>
+            <h2 class="m-0 mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">GitHub issues</h2>
+            <p class="m-0 mb-4 text-muted break-words">Use GitHub for reproducible bugs, feature requests, or documentation fixes.</p>
+            <a class="inline-flex items-center justify-center min-h-[36px] py-2 px-3 border border-line rounded-md bg-panel text-text font-bold gap-[7px] no-underline hover:border-accent mt-auto self-end" href="https://github.com/yavanara/altreurl/issues" rel="noopener">Open an issue</a>
           </article>
-          <article class="support-card">
-            <span class="feature__mark"><img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">MAINTAINER</span>
-            <h2>Yavanara</h2>
-            <p><strong>Altreurl</strong> is maintained by Yavanara, a GitHub organization for developer tools.</p>
-            <a class="button" href="https://github.com/yavanara" rel="noopener">View organization</a>
+          <article class="flex flex-col items-start p-4 border border-line rounded-lg bg-accent-soft">
+            <span class="inline-flex items-center gap-[6px] mb-2 text-muted text-[0.7rem] font-extrabold tracking-[0.04em] uppercase"><img class="block flex-none" data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">MAINTAINER</span>
+            <h2 class="m-0 mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Yavanara</h2>
+            <p class="m-0 mb-4 text-muted break-words"><strong>Altreurl</strong> is maintained by Yavanara, a GitHub organization for developer tools.</p>
+            <a class="inline-flex items-center justify-center min-h-[36px] py-2 px-3 border border-line rounded-md bg-panel text-text font-bold gap-[7px] no-underline hover:border-accent mt-auto self-end" href="https://github.com/yavanara" rel="noopener">View organization</a>
           </article>
         </section>
 
-        <section class="support-split">
+        <section class="grid grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)] max-[960px]:grid-cols-1 items-start gap-6">
           <div>
-            <h2>Useful details for reports</h2>
-            <ul>
+            <h2 class="m-0 mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Useful details for reports</h2>
+            <ul class="text-muted">
               <li>Chrome or Chromium version.</li>
               <li><strong>Altreurl</strong> extension version.</li>
               <li>Pattern format: wildcard or regex.</li>
@@ -58,25 +58,25 @@
               <li>Privacy-safe diagnostics copied from the Diagnostics dialog.</li>
             </ul>
           </div>
-          <div class="support-note">
-            <h2>Support development</h2>
-            <p>
+          <div class="flex flex-col items-start p-4 border border-line rounded-lg bg-accent-soft">
+            <h2 class="m-0 mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Support development</h2>
+            <p class="m-0 mb-3 text-muted break-words">
               A donation link will be added after the account is ready. Donations are optional and are never
               required to use <strong>Altreurl</strong>.
             </p>
-            <a class="button" href="#" aria-disabled="true" tabindex="-1"><img data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">Donation link coming soon</a>
+            <a class="inline-flex items-center justify-center min-h-[36px] py-2 px-3 border border-line rounded-md bg-panel text-text font-bold gap-[7px] no-underline hover:border-accent mt-auto self-end opacity-50 cursor-not-allowed" href="#" aria-disabled="true" tabindex="-1"><img class="block flex-none" data-themed-icon="icons8-coffee-32.png" alt="" width="16" height="16">Donation link coming soon</a>
           </div>
         </section>
 
         <section>
-          <h2>Known limitations</h2>
-          <div class="support-limits">
-            <p>Chrome Web Store handles automatic updates after installation. Load unpacked development builds still need manual reloads.</p>
-            <p>Request learning needs one matching source request before redirected requests can use captured credentials.</p>
-            <p>The cookie credential source cannot sync request headers. Use request learning or browser storage for headers.</p>
-            <p>Some protected headers cannot be copied because of Chrome extension API limits.</p>
-            <p>Browser storage sync requires an already-open source-origin tab.</p>
-            <p>The popup matches contextual rules by source domain or origin, not by full request path.</p>
+          <h2 class="mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Known limitations</h2>
+          <div class="grid grid-cols-[repeat(2,minmax(0,1fr))] max-[720px]:grid-cols-1 gap-3">
+            <p class="p-3 m-0 border border-line rounded-lg bg-accent-soft text-muted break-words">Chrome Web Store handles automatic updates after installation. Load unpacked development builds still need manual reloads.</p>
+            <p class="p-3 m-0 border border-line rounded-lg bg-accent-soft text-muted break-words">Request learning needs one matching source request before redirected requests can use captured credentials.</p>
+            <p class="p-3 m-0 border border-line rounded-lg bg-accent-soft text-muted break-words">The cookie credential source cannot sync request headers. Use request learning or browser storage for headers.</p>
+            <p class="p-3 m-0 border border-line rounded-lg bg-accent-soft text-muted break-words">Some protected headers cannot be copied because of Chrome extension API limits.</p>
+            <p class="p-3 m-0 border border-line rounded-lg bg-accent-soft text-muted break-words">Browser storage sync requires an already-open source-origin tab.</p>
+            <p class="p-3 m-0 border border-line rounded-lg bg-accent-soft text-muted break-words">The popup matches contextual rules by source domain or origin, not by full request path.</p>
           </div>
         </section>
       </article>

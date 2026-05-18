@@ -17,171 +17,358 @@
   <body>
     <div data-site-header></div>
 
-    <main class="home-main">
-      <section id="overview" class="home-hero" aria-labelledby="hero-title">
-        <div class="home-hero__copy">
-          <p class="eyebrow">Chromium Extension MV3</p>
-          <h1 id="hero-title">Route app requests to local backends faster.</h1>
-          <p class="home-lead">
+    <main class="grid gap-[14px] w-[min(1328px,100%)] mx-auto p-[clamp(14px,2.2vw,24px)]">
+      <section id="overview" class="flex flex-col items-center justify-center text-center pt-16 pb-20 relative overflow-hidden" aria-labelledby="hero-title">
+        <!-- Background decorative elements -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-5xl z-[-1] pointer-events-none">
+          <div class="absolute top-[10%] left-[20%] w-72 h-72 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
+          <div class="absolute top-[30%] right-[20%] w-96 h-96 bg-accent-strong rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 z-10 animate-fade-in-up">
+          <span class="inline-flex items-center gap-2 py-1.5 px-4 mb-6 border border-accent/30 rounded-full bg-accent/10 text-accent-strong text-xs font-bold tracking-wide uppercase backdrop-blur-sm">
+            <span class="w-2 h-2 rounded-full bg-accent-strong animate-pulse"></span>
+            Chromium Extension MV3
+          </span>
+          <h1 id="hero-title" class="m-0 mb-6 text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.05] bg-gradient-to-r from-text via-accent-strong to-accent bg-clip-text text-transparent animate-gradient-x">
+            Route app requests to local backends faster.
+          </h1>
+          <p class="max-w-2xl mx-auto mb-10 text-lg md:text-xl text-muted leading-relaxed">
             <strong>Altreurl</strong> helps backend developers redirect API calls, forward debugging credentials,
             and switch rules from the browser without changing application code.
           </p>
-          <div class="hero__actions">
-            <a class="button" href="https://github.com/yavanara/altreurl" rel="noopener"><img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">View repo</a>
-            <a class="button" href="docs.html"><img data-themed-icon="icons8-document-32.png" alt="" width="16" height="16">Read docs</a>
-            <a class="button" href="store-listing.html"><img data-themed-icon="icons8-shopping-bag-32.png" alt="" width="16" height="16">Store copy</a>
-          </div>
-          <div class="home-metrics" aria-label="Altreurl highlights">
-            <span>Wildcard + regex rules</span>
-            <span>Credential sync</span>
-            <span>Local diagnostics</span>
+          <div class="flex flex-wrap items-center justify-center gap-4 mb-14">
+            <a class="inline-flex items-center justify-center min-h-[48px] py-3 px-8 rounded-full bg-accent-strong text-white font-bold text-base transition-all duration-300 hover:scale-105 hover:shadow-glow" href="https://github.com/yavanara/altreurl" rel="noopener">
+              <img class="block flex-none mr-2" data-themed-icon="icons8-github-32.png" alt="" width="20" height="20" style="filter: brightness(0) invert(1);">
+              View repo
+            </a>
+            <a class="inline-flex items-center justify-center min-h-[48px] py-3 px-8 border border-line rounded-full bg-panel/80 backdrop-blur-md text-text font-bold text-base transition-all duration-300 hover:border-accent hover:bg-accent-soft hover:-translate-y-1" href="docs.html">
+              <img class="block flex-none mr-2" data-themed-icon="icons8-document-32.png" alt="" width="20" height="20">
+              Read docs
+            </a>
           </div>
         </div>
-        <img class="home-hero__media" src="assets/screenshots/preview_menu_options_add-rule_sync_and_show-fillters.png" alt="Altreurl options page showing a sync rule and filters">
-      </section>
 
-      <section id="features" class="home-panel home-panel--features" aria-labelledby="features-title">
-        <div class="home-panel__heading">
-          <p class="eyebrow">Core workflow</p>
-          <h2 id="features-title">Everything needed to debug request routing in one place.</h2>
-        </div>
-        <div class="feature-grid">
-          <article class="feature">
-            <span class="feature__mark"><img data-themed-icon="icons8-url-32.png" alt="" width="16" height="16">URL</span>
-            <h3>Redirect by pattern</h3>
-            <p>Use wildcard rules for simple paths or regex rules for capture groups.</p>
-          </article>
-          <article class="feature">
-            <span class="feature__mark"><img data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">AUTH</span>
-            <h3>Set headers manually</h3>
-            <p>Add Authorization and custom headers when local services need explicit context.</p>
-          </article>
-          <article class="feature">
-            <span class="feature__mark"><img data-themed-icon="icons8-sync-32.png" alt="" width="16" height="16">SYNC</span>
-            <h3>Learn credentials</h3>
-            <p>Sync selected headers, bearer tokens, cookies, or storage values from source requests.</p>
-          </article>
-          <article class="feature">
-            <span class="feature__mark"><img data-themed-icon="icons8-popup-window-32.png" alt="" width="16" height="16">POPUP</span>
-            <h3>Toggle relevant rules</h3>
-            <p>The popup shows rules for the current tab and lets you enable or disable them quickly.</p>
-          </article>
-          <article class="feature">
-            <span class="feature__mark"><img data-themed-icon="icons8-usb-connector-32.png" alt="" width="16" height="16">I/O</span>
-            <h3>Import and export safely</h3>
-            <p>Preview changes, handle conflicts, and redact credentials before sharing rule files.</p>
-          </article>
-          <article class="feature">
-            <span class="feature__mark"><img data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">LOGS</span>
-            <h3>Copy diagnostics</h3>
-            <p>Review dynamic rule state and local logs when a setup behaves unexpectedly.</p>
-          </article>
+        <div class="w-full max-w-5xl mx-auto px-4 animate-fade-in-up-delay-1 relative z-10">
+          <div class="relative rounded-xl bg-panel border border-line shadow-2xl overflow-hidden animate-float">
+            <div class="flex items-center px-4 py-3 bg-panel-soft border-b border-line">
+              <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-danger/80"></div>
+                <div class="w-3 h-3 rounded-full bg-accent/80"></div>
+                <div class="w-3 h-3 rounded-full bg-success/80"></div>
+              </div>
+              <div class="mx-auto px-4 py-1 rounded-md bg-panel border border-line text-xs text-muted font-mono">chrome-extension://altreurl/options</div>
+            </div>
+            <img class="block w-full object-cover" src="assets/screenshots/preview_menu_options_add-rule_sync_and_show-fillters.png" alt="Altreurl options page showing a sync rule and filters">
+          </div>
         </div>
       </section>
 
-      <section id="preview" class="home-panel home-panel--gallery" aria-labelledby="gallery-title">
-        <div class="home-panel__heading">
-          <p class="eyebrow">Interface preview</p>
-          <h2 id="gallery-title">Options page, popup, import, export, and diagnostics.</h2>
+      <section id="features" class="py-16 animate-fade-in-up-delay-2" aria-labelledby="features-title">
+        <div class="text-center mb-12">
+          <p class="m-0 mb-3 text-accent-strong text-sm font-extrabold tracking-widest uppercase">Core workflow</p>
+          <h2 id="features-title" class="m-0 text-3xl md:text-4xl font-extrabold leading-tight break-words">Everything needed to debug<br/>request routing in one place.</h2>
         </div>
-        <div class="screenshot-gallery" data-gallery aria-label="Altreurl release screenshots">
-            <figure class="screenshot-stage">
-              <img data-gallery-image src="assets/screenshots/preview_menu_options_add-rule_manual.png" alt="Altreurl options page with a manual credential rule">
-              <figcaption>
-                <strong data-gallery-title>Options add rule manual</strong>
-                <span class="screenshot-count" data-gallery-count>1 / 11</span>
-              </figcaption>
-            </figure>
-            <div class="screenshot-controls" aria-label="Screenshot gallery controls">
-              <button class="gallery-button" type="button" data-gallery-prev aria-label="Previous screenshot">
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15.5 5.5 9 12l6.5 6.5"></path></svg>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- URL Card (Span 2) -->
+          <article class="lg:col-span-2 flex flex-col justify-end min-h-[240px] p-8 border border-line rounded-2xl bg-gradient-to-br from-panel to-accent-soft shadow-soft transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-10 group-hover:opacity-30 transition-opacity duration-500"></div>
+            <span class="inline-flex items-center gap-2 mb-4 text-accent-strong text-xs font-black tracking-widest bg-panel/50 w-fit py-1.5 px-3 rounded-full backdrop-blur-md border border-line">
+              <img class="block flex-none" data-themed-icon="icons8-url-32.png" alt="" width="16" height="16">URL
+            </span>
+            <h3 class="m-0 mb-3 text-2xl font-bold leading-tight break-words relative z-10">Redirect by pattern</h3>
+            <p class="m-0 text-muted text-base break-words relative z-10 max-w-lg">Use wildcard rules for simple paths or regex rules for capture groups to precisely target and reroute API calls to your local environment.</p>
+          </article>
+
+          <!-- AUTH Card -->
+          <article class="flex flex-col justify-end min-h-[240px] p-8 border border-line rounded-2xl bg-panel shadow-soft transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+            <span class="inline-flex items-center gap-2 mb-4 text-accent-strong text-xs font-black tracking-widest bg-accent-soft/50 w-fit py-1.5 px-3 rounded-full">
+              <img class="block flex-none" data-themed-icon="icons8-diploma-32.png" alt="" width="16" height="16">AUTH
+            </span>
+            <h3 class="m-0 mb-3 text-xl font-bold leading-tight break-words">Set headers manually</h3>
+            <p class="m-0 text-muted text-sm break-words">Add Authorization and custom headers when local services need explicit context.</p>
+          </article>
+
+          <!-- SYNC Card -->
+          <article class="flex flex-col justify-end min-h-[240px] p-8 border border-line rounded-2xl bg-panel shadow-soft transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+            <span class="inline-flex items-center gap-2 mb-4 text-accent-strong text-xs font-black tracking-widest bg-accent-soft/50 w-fit py-1.5 px-3 rounded-full">
+              <img class="block flex-none" data-themed-icon="icons8-sync-32.png" alt="" width="16" height="16">SYNC
+            </span>
+            <h3 class="m-0 mb-3 text-xl font-bold leading-tight break-words">Learn credentials</h3>
+            <p class="m-0 text-muted text-sm break-words">Sync selected headers, bearer tokens, cookies, or storage values from source requests.</p>
+          </article>
+
+          <!-- POPUP Card (Span 2) -->
+          <article class="lg:col-span-2 flex flex-col justify-end min-h-[240px] p-8 border border-line rounded-2xl bg-gradient-to-tl from-panel to-panel-soft shadow-soft transition-all duration-300 hover:-translate-y-2 hover:shadow-xl relative overflow-hidden group">
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-accent-strong rounded-full mix-blend-multiply filter blur-3xl opacity-10 group-hover:opacity-20 transition-opacity duration-500"></div>
+            <span class="inline-flex items-center gap-2 mb-4 text-accent-strong text-xs font-black tracking-widest bg-panel/50 w-fit py-1.5 px-3 rounded-full backdrop-blur-md border border-line">
+              <img class="block flex-none" data-themed-icon="icons8-popup-window-32.png" alt="" width="16" height="16">POPUP
+            </span>
+            <h3 class="m-0 mb-3 text-2xl font-bold leading-tight break-words relative z-10">Toggle relevant rules</h3>
+            <p class="m-0 text-muted text-base break-words relative z-10 max-w-lg">The popup intelligently shows rules only for the current active tab and lets you enable or disable them with a single click, without leaving your context.</p>
+          </article>
+
+          <!-- I/O Card (Span 2) -->
+          <article class="lg:col-span-2 flex flex-col justify-end min-h-[240px] p-8 border border-line rounded-2xl bg-panel shadow-soft transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+            <span class="inline-flex items-center gap-2 mb-4 text-accent-strong text-xs font-black tracking-widest bg-accent-soft/50 w-fit py-1.5 px-3 rounded-full">
+              <img class="block flex-none" data-themed-icon="icons8-usb-connector-32.png" alt="" width="16" height="16">I/O
+            </span>
+            <h3 class="m-0 mb-3 text-2xl font-bold leading-tight break-words">Import and export safely</h3>
+            <p class="m-0 text-muted text-base break-words max-w-lg">Preview changes, handle conflicts, and redact sensitive credentials automatically before sharing rule configuration files with your team.</p>
+          </article>
+
+          <!-- LOGS Card -->
+          <article class="flex flex-col justify-end min-h-[240px] p-8 border border-line rounded-2xl bg-panel shadow-soft transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+            <span class="inline-flex items-center gap-2 mb-4 text-accent-strong text-xs font-black tracking-widest bg-accent-soft/50 w-fit py-1.5 px-3 rounded-full">
+              <img class="block flex-none" data-themed-icon="icons8-log-32.png" alt="" width="16" height="16">LOGS
+            </span>
+            <h3 class="m-0 mb-3 text-xl font-bold leading-tight break-words">Copy diagnostics</h3>
+            <p class="m-0 text-muted text-sm break-words">Review dynamic rule state and local logs when a setup behaves unexpectedly.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="preview" class="py-20 relative" aria-labelledby="gallery-title">
+        <div class="absolute inset-0 bg-panel-soft/50 backdrop-blur-3xl z-[-1]"></div>
+        
+        <div class="text-center mb-12">
+          <p class="m-0 mb-3 text-accent-strong text-sm font-extrabold tracking-widest uppercase">Interface preview</p>
+          <h2 id="gallery-title" class="m-0 text-3xl md:text-4xl font-extrabold leading-tight break-words">Options page, popup, import,<br/>export, and diagnostics.</h2>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-4" data-gallery aria-label="Altreurl release screenshots">
+          
+          <!-- Controls Header -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="font-mono bg-accent-soft px-3 py-1 rounded-full text-accent-strong text-xs font-bold" data-gallery-count>1 / 11</span>
+              <strong class="text-text font-bold text-sm md:text-base hidden sm:block" data-gallery-title>Options add rule manual</strong>
+            </div>
+            <div class="flex gap-2" aria-label="Screenshot gallery controls">
+              <button class="inline-flex items-center justify-center gap-2 h-9 px-4 border border-line rounded-lg bg-panel text-text font-bold text-sm hover:border-accent hover:bg-accent-soft transition-all active:scale-95 shadow-sm" type="button" data-gallery-prev aria-label="Previous screenshot">
+                <svg class="w-4 h-4 fill-none stroke-current stroke-[2.4] [stroke-linecap:round] [stroke-linejoin:round]" aria-hidden="true" viewBox="0 0 24 24"><path d="M15.5 5.5 9 12l6.5 6.5"></path></svg>
                 Prev
               </button>
-              <span class="screenshot-status" data-gallery-status>Options add rule manual</span>
-              <button class="gallery-button" type="button" data-gallery-next aria-label="Next screenshot">
+              <button class="inline-flex items-center justify-center gap-2 h-9 px-4 border border-line rounded-lg bg-panel text-text font-bold text-sm hover:border-accent hover:bg-accent-soft transition-all active:scale-95 shadow-sm" type="button" data-gallery-next aria-label="Next screenshot">
                 Next
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8.5 5.5 6.5 6.5-6.5 6.5"></path></svg>
-              </button>
-            </div>
-            <div class="screenshot-thumbs" data-gallery-thumbs aria-label="Choose screenshot">
-              <button class="screenshot-thumb is-active" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_add-rule_manual.png" data-gallery-title="Options add rule manual" data-gallery-alt="Altreurl options page with a manual credential rule" aria-current="true">
-                <img src="assets/screenshots/preview_menu_options_add-rule_manual.png" alt="">
-                <span>Options add rule manual</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_add-rule_sync_and_show-fillters.png" data-gallery-title="Options add rule sync and filters" data-gallery-alt="Altreurl options page with a sync credential rule">
-                <img src="assets/screenshots/preview_menu_options_add-rule_sync_and_show-fillters.png" alt="">
-                <span>Options add rule sync and filters</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_empty.png" data-gallery-title="Options empty state" data-gallery-alt="Altreurl options page empty state">
-                <img src="assets/screenshots/preview_menu_options_empty.png" alt="">
-                <span>Options empty state</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_export.png" data-gallery-title="Options export preview" data-gallery-alt="Altreurl export preview dialog">
-                <img src="assets/screenshots/preview_menu_options_export.png" alt="">
-                <span>Options export preview</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_import.png" data-gallery-title="Options import preview" data-gallery-alt="Altreurl import preview dialog">
-                <img src="assets/screenshots/preview_menu_options_import.png" alt="">
-                <span>Options import preview</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_rule_disable.png" data-gallery-title="Options rule disabled" data-gallery-alt="Altreurl options page with a disabled rule">
-                <img src="assets/screenshots/preview_menu_options_rule_disable.png" alt="">
-                <span>Options rule disabled</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_rule_enable.png" data-gallery-title="Options rule enabled" data-gallery-alt="Altreurl options page with an enabled rule">
-                <img src="assets/screenshots/preview_menu_options_rule_enable.png" alt="">
-                <span>Options rule enabled</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_have_disable.png" data-gallery-title="Popup disable action" data-gallery-alt="Altreurl popup with disable action">
-                <img src="assets/screenshots/preview_popup_have_disable.png" alt="">
-                <span>Popup disable action</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_have_enable.png" data-gallery-title="Popup enable action" data-gallery-alt="Altreurl popup with a matching rule enabled">
-                <img src="assets/screenshots/preview_popup_have_enable.png" alt="">
-                <span>Popup enable action</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_no_rules.png" data-gallery-title="Popup no rules" data-gallery-alt="Altreurl popup with no rules">
-                <img src="assets/screenshots/preview_popup_no_rules.png" alt="">
-                <span>Popup no rules</span>
-              </button>
-              <button class="screenshot-thumb" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_unsupport.png" data-gallery-title="Popup unsupported page" data-gallery-alt="Altreurl popup on an unsupported page">
-                <img src="assets/screenshots/preview_popup_unsupport.png" alt="">
-                <span>Popup unsupported page</span>
+                <svg class="w-4 h-4 fill-none stroke-current stroke-[2.4] [stroke-linecap:round] [stroke-linejoin:round]" aria-hidden="true" viewBox="0 0 24 24"><path d="m8.5 5.5 6.5 6.5-6.5 6.5"></path></svg>
               </button>
             </div>
           </div>
+
+          <!-- Main Preview Window -->
+          <figure class="m-0 mb-6 overflow-hidden bg-panel border border-line rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-glow relative flex flex-col group cursor-zoom-in" onclick="openZoomModal()">
+            <div class="flex items-center px-4 py-3 bg-panel border-b border-line">
+              <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-danger/80"></div>
+                <div class="w-3 h-3 rounded-full bg-accent/80"></div>
+                <div class="w-3 h-3 rounded-full bg-success/80"></div>
+              </div>
+              <div class="mx-auto px-4 py-1 rounded-md bg-panel-soft border border-line text-xs text-muted font-mono" data-gallery-title>Options add rule manual</div>
+            </div>
+            <div class="relative w-full bg-panel-soft aspect-[16/10] sm:aspect-video flex items-center justify-center p-2 sm:p-6">
+              <!-- Hover Zoom Indicator -->
+              <div class="absolute inset-0 bg-panel/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+                <div class="bg-accent-strong text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                  Click to Zoom
+                </div>
+              </div>
+              <img class="block w-full h-full object-contain transition-opacity duration-300" id="main-gallery-image" data-gallery-image src="assets/screenshots/preview_menu_options_add-rule_manual.png" alt="Altreurl options page with a manual credential rule">
+            </div>
+          </figure>
+
+          <!-- Thumbnails (Horizontal Scroll) -->
+          <div class="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory" data-gallery-thumbs aria-label="Choose screenshot">
+            <button class="flex-none w-40 sm:w-48 is-active group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_add-rule_manual.png" data-gallery-title="Options add rule manual" data-gallery-alt="Altreurl options page with a manual credential rule" aria-current="true">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_add-rule_manual.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options add rule manual</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_add-rule_sync_and_show-fillters.png" data-gallery-title="Options add rule sync and filters" data-gallery-alt="Altreurl options page with a sync credential rule">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_add-rule_sync_and_show-fillters.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options add rule sync</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_empty.png" data-gallery-title="Options empty state" data-gallery-alt="Altreurl options page empty state">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_empty.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options empty state</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_export.png" data-gallery-title="Options export preview" data-gallery-alt="Altreurl export preview dialog">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_export.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options export preview</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_import.png" data-gallery-title="Options import preview" data-gallery-alt="Altreurl import preview dialog">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_import.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options import preview</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_rule_disable.png" data-gallery-title="Options rule disabled" data-gallery-alt="Altreurl options page with a disabled rule">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_rule_disable.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options rule disabled</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_menu_options_rule_enable.png" data-gallery-title="Options rule enabled" data-gallery-alt="Altreurl options page with an enabled rule">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_menu_options_rule_enable.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Options rule enabled</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_have_disable.png" data-gallery-title="Popup disable action" data-gallery-alt="Altreurl popup with disable action">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_popup_have_disable.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Popup disable action</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_have_enable.png" data-gallery-title="Popup enable action" data-gallery-alt="Altreurl popup with a matching rule enabled">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_popup_have_enable.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Popup enable action</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_no_rules.png" data-gallery-title="Popup no rules" data-gallery-alt="Altreurl popup with no rules">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_popup_no_rules.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Popup no rules</span>
+            </button>
+            <button class="flex-none w-40 sm:w-48 group flex flex-col gap-2 p-2 border border-line rounded-xl bg-panel text-left cursor-pointer transition-all hover:border-accent hover:bg-accent-soft hover:-translate-y-1 [&.is-active]:border-accent [&.is-active]:bg-accent-soft [&.is-active]:ring-2 [&.is-active]:ring-accent/20 snap-start" type="button" data-gallery-thumb data-gallery-src="assets/screenshots/preview_popup_unsupport.png" data-gallery-title="Popup unsupported page" data-gallery-alt="Altreurl popup on an unsupported page">
+              <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-line bg-panel-soft">
+                <img class="w-full h-full object-contain transition-transform group-hover:scale-105" src="assets/screenshots/preview_popup_unsupport.png" alt="">
+              </div>
+              <span class="text-muted text-[10px] sm:text-xs font-bold leading-tight group-[.is-active]:text-text truncate w-full">Popup unsupported page</span>
+            </button>
+          </div>
+        </div>
       </section>
 
-      <section id="workflow" class="home-panel home-panel--details" aria-labelledby="workflow-title">
-        <article>
-          <p class="eyebrow">Example rule</p>
-          <h2 id="workflow-title">Point a remote API route at localhost.</h2>
-          <p>
-            Create a source pattern, choose the local target, then decide whether credentials
-            should be manual or synced from the source request.
-          </p>
-        </article>
-        <div class="code-panel" aria-label="Example redirect configuration">
-            <span>Source URL pattern</span>
-            <code>https://api.example.com/users/*</code>
-            <span>Redirect target URL</span>
-            <code>http://localhost:3000/users/*</code>
-            <span>Credential mode</span>
-            <code>Sync from source</code>
-            <span>Export safety</span>
-            <code>Redact credentials before sharing</code>
+      <section id="workflow" class="py-24 relative" aria-labelledby="workflow-title">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          
+          <!-- Left Content -->
+          <article class="flex flex-col gap-6">
+            <div>
+              <span class="inline-flex items-center gap-2 py-1.5 px-4 mb-4 border border-accent/30 rounded-full bg-accent/10 text-accent-strong text-xs font-bold tracking-wide uppercase">
+                Example rule
+              </span>
+              <h2 id="workflow-title" class="m-0 text-4xl md:text-5xl font-extrabold leading-[1.1] break-words mb-6">Point a remote API route<br/>at localhost.</h2>
+              <p class="m-0 text-lg text-muted break-words mb-8">
+                Create a source pattern, choose the local target, then decide whether credentials
+                should be manual or synced from the source request. It's that simple.
+              </p>
+            </div>
+            
+            <div class="p-6 border border-line rounded-2xl bg-panel-soft shadow-inner">
+              <span class="inline-flex items-center gap-2 mb-2 text-accent-strong text-xs font-black tracking-widest uppercase">
+                Privacy stance
+              </span>
+              <h3 id="privacy-title" class="m-0 text-xl font-bold leading-[1.1] break-words mb-2">Your rules stay in the browser.</h3>
+              <p class="m-0 text-muted text-sm break-words mb-4">
+                <strong>Altreurl</strong> stores rules, synced values, and diagnostics locally. Exports happen only when you create them.
+              </p>
+              <a class="inline-flex items-center justify-center min-h-[40px] py-2 px-6 border border-line rounded-full bg-panel text-text font-bold text-sm transition-all hover:border-accent hover:bg-accent-soft" href="privacy.html">
+                Read privacy policy
+              </a>
+            </div>
+          </article>
+
+          <!-- Right Content (Mock Terminal/Config window) -->
+          <div class="relative w-full rounded-2xl bg-[#0d1117] border border-line shadow-2xl overflow-hidden transform transition-transform hover:scale-[1.02] duration-500">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-accent rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+            <!-- Mac Window Controls -->
+            <div class="flex items-center px-4 py-3 bg-[#161b22] border-b border-[#30363d]">
+              <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+              </div>
+              <div class="mx-auto text-xs text-gray-400 font-mono">rule-configuration.json</div>
+            </div>
+            <!-- Content -->
+            <div class="p-6 md:p-8 font-mono text-sm leading-loose">
+              <div class="mb-4">
+                <span class="text-gray-500">// Source pattern to intercept</span><br/>
+                <span class="text-[#79c0ff]">"source_url"</span>: <span class="text-[#a5d6ff]">"https://api.example.com/users/*"</span>,
+              </div>
+              <div class="mb-4">
+                <span class="text-gray-500">// Where to redirect it</span><br/>
+                <span class="text-[#79c0ff]">"target_url"</span>: <span class="text-[#a5d6ff]">"http://localhost:3000/users/*"</span>,
+              </div>
+              <div class="mb-4">
+                <span class="text-gray-500">// Automatically attach cookies/headers</span><br/>
+                <span class="text-[#79c0ff]">"credential_mode"</span>: <span class="text-[#a5d6ff]">"sync_from_source"</span>,
+              </div>
+              <div>
+                <span class="text-gray-500">// Safe sharing mode</span><br/>
+                <span class="text-[#79c0ff]">"export_safety"</span>: <span class="text-[#a5d6ff]">"redact_credentials"</span>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <article class="home-privacy" aria-labelledby="privacy-title">
-          <p class="eyebrow">Privacy stance</p>
-          <h2 id="privacy-title">Your rules stay in the browser.</h2>
-          <p>
-            <strong>Altreurl</strong> stores rules, synced values, and diagnostics locally. Exports happen only when you create them.
-          </p>
-          <a class="button" href="privacy.html">Read privacy policy</a>
-        </article>
       </section>
     </main>
 
     <div data-site-footer></div>
+
+    <!-- Zoom Modal -->
+    <div id="zoom-modal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+      <button class="absolute top-6 right-6 w-12 h-12 flex items-center justify-center bg-panel/20 hover:bg-panel/40 text-white rounded-full transition-colors" onclick="closeZoomModal()" aria-label="Close zoom">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <img id="zoom-modal-img" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl scale-95 transition-transform duration-300" src="" alt="Zoomed screenshot">
+    </div>
+
+    <script>
+      function openZoomModal() {
+        const modal = document.getElementById('zoom-modal');
+        const modalImg = document.getElementById('zoom-modal-img');
+        const mainImg = document.getElementById('main-gallery-image');
+        
+        modalImg.src = mainImg.src;
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        
+        // Add slight delay for animation
+        setTimeout(() => {
+          modalImg.classList.remove('scale-95');
+          modalImg.classList.add('scale-100');
+        }, 10);
+
+        // Close on esc key
+        document.addEventListener('keydown', closeOnEsc);
+      }
+
+      function closeZoomModal() {
+        const modal = document.getElementById('zoom-modal');
+        const modalImg = document.getElementById('zoom-modal-img');
+        
+        modalImg.classList.remove('scale-100');
+        modalImg.classList.add('scale-95');
+        
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+
+        document.removeEventListener('keydown', closeOnEsc);
+      }
+
+      function closeOnEsc(e) {
+        if (e.key === 'Escape') closeZoomModal();
+      }
+
+      // Close modal if clicking outside the image
+      document.getElementById('zoom-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeZoomModal();
+      });
+    </script>
   </body>
 </html>

@@ -12,167 +12,167 @@
   <body>
     <div data-site-header></div>
 
-    <main class="docs-shell">
-      <aside class="docs-sidebar" aria-label="Documentation navigation">
-        <div class="docs-version">
-          <label for="docs-version">Version</label>
-          <select id="docs-version" data-doc-version>
+    <main class="grid max-[960px]:grid-cols-1 grid-cols-[240px_minmax(0,1fr)] gap-[clamp(18px,3vw,32px)] w-[min(1328px,100%)] mx-auto p-[clamp(18px,3vw,32px)]">
+      <aside class="sticky top-[78px] self-start grid gap-[14px] max-h-[calc(100vh-96px)] overflow-auto max-[960px]:static max-[960px]:max-h-none" aria-label="Documentation navigation">
+        <div class="grid gap-[6px] p-3 border border-line rounded-lg bg-panel shadow-soft">
+          <label class="text-muted text-[0.78rem] font-extrabold uppercase" for="docs-version">Version</label>
+          <select class="w-full min-h-[34px] border border-line rounded-md bg-panel text-text font-inherit font-bold" id="docs-version" data-doc-version>
             <option value="v1.13.0">Latest</option>
             <option value="v1.12.x">Previous</option>
           </select>
         </div>
-        <nav>
-          <a href="#introduction">Introduction</a>
-          <a href="#quick-start">Quick start</a>
-          <a href="#rules">Rules</a>
-          <a href="#credentials">Credentials</a>
-          <a href="#popup">Popup</a>
-          <a href="#import-export">Import/export</a>
-          <a href="#permissions">Permissions</a>
-          <a href="#troubleshooting">Troubleshooting</a>
+        <nav class="grid items-stretch gap-[2px] p-2 border border-line rounded-lg bg-panel shadow-soft max-[960px]:grid-cols-4 max-[720px]:grid-cols-1">
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#introduction">Introduction</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#quick-start">Quick start</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#rules">Rules</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#credentials">Credentials</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#popup">Popup</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#import-export">Import/export</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#permissions">Permissions</a>
+          <a class="block py-[7px] px-[9px] rounded-md hover:bg-accent-soft no-underline" href="#troubleshooting">Troubleshooting</a>
         </nav>
       </aside>
 
-      <article class="docs-content">
-        <header class="docs-hero" id="introduction">
-          <p class="eyebrow">Documentation</p>
-          <h1>Get started with <strong>Altreurl</strong></h1>
-          <p>
+      <article class="grid gap-[14px] min-w-0">
+        <header class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft" id="introduction">
+          <p class="m-0 mb-[7px] text-accent-strong text-[0.76rem] font-extrabold tracking-normal uppercase">Documentation</p>
+          <h1 class="m-0 text-[clamp(2.2rem,5vw,4.2rem)] break-words">Get started with <strong>Altreurl</strong></h1>
+          <p class="m-0 text-muted break-words">
             <strong>Altreurl</strong> is a Chromium MV3 extension for redirecting configured request URLs,
             forwarding selected headers, Authorization values, and cookies, and keeping local
             backend debugging close to the browser.
           </p>
-          <div class="docs-actions">
-            <a class="button" href="https://github.com/yavanara/altreurl" rel="noopener">
-              <img data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
+          <div class="flex flex-wrap gap-[10px] mt-4">
+            <a class="inline-flex items-center justify-center min-h-[36px] py-2 px-3 border border-line rounded-md bg-panel text-text font-bold gap-[7px] no-underline hover:border-accent" href="https://github.com/yavanara/altreurl" rel="noopener">
+              <img class="block flex-none" data-themed-icon="icons8-github-32.png" alt="" width="16" height="16">
               View source
             </a>
-            <a class="button" href="store-listing.html">
-              <img data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">
+            <a class="inline-flex items-center justify-center min-h-[36px] py-2 px-3 border border-line rounded-md bg-panel text-text font-bold gap-[7px] no-underline hover:border-accent" href="store-listing.html">
+              <img class="block flex-none" data-themed-icon="icons8-globe-32.png" alt="" width="16" height="16">
               Store copy
             </a>
           </div>
         </header>
 
-        <section class="docs-panel" data-doc-panel="v1.13.0">
-          <section id="quick-start" class="docs-section">
-            <h2>Quick start</h2>
+        <section class="grid gap-[14px]" data-doc-panel="v1.13.0">
+          <section id="quick-start" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Quick start</h2>
             <ol>
-              <li>Install <strong>Altreurl</strong> from a browser store or load the packaged extension in Chromium developer mode.</li>
-              <li>Open the options page and create a rule with a source URL pattern and redirect target URL.</li>
-              <li>Choose wildcard for simple path forwarding or regex when you need capture groups.</li>
-              <li>Select a credential mode, save the rule, then trigger a matching request from your web app.</li>
-              <li>Use the popup on matching tabs to enable or disable contextual rules quickly.</li>
+              <li class="text-muted break-words m-0">Install <strong>Altreurl</strong> from a browser store or load the packaged extension in Chromium developer mode.</li>
+              <li class="text-muted break-words m-0">Open the options page and create a rule with a source URL pattern and redirect target URL.</li>
+              <li class="text-muted break-words m-0">Choose wildcard for simple path forwarding or regex when you need capture groups.</li>
+              <li class="text-muted break-words m-0">Select a credential mode, save the rule, then trigger a matching request from your web app.</li>
+              <li class="text-muted break-words m-0">Use the popup on matching tabs to enable or disable contextual rules quickly.</li>
             </ol>
-            <pre><code>Source:  https://api.example.com/users/*
+            <pre class="m-0 mt-[14px] overflow-auto p-3 border border-line rounded-md bg-accent-soft"><code class="text-text font-mono">Source:  https://api.example.com/users/*
 Target:  http://localhost:3000/users/*
 Mode:    Sync from source request</code></pre>
           </section>
 
-          <section id="rules" class="docs-section">
-            <h2>Rules</h2>
-            <p>
+          <section id="rules" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Rules</h2>
+            <p class="m-0 text-muted break-words">
               A rule describes what request should be matched, where it should be redirected,
               and which request data may be added or replaced. Rules can be enabled, disabled,
               grouped, searched, imported, exported, and inspected from diagnostics.
             </p>
-            <div class="docs-grid">
-              <div>
-                <h3>Wildcard patterns</h3>
-                <p>Use <code>*</code> for straightforward path forwarding, such as mirroring one API path to localhost.</p>
+            <div class="grid grid-cols-[repeat(2,minmax(0,1fr))] max-[720px]:grid-cols-1 gap-3 mt-3">
+              <div class="p-3 border border-line rounded-lg bg-accent-soft">
+                <h3 class="m-0 mb-2 mt-0 text-[1.05rem] leading-[1.25] break-words">Wildcard patterns</h3>
+                <p class="m-0 text-muted break-words">Use <code>*</code> for straightforward path forwarding, such as mirroring one API path to localhost.</p>
               </div>
-              <div>
-                <h3>Regex patterns</h3>
-                <p>Use regex when the target URL needs capture groups or stricter matching.</p>
+              <div class="p-3 border border-line rounded-lg bg-accent-soft">
+                <h3 class="m-0 mb-2 mt-0 text-[1.05rem] leading-[1.25] break-words">Regex patterns</h3>
+                <p class="m-0 text-muted break-words">Use regex when the target URL needs capture groups or stricter matching.</p>
               </div>
             </div>
           </section>
 
-          <section id="credentials" class="docs-section">
-            <h2>Credentials</h2>
-            <p>
+          <section id="credentials" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Credentials</h2>
+            <p class="m-0 text-muted break-words">
               Credential handling is explicit per rule. Use manual mode for fixed debug values, request
               learning for headers from source traffic, browser storage sync for app-owned storage, or
               cookie sync when the local backend needs a selected session cookie.
             </p>
-            <table>
+            <table class="w-full mt-3 border-collapse break-words">
               <thead>
                 <tr>
-                  <th>Mode</th>
-                  <th>Use when</th>
+                  <th class="py-[9px] px-[10px] border border-line text-left align-top">Mode</th>
+                  <th class="py-[9px] px-[10px] border border-line text-left align-top">Use when</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Manual</td>
-                  <td>You already know the Authorization value or custom headers.</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">Manual</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">You already know the Authorization value or custom headers.</td>
                 </tr>
                 <tr>
-                  <td>Request learning</td>
-                  <td>The source request should teach <strong>Altreurl</strong> which headers to reuse.</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">Request learning</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">The source request should teach <strong>Altreurl</strong> which headers to reuse.</td>
                 </tr>
                 <tr>
-                  <td>Browser storage</td>
-                  <td>Tokens live in localStorage or sessionStorage on the source origin.</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">Browser storage</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">Tokens live in localStorage or sessionStorage on the source origin.</td>
                 </tr>
                 <tr>
-                  <td>Cookies</td>
-                  <td>A selected Chrome cookie should be forwarded to the target request.</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">Cookies</td>
+                  <td class="text-muted break-words m-0 py-[9px] px-[10px] border border-line text-left align-top">A selected Chrome cookie should be forwarded to the target request.</td>
                 </tr>
               </tbody>
             </table>
           </section>
 
-          <section id="popup" class="docs-section">
-            <h2>Popup</h2>
-            <p>
+          <section id="popup" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Popup</h2>
+            <p class="m-0 text-muted break-words">
               The popup shows rules that match the active tab domain or origin. It is built for quick
               toggles while testing a page, not for full rule editing. Use the options page for detailed
               rule setup, import/export, and diagnostics.
             </p>
           </section>
 
-          <section id="import-export" class="docs-section">
-            <h2>Import and export</h2>
-            <p>
+          <section id="import-export" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Import and export</h2>
+            <p class="m-0 text-muted break-words">
               Exports can include all rules or a selected scope. Before sharing JSON, choose whether
               credentials should be included, redacted, or removed. Imports show a preview so you can
               review conflicts before writing changes.
             </p>
           </section>
 
-          <section id="permissions" class="docs-section">
-            <h2>Permissions</h2>
-            <p>
+          <section id="permissions" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Permissions</h2>
+            <p class="m-0 text-muted break-words">
               <strong>Altreurl</strong> uses Chromium extension APIs only for its debugging purpose: dynamic request
               rules, request header learning, cookie reading for selected sync rules, scripting for
               browser storage reads, tabs for contextual popup matching, and local extension storage.
             </p>
           </section>
 
-          <section id="troubleshooting" class="docs-section">
-            <h2>Troubleshooting</h2>
+          <section id="troubleshooting" class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">Troubleshooting</h2>
             <ul>
-              <li>If a rule is not ready, check the source pattern, target URL, enabled state, and credential mode.</li>
-              <li>If sync mode waits forever, trigger one matching source request before testing the redirect again.</li>
-              <li>If browser storage sync fails, keep a source-origin tab open and reload the options page.</li>
-              <li>If cookies are missing, confirm the cookie domain and browser profile match the source origin.</li>
-              <li>Use Diagnostics for dynamic rule counts, apply errors, and privacy-safe local logs.</li>
+              <li class="text-muted break-words m-0">If a rule is not ready, check the source pattern, target URL, enabled state, and credential mode.</li>
+              <li class="text-muted break-words m-0">If sync mode waits forever, trigger one matching source request before testing the redirect again.</li>
+              <li class="text-muted break-words m-0">If browser storage sync fails, keep a source-origin tab open and reload the options page.</li>
+              <li class="text-muted break-words m-0">If cookies are missing, confirm the cookie domain and browser profile match the source origin.</li>
+              <li class="text-muted break-words m-0">Use Diagnostics for dynamic rule counts, apply errors, and privacy-safe local logs.</li>
             </ul>
           </section>
         </section>
 
-        <section class="docs-panel" data-doc-panel="v1.12.x" hidden>
-          <section class="docs-section">
-            <h2>v1.12.x notes</h2>
-            <p>
+        <section class="grid gap-[14px]" data-doc-panel="v1.12.x" hidden>
+          <section class="p-[clamp(16px,3vw,26px)] border border-line rounded-lg bg-panel shadow-soft scroll-mt-[92px]">
+            <h2 class="m-0 mb-[10px] text-[clamp(1.45rem,3vw,2.35rem)] leading-[1.1] break-words">v1.12.x notes</h2>
+            <p class="m-0 text-muted break-words">
               This archived documentation slot is reserved for the previous public release. Keep
               stable workflows here when rule editing, diagnostics, or credential sync changes.
             </p>
             <ul>
-              <li>Use the same source and target URL rule model.</li>
-              <li>Prefer manual or request-learned credentials for repeatable local debugging.</li>
-              <li>Review release notes before importing rules created by newer versions.</li>
+              <li class="text-muted break-words m-0">Use the same source and target URL rule model.</li>
+              <li class="text-muted break-words m-0">Prefer manual or request-learned credentials for repeatable local debugging.</li>
+              <li class="text-muted break-words m-0">Review release notes before importing rules created by newer versions.</li>
             </ul>
           </section>
         </section>

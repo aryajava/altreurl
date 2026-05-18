@@ -12,38 +12,38 @@
   <body>
     <div data-site-header></div>
 
-    <main class="document">
-      <article class="document__inner">
-        <p class="eyebrow">Publishing helper</p>
-        <h1>Browser store copy</h1>
-        <p>
+    <main class="p-[clamp(24px,4vw,44px)_clamp(14px,2.4vw,32px)]">
+      <article class="w-[min(900px,100%)] mx-auto p-[clamp(18px,3vw,30px)] bg-panel border border-line rounded-lg shadow-soft">
+        <p class="m-0 mb-[7px] text-accent-strong text-[0.76rem] font-extrabold tracking-normal uppercase">Publishing helper</p>
+        <h1 class="m-0 mb-3 text-[clamp(2rem,4.6vw,3.4rem)] break-words">Browser store copy</h1>
+        <p class="text-muted m-0 break-words">
           This page keeps submission copy in one public place for the <strong>Altreurl</strong> browser store release.
         </p>
 
-        <h2>Short description</h2>
-        <p class="copy-box">Manage local debugging redirects and request header overrides.</p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Short description</h2>
+        <p class="p-3 border border-line border-l-4 border-l-accent rounded-md bg-accent-soft text-muted m-0 break-words">Manage local debugging redirects and request header overrides.</p>
 
-        <h2>Detailed description</h2>
-        <div class="copy-box">
-          <p>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Detailed description</h2>
+        <div class="p-3 border border-line border-l-4 border-l-accent rounded-md bg-accent-soft">
+          <p class="text-muted break-words mt-0">
             <strong>Altreurl</strong> helps backend developers route application requests to local or alternate backend endpoints
             while debugging. Create configurable rules for URL redirects, request headers, Authorization values,
             and session cookies without changing application source code.
           </p>
-          <p>
+          <p class="text-muted break-words">
             Rules support wildcard and regex patterns, pattern conversion, manual credential values, credential
             learning from source requests, browser storage sync, cookie sync, grouping, search, multi-select
             actions, import/export previews, credential redaction, diagnostics, local logs, and a contextual popup
             for enabling or disabling rules that match the active tab.
           </p>
-          <p>
+          <p class="text-muted break-words mb-0">
             Rule configuration and synced credential values are stored locally in the browser profile. <strong>Altreurl</strong>
             does not send rule data, headers, cookies, Authorization values, or browsing activity to an <strong>Altreurl</strong> server.
           </p>
         </div>
 
-        <h2>Permission justification</h2>
-        <ul>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Permission justification</h2>
+        <ul class="text-muted">
           <li>declarativeNetRequest: creates dynamic redirect and modifyHeaders rules.</li>
           <li>declarativeNetRequestWithHostAccess: applies user-configured rules on allowed hosts.</li>
           <li>webRequest: reads matching source request headers for learning mode.</li>
@@ -54,8 +54,8 @@
           <li>Host permissions: support any source or target domain configured by the developer.</li>
         </ul>
 
-        <h2>Reviewer test instructions</h2>
-        <ol>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Reviewer test instructions</h2>
+        <ol class="text-muted">
           <li>Open the extension options page and create a wildcard rule such as source https://api.example.com/users/* to target http://localhost:3000/users/*.</li>
           <li>Save the rule and verify it appears as ready when valid.</li>
           <li>Open a matching http or https tab and use the popup to enable or disable contextual rules.</li>
@@ -65,8 +65,8 @@
           <li>Open Export preview and choose whether credentials are redacted, removed, or included.</li>
         </ol>
 
-        <h2>Assets included in this website repo</h2>
-        <ul>
+        <h2 class="m-0 mt-[26px] mb-3 text-[clamp(1.2rem,2.2vw,1.55rem)] break-words">Assets included in this website repo</h2>
+        <ul class="text-muted">
           <li>Extension v2 favicons: 16, 32, 48, 64, and 128 px.</li>
           <li>Release screenshots: assets/screenshots/.</li>
           <li>Public privacy policy: privacy.html.</li>
